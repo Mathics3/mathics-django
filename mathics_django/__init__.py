@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import platform
 import sympy
 import mpmath
 import django
@@ -21,24 +20,7 @@ from mathics.core.expression import (
     MachineReal,
     PrecisionReal,
 )
-from mathics.core.convert import from_sympy
-
-
-version_info = {
-    "mathics": __version__,
-    "sympy": sympy.__version__,
-    "mpmath": mpmath.__version__,
-    "python": platform.python_implementation() + " " + sys.version.split("\n")[0],
-    "django": django.__version__,
-}
-
-try:
-    import cython
-except ImportError:
-    pass
-else:
-    version_info["cython"] = cython.__version__
-
+from mathics import version_info
 
 version_string = """Mathics {mathics}
 on {python}

@@ -4,8 +4,6 @@
 # These comments before the targets start with #:
 # remake --tasks to shows the targets and the comments
 
-DOCKER_COMPOSE ?= docker-compose
-DOCKER_COMPOSE_FILE =
 GIT2CL ?= admin-tools/git2cl
 PYTHON ?= python3
 PIP ?= pip3
@@ -39,52 +37,25 @@ build:
 develop:
 	$(PIP) install -e .
 
-#: Build docker image
-docker-image:
-	$(DOCKER_COMPOSE) $(DOCKER_COMPOSE_FILE) build
-
-#: Install mathics
+#: Install Mathics-Django
 install:
 	$(PYTHON) setup.py install
 
 #: Run Django-based server in development mode. Use environment variable "o" for manage options
 runserver:
-	$(PYTHON) mathics/manage.py runserver $o
+	$(PYTHON) mathics_django/manage.py runserver $o
 
-check: pytest doctest djangotest gstest
+check: djangotest
 
 #: Remove derived files
 clean:
-	rm mathics/*/*.so; \
-	for dir in mathics/doc ; do \
+	for dir in mathics-django/doc ; do \
 	   ($(MAKE) -C "$$dir" clean); \
 	done;
 
-#: Run py.test tests. Use environment variable "o" for pytest options
-pytest:
-	py.test test $o
-
-
-#: Run a more extensive pattern-matching test
-gstest:
-	(cd examples/symbolic_logic/gries_schneider && ./test-gs.sh)
-
-
-#: Create data that is used to in Django docs and to build TeX PDF
-doc-data mathics/doc/tex/data: mathics/builtin/*.py mathics/doc/documentation/*.mdoc mathics/doc/documentation/images/*
-	$(PYTHON) mathics/test.py -ot -k
-
-#: Run tests that appear in docstring in the code.
-doctest:
-	SANDBOX=$(SANDBOX) $(PYTHON) mathics/test.py $o
-
 #: Run Django tests
 djangotest:
-	cd mathics && $(PYTHON) manage.py test test_django
-
-#: Make Mathics PDF manual
-doc mathics.pdf: mathics/doc/tex/data
-	(cd mathics/doc/tex && $(MAKE) mathics.pdf)
+	cd mathics_django && $(PYTHON) manage.py test test_django
 
 #: Remove ChangeLog
 rmChangeLog:
