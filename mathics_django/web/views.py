@@ -26,9 +26,7 @@ from mathics.core.expression import Expression
 from mathics.web.models import Query, Worksheet, get_session_evaluation
 from mathics.web.forms import LoginForm, SaveForm
 from mathics.doc import documentation
-from mathics.doc.doc import DocPart, DocChapter, DocSection
-
-from string import Template
+from mathics.doc.doc import DocPart, DocChapter
 
 documentation.load_pymathics_doc()
 
@@ -44,13 +42,13 @@ class JsonResponse(HttpResponse):
         super(JsonResponse, self).__init__(response, content_type=JSON_CONTENT_TYPE)
 
 
-def require_ajax_login(func):
-    def new_func(request, *args, **kwargs):
-        if not request.user.is_authenticated():
-            return JsonResponse({"requireLogin": True})
-        return func(request, *args, **kwargs)
+# def require_ajax_login(func):
+#     def new_func(request, *args, **kwargs):
+#         if not request.user.is_authenticated():
+#             return JsonResponse({"requireLogin": True})
+#         return func(request, *args, **kwargs)
 
-    return new_func
+#     return new_func
 
 
 from mathics.settings import default_pymathics_modules
@@ -131,13 +129,16 @@ def query(request):
                 results.append(Result(evaluation.out, None, None))  # syntax errors
                 evaluation.out = []
                 continue
-            result = evaluation.evaluate(expr, timeout=settings.TIMEOUT)
-            if result is not None:
-                results.append(result)
-    except SystemExit as e:
+            # Start here..
+            # result = evaluation.evaluate(expr, timeout=settings.TIMEOUT, format="unformatted")
+            results.append(Result(evaluation.out, None, None))  # syntax errors
+
+    except SystemExit:
         results = []
         result = None
-        definitions = Definitions(add_builtin=True, extension_modules=default_pymathics_modules)
+        definitions = Definitions(
+            add_builtin=True, extension_modules=default_pymathics_modules
+        )
         evaluation.definitions = definitions
     except Exception as exc:
         if settings.DEBUG and settings.DISPLAY_EXCEPTIONS:
