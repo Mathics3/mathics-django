@@ -3,7 +3,7 @@
 
 
 from django.conf.urls import url
-from mathics.web.views import (
+from mathics_django.web.views import (
     query,
     main_view,
     login,

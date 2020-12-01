@@ -10,8 +10,8 @@ import errno
 import subprocess
 
 import mathics
-from mathics import server_version_string, license_string
-from mathics import settings as mathics_settings  # Prevents UnboundLocalError
+from mathics_django import server_version_string, license_string
+from mathics_django import settings as mathics_settings  # Prevents UnboundLocalError
 
 
 def check_database():
@@ -110,7 +110,7 @@ http://localhost:%d\nin Firefox, Chrome, or Safari to use Mathics\n""" % port)
 
 
 def main():
-    os.environ['DJANGO_SETTINGS_MODULE'] = 'mathics.settings'
+    os.environ['DJANGO_SETTINGS_MODULE'] = 'mathics_django.settings'
     check_database()
     args = parse_args()
     launch_app(args)

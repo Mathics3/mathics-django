@@ -111,7 +111,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
 ]
 
-ROOT_URLCONF = 'mathics.urls'
+ROOT_URLCONF = 'mathics_django.urls'
 
 # Rocky: this is probably a hack. LoadModule[] needs to handle
 # whatever it is that setting this thing did.
@@ -136,5 +136,5 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
-    'mathics.web',
+    'mathics_django.web',
 )

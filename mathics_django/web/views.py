@@ -23,8 +23,8 @@ from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Message, Result
 from mathics.core.expression import Expression
 
-from mathics.web.models import Query, Worksheet, get_session_evaluation
-from mathics.web.forms import LoginForm, SaveForm
+from mathics_django.web.models import Query, Worksheet, get_session_evaluation
+from mathics_django.web.forms import LoginForm, SaveForm
 from mathics.doc import documentation
 from mathics.doc.doc import DocPart, DocChapter
 

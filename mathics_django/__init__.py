@@ -21,6 +21,7 @@ from mathics.core.expression import (
     PrecisionReal,
 )
 from mathics import version_info
+version_info["django"] = django.__version__
 
 version_string = """Mathics {mathics}
 on {python}
