@@ -35,7 +35,8 @@ ADMINS = (
 )
 MANAGERS = ADMINS
 
-ROOT_DIR = pkg_resources.resource_filename('mathics', '')
+ROOT_DIR = pkg_resources.resource_filename('mathics_django', '')
+MATHICS_ROOT_DIR = pkg_resources.resource_filename('mathics', '')
 if sys.platform.startswith('win'):
     DATA_DIR = os.environ['APPDATA'].replace(os.sep, '/') + '/Python/Mathics/'
 else:
@@ -43,10 +44,10 @@ else:
 # if not path.exists(DATA_DIR):
 #    os.makedirs(DATA_DIR)
 
-DOC_DIR = os.path.join(ROOT_DIR, 'doc/documentation/')
-DOC_TEX_DATA = os.path.join(ROOT_DIR, 'doc/tex/data')
-DOC_XML_DATA = os.path.join(ROOT_DIR, 'doc/xml/data')
-DOC_LATEX_FILE = os.path.join(ROOT_DIR, 'doc/tex/documentation.tex')
+DOC_DIR = os.path.join(MATHICS_ROOT_DIR, 'doc/documentation/')
+DOC_TEX_DATA = os.path.join(MATHICS_ROOT_DIR, 'doc/tex/data')
+DOC_XML_DATA = os.path.join(MATHICS_ROOT_DIR, 'doc/xml/data')
+DOC_LATEX_FILE = os.path.join(MATHICS_ROOT_DIR, 'doc/tex/documentation.tex')
 
 DATABASES = {
     'default': {
