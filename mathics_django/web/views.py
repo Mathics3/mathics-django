@@ -126,13 +126,13 @@ def query(request):
         while not feeder.empty():
             expr = evaluation.parse_feeder(feeder)
             if expr is None:
-                # Start here..
-                # from trepan.api import debug; debug()
-                # result = evaluation.evaluate(expr, timeout=settings.TIMEOUT, format="unformatted")
                 results.append(Result(evaluation.out, None, None))  # syntax errors
                 evaluation.out = []
                 continue
-            results.append(Result(evaluation.out, None, None))  # syntax errors
+            # START HERE.
+            # Handle unformatted.
+            result = evaluation.evaluate(expr, timeout=settings.TIMEOUT, format="xml")
+            results.append(result)  # syntax errors
 
     except SystemExit:
         results = []
