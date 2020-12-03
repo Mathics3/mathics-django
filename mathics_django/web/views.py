@@ -132,6 +132,9 @@ def query(request):
             # START HERE.
             # Handle unformatted.
             result = evaluation.evaluate(expr, timeout=settings.TIMEOUT, format="xml")
+            if str(result.last_eval) == "-Graph-":
+                from mathics_django.web.format import format_graph
+                format_graph(result.last_eval.G)
             results.append(result)  # syntax errors
 
     except SystemExit:
