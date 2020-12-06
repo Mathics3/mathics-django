@@ -134,7 +134,9 @@ def query(request):
             result = evaluation.evaluate(expr, timeout=settings.TIMEOUT, format="xml")
             if str(result.last_eval) == "-Graph-":
                 from mathics_django.web.format import format_graph
-                format_graph(result.last_eval.G)
+                svg_data = format_graph(result.last_eval.G)
+                result.result="""<math display="block"><mstyle mathvariant="sans-serif"><mglyph width="400px" height="247px" src="%s"/</mstyle></math>""" % svg_data
+
             results.append(result)  # syntax errors
 
     except SystemExit:

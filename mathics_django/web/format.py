@@ -2,8 +2,66 @@
 Format Mathics objects
 """
 
+from tempfile import NamedTemporaryFile
 import random
+import math
 import networkx as nx
+import tempfile
+
+
+def format_output(obj, expr, format=None):
+    if format is None:
+        format = obj.format
+
+    if isinstance(format, dict):
+        return dict((k, obj.format_output(expr, f)) for k, f in format.items())
+
+    from mathics.core.expression import Expression, BoxError
+
+    expr_type = expr.get_head_name()
+    if expr_type == "System`MathMLForm":
+        format = "xml"
+        leaves = expr.get_leaves()
+        if len(leaves) == 1:
+            expr = leaves[0]
+    elif expr_type == "System`TeXForm":
+        format = "tex"
+        leaves = expr.get_leaves()
+        if len(leaves) == 1:
+            expr = leaves[0]
+    elif expr_type == "System`Graphics":
+        result = Expression("StandardForm", expr).format(obj, "System`MathMLForm")
+        ml_str = result.leaves[0].leaves[0]
+        # FIXME: not quite right. Need to parse out strings
+        display_svg(str(ml_str))
+
+    if format == "text":
+        result = expr.format(obj, "System`OutputForm")
+    elif format == "xml":
+        result = Expression("StandardForm", expr).format(obj, "System`MathMLForm")
+    elif format == "tex":
+        result = Expression("StandardForm", expr).format(obj, "System`TeXForm")
+    elif format == "unformatted":
+        if str(expr) == "-Graph-":
+            return format_graph(expr.G)
+        else:
+            result = expr.format(obj, "System`OutputForm")
+    else:
+        raise ValueError
+
+    try:
+        boxes = result.boxes_to_text(evaluation=obj)
+    except BoxError:
+        boxes = None
+        if not hasattr(obj, "seen_box_error"):
+            obj.seen_box_error = True
+            obj.message(
+                "General", "notboxes", Expression("FullForm", result).evaluate(obj)
+            )
+    return boxes
+
+
+cached_pair = None
 
 
 def hierarchy_pos(
@@ -64,6 +122,10 @@ def hierarchy_pos(
     """
     if not nx.is_tree(G):
         raise TypeError("cannot use hierarchy_pos on a graph that is not a tree")
+
+    global cached_pair
+    if cached_pair is not None:
+        return cached_pair
 
     # These get swapped if tree edge directions point to the root.
     decendants = nx.descendants
@@ -195,7 +257,8 @@ def hierarchy_pos(
         if n <= 0:
             continue
         min_sep = min([x_list[i + 1] - x_list[i] for i in range(n)] + [min_sep])
-    return pos, min_sep
+    cached_pair = pos, min_sep
+    return cached_pair
 
 
 node_size = 300  # this is networkx's default size
@@ -221,6 +284,49 @@ NETWORKX_LAYOUTS = {
 }
 
 
+def clamp(value, min=-math.inf, max=math.inf):
+    if value <= min:
+        return min
+    if value >= max:
+        return max
+    return value
+
+
+DEFAULT_NODE_SIZE = 300.0
+DEFAULT_POINT_SIZE = 16
+
+
+def harmonize_parameters(G, draw_options: dict):
+
+    global node_size
+    graph_layout = G.graph_layout if hasattr(G, "graph_layout") else ""
+
+    if graph_layout == "tree":
+        # Call this to compute node_size. Cache the
+        # results
+        tree_layout(G)
+        draw_options["node_size"] = node_size
+    elif graph_layout == "circular":
+        node_size = draw_options["node_size"] = (2 * DEFAULT_NODE_SIZE) / math.sqrt(
+            len(G) + 1
+        )
+
+    if draw_options.get("with_labels", False):
+        draw_options["edgecolors"] = draw_options.get("edgecolors", "black")
+        draw_options["node_color"] = draw_options.get("node_color", "white")
+
+    if "width" not in draw_options:
+        width = clamp(node_size / DEFAULT_NODE_SIZE, min=0.15)
+        draw_options["width"] = width
+
+    if "font_size" not in draw_options:
+        # FIXME: should also take into consideration max width of label.
+        font_size = clamp(
+            int((node_size * DEFAULT_POINT_SIZE) / DEFAULT_NODE_SIZE), min=1, max=18
+        )
+        draw_options["font_size"] = font_size
+
+
 def format_graph(G):
     """
     Format a Graph
@@ -229,12 +335,25 @@ def format_graph(G):
     import matplotlib.pyplot as plt
 
     global node_size
-    node_size = 300  # This is networkx's default
+    global cached_pair
+
+    cached_pair = None
 
     graph_layout = G.graph_layout if hasattr(G, "graph_layout") else None
+
+    node_size = DEFAULT_NODE_SIZE
+    draw_options = {
+        "node_size": node_size,
+        # "with_labels": vertex_labels # Set below
+        # "font_size": 12,        # Harmonized
+        # "node_color": "white",  # Set below
+        # "edgecolors": "black",  # Set below
+        # "width": 5,             # Marmonized
+    }
+
     vertex_labels = G.vertex_labels if hasattr(G, "vertex_labels") else False
     if vertex_labels:
-        vertex_labels = vertex_labels.to_python() or False
+        draw_options["with_labels"] = vertex_labels.to_python() or False
 
     if hasattr(G, "title") and G.title.get_string_value():
         fig, ax = plt.subplots()  # Create a figure and an axes
@@ -247,23 +366,21 @@ def format_graph(G):
     else:
         layout_fn = None
 
-    options = {
-        # "font_size": 36,
-        "node_size": node_size,
-        # "node_color": "white",  # Set below
-        # "edgecolors": "black",  # Set below
-        # "linewidths": 5,
-        # "width": 5,
-        "with_labels": vertex_labels,
-    }
-
-    if vertex_labels:
-        options["node_color"] = "white"
-        options["edgecolors"] = "black"
+    harmonize_parameters(G, draw_options)
 
     if layout_fn:
-        nx.draw(G, pos=layout_fn(G), **options)
+        nx.draw(G, pos=layout_fn(G), **draw_options)
     else:
-        nx.draw_shell(G, **options)
+        nx.draw_shell(G, **draw_options)
+    tempbuf = NamedTemporaryFile(
+        mode="w+b",
+        buffering=-1,
+        encoding=None,
+        newline=None,
+        delete=False,
+        suffix=".svg",
+        prefix="MathicsGraph-",
+    )
+    plt.savefig(tempbuf.name, format="svg")
     plt.show()
-    return None
+    return tempbuf.name
