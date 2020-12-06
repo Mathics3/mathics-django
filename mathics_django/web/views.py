@@ -25,8 +25,8 @@ from mathics.core.expression import Expression
 
 from mathics_django.web.models import Query, Worksheet, get_session_evaluation
 from mathics_django.web.forms import LoginForm, SaveForm
-from mathics.doc import documentation
-from mathics.doc.doc import DocPart, DocChapter
+from mathics_django.doc import documentation
+from mathics_django.doc.doc import DocPart, DocChapter
 
 documentation.load_pymathics_doc()
 
@@ -134,8 +134,9 @@ def query(request):
             result = evaluation.evaluate(expr, timeout=settings.TIMEOUT, format="xml")
             if str(result.last_eval) == "-Graph-":
                 from mathics_django.web.format import format_graph
-                svg_data = format_graph(result.last_eval.G)
-                result.result="""<math display="block"><mstyle mathvariant="sans-serif"><mglyph width="400px" height="247px" src="%s"/</mstyle></math>""" % svg_data
+                svg_path = format_graph(result.last_eval.G)
+                result.result="""<math><mi href="file://%s">Graph file://%s</mi></math>""" % (svg_path, svg_path)
+                # result.result="""<img src="%s" alt="graph">""" % svg_path
 
             results.append(result)  # syntax errors
 
