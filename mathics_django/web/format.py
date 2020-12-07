@@ -272,6 +272,10 @@ def tree_layout(G):
     return pos
 
 
+def spiral_equidistant_layout(G, *args, **kwargs):
+    return nx.spiral_layout(G, equidistant=True, *args, **kwargs)
+
+
 NETWORKX_LAYOUTS = {
     "circular": nx.circular_layout,
     "multipartite": nx.multipartite_layout,
@@ -279,9 +283,13 @@ NETWORKX_LAYOUTS = {
     "random": nx.random_layout,
     "shell": nx.shell_layout,
     "spectral": nx.spectral_layout,
+    "spiral": nx.spiral_layout,
+    "spiral_equidistant": spiral_equidistant_layout,
     "spring": nx.spring_layout,
     "tree": tree_layout,
 }
+
+LAYOUT_DENSITY_EXPONENT = {"circular": 0.9, "spiral_equidistant": 0.7, "spiral": 0.6}
 
 
 def clamp(value, min=-math.inf, max=math.inf):
@@ -306,10 +314,12 @@ def harmonize_parameters(G, draw_options: dict):
         # results
         tree_layout(G)
         draw_options["node_size"] = node_size
-    elif graph_layout == "circular":
-        node_size = draw_options["node_size"] = (2 * DEFAULT_NODE_SIZE) / math.sqrt(
+    elif graph_layout in ["circular", "spiral", "spiral_equidistant"]:
+        exponent = LAYOUT_DENSITY_EXPONENT[graph_layout]
+        node_size = draw_options["node_size"] = (2 * DEFAULT_NODE_SIZE) / (
             len(G) + 1
-        )
+        ) ** exponent
+        # print("XX", node_size, exponent)
 
     if draw_options.get("with_labels", False):
         draw_options["edgecolors"] = draw_options.get("edgecolors", "black")
@@ -318,6 +328,8 @@ def harmonize_parameters(G, draw_options: dict):
     if "width" not in draw_options:
         width = clamp(node_size / DEFAULT_NODE_SIZE, min=0.15)
         draw_options["width"] = width
+    print("width", draw_options["width"])
+    print("graph_layout", graph_layout)
 
     if "font_size" not in draw_options:
         # FIXME: should also take into consideration max width of label.
@@ -340,10 +352,12 @@ def format_graph(G):
     cached_pair = None
 
     graph_layout = G.graph_layout if hasattr(G, "graph_layout") else None
+    node_shape = G.node_shape if hasattr(G, "node_shape") else "o"
 
     node_size = DEFAULT_NODE_SIZE
     draw_options = {
         "node_size": node_size,
+        "node_shape": node_shape,
         # "with_labels": vertex_labels # Set below
         # "font_size": 12,        # Harmonized
         # "node_color": "white",  # Set below
@@ -353,18 +367,17 @@ def format_graph(G):
 
     vertex_labels = G.vertex_labels if hasattr(G, "vertex_labels") else False
     if vertex_labels:
-        draw_options["with_labels"] = vertex_labels.to_python() or False
+        draw_options["with_labels"] = bool(vertex_labels)
 
-    if hasattr(G, "title") and G.title.get_string_value():
+    if hasattr(G, "title") and G.title:
         fig, ax = plt.subplots()  # Create a figure and an axes
-        ax.set_title(G.title.get_string_value())
+        ax.set_title(G.title)
 
+    layout_fn = None
     if graph_layout:
         if not isinstance(graph_layout, str):
             graph_layout = graph_layout.get_string_value()
         layout_fn = NETWORKX_LAYOUTS.get(graph_layout, None)
-    else:
-        layout_fn = None
 
     harmonize_parameters(G, draw_options)
 
