@@ -45,13 +45,17 @@ install:
 runserver:
 	$(PYTHON) mathics_django/manage.py runserver $o
 
-check: djangotest
+check: djangotest doctest
 
 #: Remove derived files
 clean:
 	for dir in mathics-django/doc ; do \
 	   ($(MAKE) -C "$$dir" clean); \
 	done;
+
+#: Run tests that appear in docstring in the code.
+doctest:
+	SANDBOX=$(SANDBOX) $(PYTHON) mathics_django/test.py $o
 
 #: Run Django tests
 djangotest:
