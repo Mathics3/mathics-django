@@ -131,12 +131,11 @@ def query(request):
                 continue
             # START HERE.
             # Handle unformatted.
-            result = evaluation.evaluate(expr, timeout=settings.TIMEOUT, format="xml")
+            result = evaluation.evaluate(expr, timeout=settings.TIMEOUT)
             if str(result.last_eval) == "-Graph-":
                 from mathics_django.web.format import format_graph
                 svg_path = format_graph(result.last_eval.G)
                 result.result="""<math><mi href="file://%s">Graph file://%s</mi></math>""" % (svg_path, svg_path)
-                # result.result="""<img src="%s" alt="graph">""" % svg_path
 
             results.append(result)  # syntax errors
 

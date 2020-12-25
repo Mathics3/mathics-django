@@ -116,6 +116,7 @@ setup(
     name="Mathics-Django",
     version=__version__,
     packages=[
+        "mathics_django",
         "mathics_django.web",
         "mathics_django.web.templatetags",
         "mathics_django.web.migrations",
