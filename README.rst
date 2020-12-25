@@ -1,7 +1,7 @@
 Welcome to Mathics-Django
 =========================
 
-|CI Status| |Pypi Installs| |Latest Version| |Supported Python Versions|
+|CI Status| |Latest Version| |Supported Python Versions|
 
 This is the Django front-end to `Mathics <https://mathics.org>`_.
 
@@ -28,6 +28,8 @@ Mathics-Django is released under the GNU General Public License Version 3 (GPL3)
 
 .. |mathicssserver| image:: https://mathics.org/screenshots/mathicsserver.png
 
-.. |Pypi Installs| image:: https://pepy.tech/badge/Mathics-Django
+.. |Latest Version| image:: https://badge.fury.io/py/Mathics-Django.svg
+		 :target: https://badge.fury.io/py/Mathics-Django
 .. |Supported Python Versions| image:: https://img.shields.io/pypi/pyversions/Mathics-Django.svg
-.. |CI status| image:: https://github.com/mathics-django/mathics-django/workflows/mathicsscript%20(ubuntu)/badge.svg
+.. |CI status| image:: https://github.com/Mathics3/mathics-django/workflows/Mathics-Django%20(ubuntu)/badge.svg
+		       :target: https://github.com/Mathics3/mathics-django/actions
