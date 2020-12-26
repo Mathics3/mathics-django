@@ -5,6 +5,14 @@ Welcome to Mathics-Django
 
 This is the Django front-end to `Mathics <https://mathics.org>`_.
 
+Features:
+---------
+
+* Extensive online documentation
+* Integrated graphics and MathML mathematics output
+* Notebook-like sessions
+
+Note: in the future we intend to also proved a Jupyter-like interface.
 
 ScreenShot
 ----------
