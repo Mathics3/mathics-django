@@ -232,6 +232,10 @@ function showGallery() {
 	    'Graphics3D[Sphere[{0, 0, 0}, 1]]',
             'Plot3D[Sin[x y], {x, -2, 2}, {y, -2, 2}, Mesh->Full, PlotPoints->21]',
 	    'Plot3D[ Abs[Zeta[x + I y] ], {x, -1, 2}, {y, 2, 20}, PlotPoints->30]',
-	    'Graphics3D[Polygon[{{0,0,0}, {0,1,1}, {1,0,0}}]]'
+	    'Graphics3D[Polygon[{{0,0,0}, {0,1,1}, {1,0,0}}]]',
+	    '(**** Combinatorica: for Implementing Discrete Mathematics. ****)',
+	    'Needs["DiscreteMath`CombinatoricaV0.9`"]',
+	    'ShowGraph[K[6,6,6]]',
+	    'ShowGraph[ CirculantGraph[20, RandomSubset[Range[10]]] ]'
 	]);
 }
