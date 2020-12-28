@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import re
 import sys
 import traceback
 
@@ -29,6 +30,31 @@ from mathics_django.doc import documentation
 from mathics_django.doc.doc import DocPart, DocChapter
 
 documentation.load_pymathics_doc()
+
+wl_replace_dict = {
+    "": "Ạ",
+    "": "ạ",
+    "": "Ḅ",
+    "": "ḅ",
+    # ...
+    "": "→",
+    "": "↔",
+    "": "𝑑",
+
+}
+
+wl_replace_dict_esc = dict((re.escape(k), v) for k, v in wl_replace_dict.items())
+wl_replace_pattern = re.compile("|".join(wl_replace_dict_esc.keys()))
+
+def replace_wl_to_unicode(wl_input: str) -> str:
+    """WL uses some non-unicode character for various things.
+    Replace them with the unicode equivalent.
+    Two known items are directed arrow and undirected arrow.
+    """
+    return wl_replace_pattern.sub(
+        lambda m: wl_replace_dict_esc[re.escape(m.group(0))], wl_input
+    )
+
 
 if settings.DEBUG:
     JSON_CONTENT_TYPE = "text/html"
@@ -137,6 +163,7 @@ def query(request):
                 svg_path = format_graph(result.last_eval.G)
                 result.result="""<math><mi href="file://%s">Graph file://%s</mi></math>""" % (svg_path, svg_path)
 
+            result.result = replace_wl_to_unicode(result.result)
             results.append(result)  # syntax errors
 
     except SystemExit:
