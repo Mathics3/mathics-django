@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+n#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import re
@@ -32,14 +32,14 @@ from mathics_django.doc.doc import DocPart, DocChapter
 documentation.load_pymathics_doc()
 
 wl_replace_dict = {
-    "": "Ạ",
-    "": "ạ",
-    "": "Ḅ",
-    "": "ḅ",
+    u"": u"Ạ",
+    u"": u"ạ",
+    u"": u"Ḅ",
+    u"": u"ḅ",
     # ...
-    "": "→",
-    "": "↔",
-    "": "𝑑",
+    u"": u"→",
+    u"": u"↔",
+    u"": u"𝑑",
 
 }
 
@@ -163,7 +163,8 @@ def query(request):
                 svg_path = format_graph(result.last_eval.G)
                 result.result="""<math><mi href="file://%s">Graph file://%s</mi></math>""" % (svg_path, svg_path)
 
-            result.result = replace_wl_to_unicode(result.result)
+            if result.result is not None:
+                result.result = replace_wl_to_unicode(result.result)
             results.append(result)  # syntax errors
 
     except SystemExit:
