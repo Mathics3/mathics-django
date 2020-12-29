@@ -33,7 +33,7 @@ def format_output(obj, expr, format=None):
         result = Expression("StandardForm", expr).format(obj, "System`MathMLForm")
         ml_str = result.leaves[0].leaves[0]
         # FIXME: not quite right. Need to parse out strings
-        display_svg(str(ml_str))
+        # display_svg(str(ml_str))
 
     if format == "text":
         result = expr.format(obj, "System`OutputForm")
@@ -42,7 +42,7 @@ def format_output(obj, expr, format=None):
     elif format == "tex":
         result = Expression("StandardForm", expr).format(obj, "System`TeXForm")
     elif format == "unformatted":
-        if str(expr) == "-Graph-":
+        if str(expr) == "-Graph-" and hasattr(expr, "G"):
             return format_graph(expr.G)
         else:
             result = expr.format(obj, "System`OutputForm")
@@ -68,19 +68,10 @@ def hierarchy_pos(
     G, root=None, width=1.0, vert_gap=0.2, vert_loc=0, leaf_vs_root_factor=0.5
 ):
 
-    """From EoN (Epidemics on Networks): a fast, flexible Python package
-    for simulation, analytic approximation, and analysis of epidemics
-    on networks
-    https://joss.theoj.org/papers/10.21105/joss.01731
-
-    If the graph is a tree this will return the positions to plot this in a
-    hierarchical layout.
+    """Position nodes in tree layout. The root is at the top.
 
     Based on Joel's answer at https://stackoverflow.com/a/29597209/2966723,
     but with some modifications.
-
-    We include this because it may be useful for plotting transmission trees,
-    and there is currently no networkx equivalent (though it may be coming soon).
 
     There are two basic approaches we think of to allocate the horizontal
     location of a node.
@@ -98,26 +89,51 @@ def hierarchy_pos(
     or top down approaches.  ``0`` gives pure bottom up, while 1 gives pure top
     down.
 
+    From EoN (Epidemics on Networks): a fast, flexible Python package
+    for simulation, analytic approximation, and analysis of epidemics
+    on networks
+    https://joss.theoj.org/papers/10.21105/joss.01731
 
     :Arguments:
 
-    **G** the graph (must be a tree)
+    Parameters
+    ----------
+    G : NetworkX graph or list of nodes
+        A position will be assigned to every node in G.
+        The graph must be a tree.
 
-    **root** the root node of the tree
+    root : the root node of the tree
+
     - if the tree is directed and this is not given, the root will be found and used
     - if the tree is directed and this is given, then the positions will be
       just for the descendants of this node.
     - if the tree is undirected and not given, then a random choice will be used.
 
-    **width** horizontal space allocated for this branch - avoids overlap with other branches
+    width : horizontal space allocated for this branch - avoids overlap with other branches
 
-    **vert_gap** gap between levels of hierarchy
+    vert_gap : gap between levels of hierarchy
 
-    **vert_loc** vertical location of root
+    vert_loc : vertical location of root
 
-    **leaf_vs_root_factor**
+    leaf_vs_root_factor : used in calculating the _x_ coordinate of a leaf
 
-    xcenter: horizontal location of root
+    xcenter : horizontal location of root
+
+    Examples
+    --------
+    >>> G = nx.binomial_tree(3)
+    >>> nx.draw(G, pos=nx.hierarchy_layout(G, root=0))
+
+    As the number of nodes gets large, the node size and node labels
+    may need to be adjusted. The following shows how the minimum
+    separation between nodes can be used to adjust node sizes.
+
+    >>> G = nx.full_rary_tree(2, 127)
+    >>> pos, min_sep = nx.hierarchy_layout_with_min_sep(G, root=0)
+    >>> nx.draw(G, pos=pos, node_size=min_sep * 1500)
+
+    Also see the NetworkX drawing examples at
+    https://networkx.org/documentation/latest/auto_examples/index.html
 
     """
     if not nx.is_tree(G):
@@ -278,6 +294,7 @@ def spiral_equidistant_layout(G, *args, **kwargs):
 
 NETWORKX_LAYOUTS = {
     "circular": nx.circular_layout,
+    "kamada_kawai": nx.kamada_kawai_layout,
     "multipartite": nx.multipartite_layout,
     "planar": nx.planar_layout,
     "random": nx.random_layout,
@@ -328,8 +345,6 @@ def harmonize_parameters(G, draw_options: dict):
     if "width" not in draw_options:
         width = clamp(node_size / DEFAULT_NODE_SIZE, min=0.15)
         draw_options["width"] = width
-    print("width", draw_options["width"])
-    print("graph_layout", graph_layout)
 
     if "font_size" not in draw_options:
         # FIXME: should also take into consideration max width of label.
@@ -378,6 +393,8 @@ def format_graph(G):
         if not isinstance(graph_layout, str):
             graph_layout = graph_layout.get_string_value()
         layout_fn = NETWORKX_LAYOUTS.get(graph_layout, None)
+        if graph_layout in ["circular", "spiral", "spiral_equidistant"]:
+            plt.axes().set_aspect("equal")
 
     harmonize_parameters(G, draw_options)
 
