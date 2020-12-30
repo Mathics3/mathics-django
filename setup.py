@@ -56,7 +56,7 @@ if sys.platform == "darwin":
 
 # General Requirements
 INSTALL_REQUIRES += [
-    "Mathics3 >= 1.1.1",
+    "Mathics3 >= 2.0.0dev",
     "django >= 3.0, < 3.2",
     "requests",
 ]
@@ -125,8 +125,8 @@ setup(
     install_requires=INSTALL_REQUIRES,
     dependency_links=DEPENDENCY_LINKS,
     package_data={
-        "mathics-django.doc": ["documentation/*.mdoc", "xml/data"],
-        "mathics-django.web": [
+        "mathics_django.doc": ["documentation/*.mdoc", "xml/data"],
+        "mathics_django.web": [
             "media/css/*.css",
             "media/img/*.*",
             "media/fonts/*",
