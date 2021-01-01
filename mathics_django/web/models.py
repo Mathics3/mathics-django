@@ -9,6 +9,7 @@ from django.contrib.sessions.models import Session
 
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Output
+from mathics_django.web.format import format_output
 
 
 class WebOutput(Output):
@@ -21,9 +22,14 @@ def get_session_evaluation(session):
     evaluation = _evaluations.get(session.session_key)
     if evaluation is None:
         definitions = Definitions(add_builtin=True)
+        # We set the formatter to "unformatted" so that we can use
+        # our own custom formatter that understand better how to format
+        # in the context of mathics-django.
+        # Previously, one specific format, like "xml" had to fit all.
         evaluation = Evaluation(
-            definitions, format='xml', output=WebOutput())
+            definitions, format='unformatted', output=WebOutput())
         _evaluations[session.session_key] = evaluation
+        evaluation.format_output = lambda expr, format: format_output(evaluation, expr, format)
     return evaluation
 
 
@@ -52,8 +58,8 @@ class Query(models.Model):
 
 
 class Worksheet(models.Model):
-    user = models.ForeignKey(User, 
-                             related_name='worksheets', 
+    user = models.ForeignKey(User,
+                             related_name='worksheets',
                              null=True, on_delete=models.CASCADE)
 
     name = models.CharField(max_length=30)

@@ -9,7 +9,20 @@ import networkx as nx
 import tempfile
 
 
+FORM_TO_FORMAT = {
+    "System`MathMLForm": "xml",
+    "System`TeXForm": "tex",
+    "System`FullForm": "text",
+    "System`OutputForm": "text",
+}
+
 def format_output(obj, expr, format=None):
+    """
+    Handle unformatted output using the *specific* capabilities of mathics-django.
+
+    evaluation.py format_output() from which this was derived is similar but
+    it can't make use of a front-ends specific capabilities.
+    """
     if format is None:
         format = obj.format
 
@@ -18,22 +31,28 @@ def format_output(obj, expr, format=None):
 
     from mathics.core.expression import Expression, BoxError
 
+    # For some expressions, we want formatting to be different.
+    # In particular for FullForm output, we dont' want MathML, we want
+    # plain-ol' text so we can cut and paste that.
+
     expr_type = expr.get_head_name()
-    if expr_type == "System`MathMLForm":
-        format = "xml"
+    if expr_type in ("System`MathMLForm", "System`TeXForm"):
+        # For these forms, we strip off the outer "Form" part
+        format = FORM_TO_FORMAT[expr_type]
         leaves = expr.get_leaves()
         if len(leaves) == 1:
             expr = leaves[0]
-    elif expr_type == "System`TeXForm":
-        format = "tex"
-        leaves = expr.get_leaves()
-        if len(leaves) == 1:
-            expr = leaves[0]
+
+    if expr_type in ("System`FullForm", "System`OutputForm"):
+        result = Expression("StandardForm", expr).format(obj, expr_type)
+        return str(result)
     elif expr_type == "System`Graphics":
         result = Expression("StandardForm", expr).format(obj, "System`MathMLForm")
         ml_str = result.leaves[0].leaves[0]
         # FIXME: not quite right. Need to parse out strings
         # display_svg(str(ml_str))
+
+    # This part was derived from and the same as evaluation.py format_output.
 
     if format == "text":
         result = expr.format(obj, "System`OutputForm")
@@ -42,10 +61,11 @@ def format_output(obj, expr, format=None):
     elif format == "tex":
         result = Expression("StandardForm", expr).format(obj, "System`TeXForm")
     elif format == "unformatted":
+        # This part is custom to mathics-django:
         if str(expr) == "-Graph-" and hasattr(expr, "G"):
             return format_graph(expr.G)
         else:
-            result = expr.format(obj, "System`OutputForm")
+            result = Expression("StandardForm", expr).format(obj, "System`MathMLForm")
     else:
         raise ValueError
 

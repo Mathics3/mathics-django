@@ -155,14 +155,7 @@ def query(request):
                 results.append(Result(evaluation.out, None, None))  # syntax errors
                 evaluation.out = []
                 continue
-            # START HERE.
-            # Handle unformatted.
             result = evaluation.evaluate(expr, timeout=settings.TIMEOUT)
-            if str(result.last_eval) == "-Graph-":
-                from mathics_django.web.format import format_graph
-                svg_path = format_graph(result.last_eval.G)
-                result.result="""<math><mi href="file://%s">Graph file://%s</mi></math>""" % (svg_path, svg_path)
-
             if result.result is not None:
                 result.result = replace_wl_to_unicode(result.result)
             results.append(result)  # syntax errors
