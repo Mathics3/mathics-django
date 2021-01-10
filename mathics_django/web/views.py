@@ -31,30 +31,7 @@ from mathics_django.doc.doc import DocPart, DocChapter
 
 documentation.load_pymathics_doc()
 
-wl_replace_dict = {
-    u"": u"Ạ",
-    u"": u"ạ",
-    u"": u"Ḅ",
-    u"": u"ḅ",
-    # ...
-    u"": u"→",
-    u"": u"↔",
-    u"": u"𝑑",
-
-}
-
-wl_replace_dict_esc = dict((re.escape(k), v) for k, v in wl_replace_dict.items())
-wl_replace_pattern = re.compile("|".join(wl_replace_dict_esc.keys()))
-
-def replace_wl_to_unicode(wl_input: str) -> str:
-    """WL uses some non-unicode character for various things.
-    Replace them with the unicode equivalent.
-    Two known items are directed arrow and undirected arrow.
-    """
-    return wl_replace_pattern.sub(
-        lambda m: wl_replace_dict_esc[re.escape(m.group(0))], wl_input
-    )
-
+from mathics import replace_wl_with_unicode
 
 if settings.DEBUG:
     JSON_CONTENT_TYPE = "text/html"
@@ -157,7 +134,7 @@ def query(request):
                 continue
             result = evaluation.evaluate(expr, timeout=settings.TIMEOUT)
             if result.result is not None:
-                result.result = replace_wl_to_unicode(result.result)
+                result.result = replace_wl_with_unicode(result.result)
             results.append(result)  # syntax errors
 
     except SystemExit:
