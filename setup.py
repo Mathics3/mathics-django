@@ -56,7 +56,8 @@ if sys.platform == "darwin":
 
 # General Requirements
 INSTALL_REQUIRES += [
-    "Mathics3 >= 2.0.0dev",
+    "Mathics-Scanner >= 1.0.0.dev",
+    "Mathics3 >= 2.0.0.dev",
     "django >= 3.0, < 3.2",
     "requests",
 ]
