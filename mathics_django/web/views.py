@@ -31,7 +31,7 @@ from mathics_django.doc.doc import DocPart, DocChapter
 
 documentation.load_pymathics_doc()
 
-from mathics import replace_wl_with_unicode
+from mathics_scanner import replace_wl_with_plain_text
 
 if settings.DEBUG:
     JSON_CONTENT_TYPE = "text/html"
@@ -134,7 +134,7 @@ def query(request):
                 continue
             result = evaluation.evaluate(expr, timeout=settings.TIMEOUT)
             if result.result is not None:
-                result.result = replace_wl_with_unicode(result.result)
+                result.result = replace_wl_with_plain_text(result.result)
             results.append(result)  # syntax errors
 
     except SystemExit:
