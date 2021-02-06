@@ -103,7 +103,7 @@ def error_500_view(request):
 
 def query(request):
     global definitions
-    from mathics.core.parser import MultiLineFeeder
+    from mathics.core.parser import MathicsMultiLineFeeder
 
     input = request.POST.get("query", "")
     if settings.DEBUG and not input:
@@ -123,7 +123,7 @@ def query(request):
         query_log.save()
 
     evaluation = get_session_evaluation(request.session)
-    feeder = MultiLineFeeder(input, "<notebook>")
+    feeder = MathicsMultiLineFeeder(input, "<notebook>")
     results = []
     try:
         while not feeder.empty():
