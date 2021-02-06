@@ -22,11 +22,10 @@ jobs:
       run: |
         sudo apt-get update -qq && sudo apt-get install -qq liblapack-dev llvm-dev
         python -m pip install --upgrade pip
-        python -m pip install -e git://github.com/Mathics3/Mathics-Scanner#egg=Mathics_Scanner
         python -m pip install -e git://github.com/mathics/Mathics#egg=Mathics3
     - name: Install Mathics Django
       run: |
-        make
+        make develop
     - name: Test mathics-django
       run: |
         pip install pytest pexpect
