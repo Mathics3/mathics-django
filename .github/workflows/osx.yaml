@@ -1,4 +1,4 @@
-name: Mathics-Django (ubuntu)
+name: Mathics-Django (OSX)
 
 on:
   push:
@@ -8,9 +8,10 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: macos-latest
     strategy:
       matrix:
+        os: [macOS]
         python-version: [3.6, 3.7, 3.8, 3.9]
     steps:
     - uses: actions/checkout@v2
@@ -20,7 +21,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-        sudo apt-get update -qq && sudo apt-get install -qq liblapack-dev llvm-dev
+        brew install llvm@9
         python -m pip install --upgrade pip
         python -m pip install -e git://github.com/mathics/Mathics#egg=Mathics3
     - name: Install Mathics Django

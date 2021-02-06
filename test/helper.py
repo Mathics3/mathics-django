@@ -1,4 +1,3 @@
-from mathics.core.parser import parse, SingleLineFeeder
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
 from mathics.session import MathicsSession
