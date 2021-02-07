@@ -34,8 +34,7 @@ License
 
 Mathics-Django is released under the GNU General Public License Version 3 (GPL3).
 
-.. |mathicssserver| image:: https://mathics.org/screenshots/mathicsserver.png
-
+.. |mathicssserver| image:: https://mathics.org/images/mathicsserver.png
 .. |Latest Version| image:: https://badge.fury.io/py/Mathics-Django.svg
 		 :target: https://badge.fury.io/py/Mathics-Django
 .. |Supported Python Versions| image:: https://img.shields.io/pypi/pyversions/Mathics-Django.svg
