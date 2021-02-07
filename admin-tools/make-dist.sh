@@ -16,7 +16,7 @@ fi
 
 
 cd ..
-source mathics/version.py
+source mathics_django/version.py
 echo $__version__
 
 for pyversion in $PYVERSIONS; do
