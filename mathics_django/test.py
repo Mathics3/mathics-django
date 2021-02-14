@@ -12,7 +12,7 @@ import mathics
 
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Output
-from mathics.core.parser import SingleLineFeeder
+from mathics.core.parser import MathicsSingleLineFeeder
 from mathics.builtin import builtins
 
 from mathics import version_string
