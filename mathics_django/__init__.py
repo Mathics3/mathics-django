@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import sys
@@ -37,7 +36,7 @@ if "cython" in version_info:
     version_string += f", cython {version_info['cython']}"
 
 license_string = """\
-Copyright (C) 2011-2020 The Mathics Team.
+Copyright (C) 2011-2021 The Mathics Team.
 This program comes with ABSOLUTELY NO WARRANTY.
 This is free software, and you are welcome to redistribute it
 under certain conditions.
