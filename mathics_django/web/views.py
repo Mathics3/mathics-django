@@ -160,7 +160,6 @@ def query(request):
         query_log.result = str(result)  # evaluation.results
         query_log.error = False
         query_log.save()
-    print(result)
     return JsonResponse(result)
 
 
