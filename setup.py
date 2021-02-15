@@ -59,6 +59,7 @@ INSTALL_REQUIRES += [
     "Mathics-Scanner >= 1.0.0,<1.1.0",
     "Mathics3 >= 2.0.0",
     "django >= 3.0, < 3.2",
+    "networkx",
     "requests",
 ]
 
