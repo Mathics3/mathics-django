@@ -24,6 +24,7 @@ jobs:
         brew install llvm@9
         python -m pip install --upgrade pip
         LLVM_CONFIG=/usr/local/Cellar/llvm@9/9.0.1_2/bin/llvm-config pip install llvmlite
+        python -m pip install -e git://github.com/mathics/Mathics#egg=Mathics3
     - name: Install Mathics Django
       run: |
         make develop
