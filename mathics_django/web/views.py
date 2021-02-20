@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import re
@@ -270,6 +269,10 @@ def logout(request):
     auth.logout(request)
     return JsonResponse()
 
+def is_authenticated(user):
+    if callable(user.is_authenticated):
+        return user.is_authenticated()
+    return user.is_authenticated
 
 @require_ajax_login
 def save(request):
@@ -284,7 +287,7 @@ def save(request):
         content = request.POST.get("content", "")
         name = form.cleaned_data["name"]
         user = request.user
-        if not user.is_authenticated():
+        if not is_authenticated(user):
             user = None
         try:
             worksheet = Worksheet.objects.get(user=user, name=name)
