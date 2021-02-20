@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import re
 import sys
 import traceback
 
@@ -21,7 +20,6 @@ from django.core.mail import send_mail
 
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Message, Result
-from mathics.core.expression import Expression
 
 from mathics_django.web.models import Query, Worksheet, get_session_evaluation
 from mathics_django.web.forms import LoginForm, SaveForm
@@ -44,9 +42,14 @@ class JsonResponse(HttpResponse):
         super(JsonResponse, self).__init__(response, content_type=JSON_CONTENT_TYPE)
 
 
+def is_authenticated(user):
+    if callable(user.is_authenticated):
+        return user.is_authenticated()
+    return user.is_authenticated
+
 # def require_ajax_login(func):
 #     def new_func(request, *args, **kwargs):
-#         if not request.user.is_authenticated():
+#         if not is_authenticated(request.user):
 #             return JsonResponse({"requireLogin": True})
 #         return func(request, *args, **kwargs)
 
@@ -269,16 +272,11 @@ def logout(request):
     auth.logout(request)
     return JsonResponse()
 
-def is_authenticated(user):
-    if callable(user.is_authenticated):
-        return user.is_authenticated()
-    return user.is_authenticated
-
 @require_ajax_login
 def save(request):
     if settings.DEBUG and not request.POST:
         request.POST = request.GET
-    if settings.REQUIRE_LOGIN and not request.user.is_authenticated():
+    if settings.REQUIRE_LOGIN and not is_authenticated(request.user):
         raise Http404
     form = SaveForm(request.POST)
     overwrite = request.POST.get("overwrite", False)
@@ -308,12 +306,12 @@ def save(request):
 
 
 def open(request):
-    if settings.REQUIRE_LOGIN and not request.user.is_authenticated():
-        raise Http404
     user = request.user
+    if settings.REQUIRE_LOGIN and not is_authenticated(user):
+        raise Http404
     name = request.POST.get("name", "")
     try:
-        if user.is_authenticated():
+        if is_authenticated(user):
             worksheet = user.worksheets.get(name=name)
         else:
             worksheet = Worksheet.objects.get(user__isnull=True, name=name)
@@ -329,10 +327,10 @@ def open(request):
 
 
 def get_worksheets(request):
-    if settings.REQUIRE_LOGIN and not request.user.is_authenticated():
+    if settings.REQUIRE_LOGIN and not is_authenticated(request.user):
         result = []
     else:
-        if request.user.is_authenticated():
+        if is_authenticated(request.user):
             result = list(request.user.worksheets.order_by("name").values("name"))
         else:
             result = list(
