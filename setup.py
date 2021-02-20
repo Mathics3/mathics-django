@@ -158,7 +158,6 @@ setup(
     description="A Django front end for Mathics.",
     license="GPL",
     url="https://mathics.org/",
-    download_url="https://github.com/Mathics3/mathics-django/tarball/v1.1dev",
     keywords=["Mathematica", "Wolfram", "Interpreter", "Shell", "Math", "CAS"],
     classifiers=[
         "Intended Audience :: Developers",
