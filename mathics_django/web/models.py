@@ -9,6 +9,7 @@ from django.contrib.sessions.models import Session
 
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Output
+from mathics.core.expression import(Expression, Symbol, SymbolTrue)
 from mathics_django.web.format import format_output
 
 
@@ -28,6 +29,8 @@ def get_session_evaluation(session):
         # Previously, one specific format, like "xml" had to fit all.
         evaluation = Evaluation(
             definitions, format='unformatted', output=WebOutput())
+        Expression("Set", Symbol("Settings`UseAsyForGraphics2D"),
+                   SymbolTrue).evaluate(evaluation)
         _evaluations[session.session_key] = evaluation
         evaluation.format_output = lambda expr, format: format_output(evaluation, expr, format)
     return evaluation
