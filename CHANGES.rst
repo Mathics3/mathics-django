@@ -2,6 +2,15 @@ CHANGES
 =======
 
 
+2.0.1
+-----
+
+Small bug fixes.
+
+* Saving and loading had a bug due to a Django API change. See PR #24
+* non-django-specific unit tests duplicated from from Mathics have been removed.
+* Add networkx dependency Fixes #18
+
 2.0.0
 -----
 
