@@ -49,7 +49,7 @@ long_description = read("README.rst") + "\n"
 is_PyPy = platform.python_implementation() == "PyPy"
 
 INSTALL_REQUIRES = []
-DEPENDENCY_LINKS = []
+DEPENDENCY_LINKS = ["http://github.com/Mathics3/pymathics-asy#egg=pymathics-asy"]
 
 if sys.platform == "darwin":
     INSTALL_REQUIRES += ["scikit-image"]
@@ -61,6 +61,7 @@ INSTALL_REQUIRES += [
     "django >= 3.0, < 3.2",
     "networkx",
     "requests",
+    "pymathics-asy",
 ]
 
 
