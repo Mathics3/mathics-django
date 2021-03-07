@@ -345,6 +345,26 @@ def get_worksheets(request):
     )
 
 
+def delete(request):
+    user = request.user
+    if settings.REQUIRE_LOGIN and not is_authenticated(user):
+        raise Http404
+    name = request.POST.get("name", "")
+    try:
+        if is_authenticated(user):
+            deleted = user.worksheets.get(name=name).delete()
+        else:
+            deleted = Worksheet.objects.get(user__isnull=True, name=name).delete()
+        content = str(deleted[0])
+    except Worksheet.DoesNotExist:
+        content = ""
+
+    return JsonResponse(
+        {
+            "content": content,
+        }
+    )
+
 # auxiliary function
 
 

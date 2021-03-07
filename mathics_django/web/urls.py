@@ -26,6 +26,7 @@ urlpatterns = [
     url("^ajax/logout/$", logout),
     url("^ajax/save/$", save),
     url("^ajax/open/$", open),
+    url("^ajax/delete/$", delete),
     url("^ajax/getworksheets/$", get_worksheets),
     url("^(?P<ajax>(?:ajax/)?)doc/$", doc),
     url("^ajax/doc/search/$", doc_search),
