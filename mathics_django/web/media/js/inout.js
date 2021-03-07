@@ -43,7 +43,7 @@ function showWorksheets(isOpen) {
 				));
 			});
 
-			// If the popup is not open, open it
+			// If the popup is not open, open it.
 			if (!isOpen)
 				showPopup($('open'));
 		}
