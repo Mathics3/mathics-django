@@ -1,6 +1,10 @@
 CHANGES
 =======
 
+2.0.2
+-----
+
+Allow worksheet deletion. Contributed by danielpyon.
 
 2.0.1
 -----
