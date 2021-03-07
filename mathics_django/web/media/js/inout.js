@@ -30,12 +30,12 @@ function showWorksheets(isOpen) {
 			tbody.deleteChildNodes();
 			response.worksheets.each(function(worksheet) {
 				tbody.appendChild($E('tr',
-					$E('th',
+					$E('td',
 						$E('a', {'href': 'javascript:openWorksheet("' + worksheet.name + '")'},
 							$T(worksheet.name)
 						)
 					),
-					$E('th',
+					$E('td',
 						$E('a', {'href': 'javascript:deleteWorksheet("' + worksheet.name + '")'},
 							$T("Delete")
 						)
