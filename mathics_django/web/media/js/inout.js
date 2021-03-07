@@ -21,24 +21,51 @@ function openWorksheet(name) {
 	})
 }
 
-function showOpen() {
-	requireLogin("You must login to open online worksheets.", function() {
-		new Ajax.Request('/ajax/getworksheets/', {
-			method: 'get',
-			onSuccess: function(transport) {
-				var response = transport.responseText.evalJSON();
-				var tbody = $('openFilelist');
-				tbody.deleteChildNodes();
-				response.worksheets.each(function(worksheet) {
-					tbody.appendChild($E('tr', $E('td',
+function showWorksheets(isOpen) {
+	new Ajax.Request('/ajax/getworksheets/', {
+		method: 'get',
+		onSuccess: function(transport) {
+			var response = transport.responseText.evalJSON();
+			var tbody = $('openFilelist');
+			tbody.deleteChildNodes();
+			response.worksheets.each(function(worksheet) {
+				tbody.appendChild($E('tr',
+					$E('td',
 						$E('a', {'href': 'javascript:openWorksheet("' + worksheet.name + '")'},
 							$T(worksheet.name)
 						)
-					)));
-				});
+					),
+					$E('td',
+						$E('a', {'href': 'javascript:deleteWorksheet("' + worksheet.name + '")'},
+							$T("Delete")
+						)
+					)
+				));
+			});
+
+			// If the popup is not open, open it.
+			if (!isOpen)
 				showPopup($('open'));
-			}
-		});
+		}
+	});
+}
+
+function deleteWorksheet(name) {
+	new Ajax.Request('/ajax/delete/', {
+		method: 'post',
+		parameters: {
+			'name': name
+		},
+		onSuccess: function(transport) {
+			var response = transport.responseText.evalJSON();
+			showWorksheets(true);
+		}
+	})
+}
+
+function showOpen() {
+	requireLogin("You must login to open online worksheets.", function() {
+		showWorksheets(false);
 	});
 }
 

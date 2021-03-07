@@ -31,3 +31,5 @@ mathics_django/web/media/doc/classes.pdf
 mathics_django/web/media/doc/classes.png
 mathics_django/web/media/pdf/
 tmp
+env/
+venv/
