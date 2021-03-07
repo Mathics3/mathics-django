@@ -13,7 +13,7 @@ import mathics
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Output
 from mathics.core.parser import MathicsSingleLineFeeder
-from mathics.builtin import builtins
+from mathics.builtin import _builtins
 
 from mathics import version_string
 from mathics import settings
@@ -241,7 +241,7 @@ def test_all(
                 break
             if total >= count:
                 break
-        builtin_total = len(builtins)
+        builtin_total = len(_builtins)
     except KeyboardInterrupt:
         print("\nAborted.\n")
         return
