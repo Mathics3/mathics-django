@@ -10,6 +10,7 @@ from mathics_django.web.views import (
     logout,
     save,
     open,
+    delete,
     get_worksheets,
     doc_search,
     doc_part,
