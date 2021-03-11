@@ -162,6 +162,7 @@ function autocomplete(e) {
 			e.preventDefault();
 			let replacement = candidates[idx];
 			e.target.value = hungryReplace(text, replacement, pos - 1);
+			dropdown.style.display = 'none';
 		}
 	} else {
 		idx = 0;
