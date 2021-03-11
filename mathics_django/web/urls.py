@@ -17,6 +17,7 @@ from mathics_django.web.views import (
     doc_chapter,
     doc_section,
     doc,
+    names
 )
 
 urlpatterns = [
@@ -38,4 +39,5 @@ urlpatterns = [
         "(?P<section>[$\w-]+)/$",
         doc_section,
     ),
+    url("^ajax/names/$", names),
 ]

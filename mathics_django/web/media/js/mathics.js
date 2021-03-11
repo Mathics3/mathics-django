@@ -506,6 +506,10 @@ function onFocus(event) {
   var textarea = this;
   textarea.li.addClassName('focused');
   lastFocus = textarea;
+
+  textarea.addEventListener('keyup', autocomplete);
+  current = '';
+  idx = 0;
 }
 
 function onBlur(event) {
@@ -520,6 +524,9 @@ function onBlur(event) {
     }, 10);
   }
   textarea.li.removeClassName('focused');
+  textarea.removeEventListener('keyup', autocomplete);
+  current = '';
+  idx = 0;
 }
 
 function createSortable() {
@@ -676,6 +683,8 @@ function globalKeyUp(event) {
 }
 
 function domLoaded() {
+  dropdown = document.getElementById('dropdown');
+
   MathJax.Hub.Config({
     "HTML-CSS": {
       imageFont: null,

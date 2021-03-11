@@ -489,3 +489,12 @@ def doc_search(request):
         },
         ajax=True,
     )
+
+def names(request):
+    global definitions
+
+    return JsonResponse(
+        {
+            "content": list(definitions.get_names()),
+        }
+    )

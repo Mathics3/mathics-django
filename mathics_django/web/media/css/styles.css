@@ -714,3 +714,13 @@ div.filelist table a {
 div.filelist table a:hover {
   color: #33c;
 }
+
+#dropdown {
+  background-color: lightgray;
+  width: 300px;
+  display: none;
+  position: fixed;
+  top: 0px;
+  right: 0px;
+  font-family: monospace;
+}
