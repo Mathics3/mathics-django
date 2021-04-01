@@ -28,7 +28,7 @@ mathics-users@googlegroups.com and ask for help.
 import sys
 import os.path as osp
 import platform
-from setuptools import setup, Command, Extension
+from setuptools import setup, Command
 
 def get_srcdir():
     filename = osp.normcase(osp.dirname(osp.abspath(__file__)))
@@ -56,7 +56,7 @@ if sys.platform == "darwin":
 
 # General Requirements
 INSTALL_REQUIRES += [
-    "Mathics-Scanner >= 1.0.0,<1.1.0",
+    "Mathics-Scanner >= 1.0.0,<1.2.0",
     "Mathics3 >= 2.0.0",
     "django >= 3.0, < 3.2",
     "networkx >= 2.5",
