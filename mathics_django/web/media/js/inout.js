@@ -255,6 +255,7 @@ function showGallery() {
 	    'BarChart[{{1, 2, 3}, {2, 3, 4}}]',
 	    'Graphics[Line[AnglePath[Table[1.7, {50}]]]]',
 	    'Graphics[Table[{EdgeForm[{GrayLevel[0, 0.5]}], Hue[(-11+q+10r)/72, 1, 1, 0.6], Disk[(8-r){Cos[2Pi q/12], Sin [2Pi q/12]}, (8-r)/3]}, {r, 6}, {q, 12}]]',
+	    'Table[Plot[x^i Sin[j Pi x], {x, 0, 2}],{i, 3},{j, 3}]//MatrixForm',
 	    '(**** 3D graphics ****)',
 
 	    'Graphics3D[{Yellow, Sphere[{{-1, 0, 0}, {1, 0, 0}, {0, 0, Sqrt[3.]}}, 1]}]',
