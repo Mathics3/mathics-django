@@ -285,7 +285,7 @@ function convertMathGlyphs(dom) {
     for (var i = 0; i < glyphs.length; i++) {
         var glyph = glyphs[i];
         var src = glyph.getAttribute('src');
-        if (src.startsWith('data:image/svg+xml;base64,')) {
+        if (src.startsWith('NUNCAMENENCONTRARASdata:image/svg+xml;base64,')) {
             var svgText = atob(src.substring(src.indexOf(",") + 1));
             var mtable =document.createElementNS(MML, "mtable");
             mtable.innerHTML = '<mtr><mtd>' + svgText + '</mtd></mtr>';

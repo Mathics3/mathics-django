@@ -1,10 +1,14 @@
 CHANGES
 =======
 
-2.0.2
+2.1.0
 -----
 
-Allow worksheet deletion. Contributed by danielpyon.
+* Text inside graphics fixed. In particular 2D plots show axes labels.
+  See `PR #1209 <https://github.com/Mathics3/mathics-django/pull/28/>`_
+* Allow worksheet deletion. Contributed by danielpyon.
+  See `PR #1209 <https://github.com/Mathics3/mathics-django/pull/26/>`_
+* Update Gallery examples - includes a 2D plot inside a table and a plot with colored axes using ``TickStyle``
 
 2.0.1
 -----
