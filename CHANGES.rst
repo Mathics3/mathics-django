@@ -9,6 +9,7 @@ CHANGES
 * Allow worksheet deletion. Contributed by danielpyon.
   See `PR #1209 <https://github.com/Mathics3/mathics-django/pull/26/>`_
 * Update Gallery examples - includes a 2D plot inside a table and a plot with colored axes using ``TickStyle``
+* Fixed displaying CompiledCode
 
 2.0.1
 -----
