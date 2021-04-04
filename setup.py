@@ -28,7 +28,7 @@ mathics-users@googlegroups.com and ask for help.
 import sys
 import os.path as osp
 import platform
-from setuptools import setup, Command, Extension
+from setuptools import setup, Command
 
 def get_srcdir():
     filename = osp.normcase(osp.dirname(osp.abspath(__file__)))

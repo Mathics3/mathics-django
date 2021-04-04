@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import sys
@@ -19,16 +20,18 @@ from django.contrib.auth.models import User
 from django.core.mail import send_mail
 
 from mathics.core.definitions import Definitions
-from mathics.core.evaluation import Message, Result
+from mathics.core.evaluation import Evaluation, Message, Result, Output
 
 from mathics_django.web.models import Query, Worksheet, get_session_evaluation
 from mathics_django.web.forms import LoginForm, SaveForm
 from mathics_django.doc import documentation
-from mathics_django.doc.doc import DocPart, DocChapter
+from mathics_django.doc.doc import DocPart, DocChapter, DocSection
 
 documentation.load_pymathics_doc()
 
 from mathics_scanner import replace_wl_with_plain_text
+
+from string import Template
 
 if settings.DEBUG:
     JSON_CONTENT_TYPE = "text/html"
@@ -47,18 +50,23 @@ def is_authenticated(user):
         return user.is_authenticated()
     return user.is_authenticated
 
-# def require_ajax_login(func):
-#     def new_func(request, *args, **kwargs):
-#         if not is_authenticated(request.user):
-#             return JsonResponse({"requireLogin": True})
-#         return func(request, *args, **kwargs)
 
-#     return new_func
+# def require_ajax_login(func):
+#    def new_func(request, *args, **kwargs):
+#        if not request.user.is_authenticated():
+#            return JsonResponse({"requireLogin": True})
+#        return func(request, *args, **kwargs)
+#
+#    return new_func
 
 
 from mathics.settings import default_pymathics_modules
 
 definitions = Definitions(add_builtin=True, extension_modules=default_pymathics_modules)
+
+
+class WebOutput(Output):
+    pass
 
 
 def require_ajax_login(f):
@@ -79,8 +87,7 @@ def error_404_view(request, exception):
     return HttpResponseNotFound(
         t.render(
             RequestContext(
-                request,
-                {
+                request, {
                     "title": "Page not found",
                     "request_path": request.path,
                 },
@@ -92,14 +99,7 @@ def error_404_view(request, exception):
 def error_500_view(request):
     t = loader.get_template("500.html")
     return HttpResponseServerError(
-        t.render(
-            RequestContext(
-                request,
-                {
-                    "title": "Server error",
-                },
-            )
-        )
+        t.render(RequestContext(request, {"title": "Server error",}))
     )
 
 
@@ -124,8 +124,15 @@ def query(request):
         )
         query_log.save()
 
+    from mathics.server import web_engine
+
     evaluation = get_session_evaluation(request.session)
     feeder = MathicsMultiLineFeeder(input, "<notebook>")
+
+#    user_definitions = request.session.get("definitions")
+#    definitions.set_user_definitions(user_definitions)
+#    evaluation = Evaluation(definitions, format="xml", output=WebOutput(web_engine))
+#    feeder = MultiLineFeeder(input, "<notebook>")
     results = []
     try:
         while not feeder.empty():
@@ -157,11 +164,14 @@ def query(request):
     result = {
         "results": [result.get_data() for result in results],
     }
+    request.session["definitions"] = definitions.get_user_definitions()
+
     if settings.LOG_QUERIES:
         query_log.timeout = evaluation.timeout
         query_log.result = str(result)  # evaluation.results
         query_log.error = False
         query_log.save()
+
     return JsonResponse(result)
 
 
@@ -269,8 +279,12 @@ Your password is: %s\n\nYours,\nThe Mathics team"""
 
 
 def logout(request):
+    # Remember user definitions
+    user_definitions = request.session.get("definitions", {})
     auth.logout(request)
+    request.session["definitions"] = user_definitions
     return JsonResponse()
+
 
 @require_ajax_login
 def save(request):
@@ -297,12 +311,7 @@ def save(request):
             worksheet = Worksheet(user=user, name=name, content=content)
         worksheet.save()
 
-    return JsonResponse(
-        {
-            "form": form.as_json(),
-            "result": result,
-        }
-    )
+    return JsonResponse({"form": form.as_json(), "result": result,})
 
 
 def open(request):
@@ -364,6 +373,7 @@ def delete(request):
             "content": content,
         }
     )
+
 
 # auxiliary function
 
