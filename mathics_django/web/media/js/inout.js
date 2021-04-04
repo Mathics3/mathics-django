@@ -239,6 +239,7 @@ function showGallery() {
 	    "Sin''[x]",
 	    'D[Sin[2x] + Log[x] ^ 2, x]',
 	    'Integrate[Tan[x] ^ 5, x]',
+
 	    '(**** Linear Algebra ****)',
 	    'MagicSquare = {{2, 7, 6}, {9, 5, 1}, {4, 3, 8}}; MatrixForm[MagicSquare]',
 	    'LinearSolve[MagicSquare, {1, 1, 1}] // MatrixForm',
@@ -247,15 +248,26 @@ function showGallery() {
 	    '(* 2nd and 3rd Row of Periodic Table *)',
 	    'Grid[{Table[ElementData[i], {i, 3, 10}], Table[ElementData[i], {i, 11, 18}]}]',
 	    'ListLinePlot[Table[ElementData[z, "MeltingPoint"], {z, 118}]]',
+
 	    '(**** Some graphs ****)',
 	    'ListPlot[{Sqrt[Range[40]], Log[Range[40, 80]]}, TicksStyle->{Blue,Purple}]',
 	    'Plot[{Sin[x], Cos[x], Tan[x]}, {x, -3Pi, 3Pi}]',
+
 	    '(* Bouncing Ping-Pong Ball at equal time intervals *)',
 	    'Plot[Abs[Sin[t] / (t + 1)], {t, 0, 4 Pi}, Mesh->Full, PlotRange->{0, 1 / 2}]',
 	    'BarChart[{{1, 2, 3}, {2, 3, 4}}]',
-	    'Graphics[Line[AnglePath[Table[1.7, {50}]]]]',
+
+	    '(* Target Practice. *)',
+	    'Graphics[Circle[], Axes-> True]',
+
+	    '(* Random dots in Sierpinski Triangle. *)',
+            'vertices = {{0,0}, {1,0}, {.5, .5 Sqrt[3]}};',
+            'points = NestList[.5(vertices[[ RandomInteger[{1,3}] ]] + #) &, {0.,0.}, 600];',
+	    'Graphics[Point[points], ImageSize->Small]',
+
 	    'Graphics[Table[{EdgeForm[{GrayLevel[0, 0.5]}], Hue[(-11+q+10r)/72, 1, 1, 0.6], Disk[(8-r){Cos[2Pi q/12], Sin [2Pi q/12]}, (8-r)/3]}, {r, 6}, {q, 12}]]',
 	    'Table[Plot[x^i Sin[j Pi x], {x, 0, 2}],{i, 2},{j, 2}]//MatrixForm',
+
 	    '(**** 3D graphics ****)',
 
 	    'Graphics3D[{Yellow, Sphere[{{-1, 0, 0}, {1, 0, 0}, {0, 0, Sqrt[3.]}}, 1]}]',
