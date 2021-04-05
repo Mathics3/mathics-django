@@ -298,6 +298,7 @@ function convertMathGlyphs(dom) {
             img.setAttribute('src', src)
             img.setAttribute('width', glyph.getAttribute('width'));
             img.setAttribute('height', glyph.getAttribute('height'));
+            img.setAttribute('style', 'position:absolute; top:50%;');
             glyph.parentNode.replaceChild(img, glyph);
         }
     }
