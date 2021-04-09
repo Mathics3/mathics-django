@@ -257,6 +257,8 @@ function showGallery() {
 	    'Plot[Abs[Sin[t] / (t + 1)], {t, 0, 4 Pi}, Mesh->Full, PlotRange->{0, 1 / 2}]',
 	    'BarChart[{{1, 2, 3}, {2, 3, 4}}]',
 
+	    'Graphics[Table[Circle[{x,y}], {x, 0, 10, 2}, {y, 0, 10, 2}]]',
+
 	    '(* Target Practice. *)',
 	    'Graphics[Circle[], Axes-> True]',
 
