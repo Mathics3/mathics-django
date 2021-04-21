@@ -11,7 +11,7 @@ Features:
 ---------
 
 * Extensive online documentation
-* Integrated graphics, via `three.js <https://three.js>`_, and MathML mathematics output
+* Integrated graphics, via `three.js <https://threejs.org>`_, and MathML mathematics output
 * Notebook-like sessions
 
 Note: in the future we intend to also proved a Jupyter-like interface.
