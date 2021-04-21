@@ -41,7 +41,7 @@ Underneath this runs the Python program ``manage.py`` in ``mathics_django`` dire
 To get a list of the available commands, type ``python
 mathics_django/manage.py help``. To get help on a specific command
 give that command at the end. For example two commands that are useful
-are the ``runserver`` and ``testserver`` commands. ```python
+are the ``runserver`` and ``testserver`` commands. ``python
 mathics_django/manage.py help runserver`` will show options in running
 the Django server.
 
