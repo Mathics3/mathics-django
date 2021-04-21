@@ -42,6 +42,9 @@ else:
 # if not path.exists(DATA_DIR):
 #    os.makedirs(DATA_DIR)
 
+MATHICS_DJANGO_DB = os.environ.get("MATHICS_DJANGO_DB", "mathics.sqlite")
+MATHICS_DJANGO_DB_PATH = os.environ.get("MATHICS_DJANGO_DB_PATH", DATA_DIR + MATHICS_DJANGO_DB)
+
 DOC_DIR = os.path.join(MATHICS_ROOT_DIR, "doc/documentation/")
 DOC_TEX_DATA = os.path.join(MATHICS_ROOT_DIR, "doc/tex/data")
 DOC_XML_DATA = os.path.join(MATHICS_ROOT_DIR, "doc/xml/data")
@@ -50,7 +53,7 @@ DOC_LATEX_FILE = os.path.join(MATHICS_ROOT_DIR, "doc/tex/documentation.tex")
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": DATA_DIR + "mathics.sqlite",
+        "NAME": MATHICS_DJANGO_DB_PATH,
     }
 }
 

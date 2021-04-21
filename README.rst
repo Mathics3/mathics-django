@@ -25,6 +25,43 @@ mathicsserver: a Django-based Web interface
 |mathicssserver|
 
 
+Running
+-------
+
+This is a Django project so Dango's `manage.py <https://docs.djangoproject.com/en/3.2/ref/django-admin/>` script used.
+
+A simple way to start Mathics Django when GNU make is installed (which is the case on most POSIX systems):
+
+::
+
+   make runserver
+
+Underneath this runs the Python program ``manage.py`` in ``mathics_django`` directory.
+
+To get a list of the available commands, type ``python
+mathics_django/manage.py help``. To get help on a specific command
+give that command at the end. For example two commands that are useful
+are the ``runserver`` and ``testserver`` commands. ```python
+mathics_django/manage.py help runserver`` will show options in running
+the Django server.
+
+
+Environment Variables
++++++++++++++++++++++
+
+There are two special environment variables of note which controls
+where the Mathics database is located. This database is saves
+authentication and worksheet information.
+
+By default the database used is ``DATADIR + mathics.sqlite`` where
+``DATADIR`` is under ``AppData/Python/Mathics/`` for MS-Windows and
+``~/.local/var/mathics/`` for all others. If you want to specify your own database file set
+environment variable ``MATHICS_DJANGO_DB_PATH``.
+
+If you just want to set the ``mathics.sqlite`` portion, you can use
+the environment variable ``MATHICS_DJANGO_DB``.
+
+
 Contributing
 ------------
 
