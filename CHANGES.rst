@@ -1,6 +1,10 @@
 CHANGES
 =======
 
+2.2.0
+-----
+
+* Upgade to `Django 3.2 <https://docs.djangoproject.com/en/3.2/releases/3.2/>` or newer. Django 3.2 is `long-term support release <https://docs.djangoproject.com/en/3.2/internals/release-process/#term-long-term-support-release>`_
 2.1.0
 -----
 

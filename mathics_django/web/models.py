@@ -41,6 +41,7 @@ pre_delete.connect(end_session_evaluation, sender=Session)
 
 
 class Query(models.Model):
+    id = models.AutoField(primary_key=True)
     time = models.DateTimeField(auto_now_add=True)
     query = models.TextField()
     result = models.TextField(null=True)
@@ -58,6 +59,7 @@ class Query(models.Model):
 
 
 class Worksheet(models.Model):
+    id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User,
                              related_name='worksheets',
                              null=True, on_delete=models.CASCADE)
