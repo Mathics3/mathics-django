@@ -43,7 +43,7 @@ function drawLine(prim) {
   return(mesh);
 }
 
-function drawPolygon(prim) {    
+function drawPolygon(prim) {
   var mesh, polypath, polyshape, polygeom, polymat, color;
 
   // console.log("drawPolygon");
@@ -80,10 +80,10 @@ function drawPolygon(prim) {
     // Angles to the z axis - rotaton
     var thetax = Math.acos(normal.z / Math.sqrt(normal.y*normal.y + normal.z*normal.z));
     var thetay = Math.acos(normal.z / Math.sqrt(normal.x*normal.x + normal.z*normal.z));
-    
+
     // Linear Transformation Matrix - Rotation + Translation
     var L = new THREE.Matrix4();
-    L.makeTranslation(-nearest.x, -nearest.y, -nearest.z);  
+    L.makeTranslation(-nearest.x, -nearest.y, -nearest.z);
     L.multiplySelf(new THREE.Matrix4().makeRotationX(thetax));
     L.multiplySelf(new THREE.Matrix4().makeRotationY(thetay));
 
@@ -113,11 +113,11 @@ function drawPolygon(prim) {
   polygeom.computeFaceNormals();
 
   color = new THREE.Color().setRGB(prim.faceColor[0], prim.faceColor[1], prim.faceColor[2]);
-  //polymat = new THREE.MeshLambertMaterial({color: color.getHex(), transparent: true, opacity: prim.faceColor[3]});
+  //polymat = new THREE.MeshLambertMaterial({color: color.getHex(), transparent: true});
   if (Detector.webgl) {
-    polymat = new THREE.MeshPhongMaterial({color: color.getHex(), transparent: true, opacity: prim.faceColor[3]});
+    polymat = new THREE.MeshPhongMaterial({color: color.getHex(), transparent: true});
   } else {
-    polymat = new THREE.MeshLambertMaterial({color: color.getHex(), transparent: true, opacity: prim.faceColor[3], overdraw: true});
+    polymat = new THREE.MeshLambertMaterial({color: color.getHex(), transparent: true, overdraw: true});
   }
 
   mesh = new THREE.Mesh(polygeom, polymat);
@@ -141,7 +141,7 @@ function drawSphere(prim) {
   spheregeom.computeFaceNormals();
 
   var color = new THREE.Color().setRGB(prim.faceColor[0], prim.faceColor[1], prim.faceColor[2]);
-  spheremat = new THREE.MeshPhongMaterial({color: color.getHex(), transparent: true, opacity: prim.faceColor[3]});
+  spheremat = new THREE.MeshPhongMaterial({color: color.getHex(), transparent: true});
 
   mesh = new THREE.Mesh(spheregeom, spheremat);
 
@@ -156,7 +156,7 @@ function drawCube(prim) {
   cubegeom = new THREE.CubeGeometry(prim.size[0][0], prim.size[0][1], prim.size[0][2]);
 
   var color = new THREE.Color().setRGB(prim.faceColor[0], prim.faceColor[1], prim.faceColor[2]);
-  cubemat = new THREE.MeshPhongMaterial({color: color.getHex(), transparent: true, opacity: prim.faceColor[3]});
+  cubemat = new THREE.MeshPhongMaterial({color: color.getHex(), transparent: true});
 
   mesh = new THREE.Mesh(cubegeom, cubemat);
   mesh.position.set(prim.position[0][0], prim.position[0][1], prim.position[0][2]);
@@ -167,7 +167,7 @@ function drawCube(prim) {
 function drawGraphics3D(container, data) {
   // data is decoded JSON data such as
   // {"elements": [{"coords": [[[1.0, 0.0, 0.0], null], [[1.0, 1.0, 1.0], null], [[0.0, 0.0, 1.0], null]], "type": "polygon", "faceColor": [0, 0, 0, 1]}], "axes": {}, "extent": {"zmax": 1.0, "ymax": 1.0, "zmin": 0.0, "xmax": 1.0, "xmin": 0.0, "ymin": 0.0}, "lighting": []}
-  // The nulls are the "scaled" parts of coordinates that depend on the 
+  // The nulls are the "scaled" parts of coordinates that depend on the
   // size of the final graphics (see Mathematica's Scaled). TODO.
 
   // TODO: update the size of the container dynamically
@@ -184,13 +184,13 @@ function drawGraphics3D(container, data) {
 
   var camera, scene, renderer, boundbox, hasaxes, viewpoint,
     isMouseDown = false, onMouseDownPosition,
-    tmpx, tmpy, tmpz, 
+    tmpx, tmpy, tmpz,
     theta, onMouseDownTheta, phi, onMouseDownPhi;
 
   // Center of the scene
   var center = new THREE.Vector3(
     0.5 * (data.extent.xmin + data.extent.xmax),
-    0.5 * (data.extent.ymin + data.extent.ymax), 
+    0.5 * (data.extent.ymin + data.extent.ymax),
     0.5 * (data.extent.zmin + data.extent.zmax));
 
   // Where the camera is looking
@@ -294,7 +294,7 @@ function drawGraphics3D(container, data) {
 
   for (var i = 0; i < data.lighting.length; i++) {
     initLightPos[i] = getInitLightPos(data.lighting[i]);
-    
+
     lights[i] = addLight(data.lighting[i]);
     scene.add(lights[i]);
   }
@@ -308,7 +308,7 @@ function drawGraphics3D(container, data) {
     new THREE.MeshBasicMaterial({color: 0x666666, wireframe: true})
   );
   boundbox.position = center;
-  scene.add(boundbox);  
+  scene.add(boundbox);
 
   // Draw the Axes
   if (data.axes.hasaxes instanceof Array) {
@@ -361,7 +361,7 @@ function drawGraphics3D(container, data) {
     nearl = 10*radius;
     farj = null;
     farl = 0.0;
-    
+
     tmpv = new THREE.Vector3();
     for (var j = 0; j < 8; j++) {
       tmpv.add(boundbox.geometry.vertices[j], boundbox.position);
@@ -543,7 +543,7 @@ function drawGraphics3D(container, data) {
       }
     }
   }
-  
+
   function toCanvasCoords(position) {
     var pos = position.clone();
     var projScreenMat = new THREE.Matrix4();
@@ -610,7 +610,7 @@ function drawGraphics3D(container, data) {
   // of weird canvas content after switching windows)
   if (Detector.webgl) {
     renderer = new THREE.WebGLRenderer({antialias: true, preserveDrawingBuffer: true});
-  } else { 
+  } else {
     renderer = new THREE.CanvasRenderer({antialias: true, preserveDrawingBuffer: true});
 
     message = document.createElement('div');
@@ -767,7 +767,6 @@ function drawGraphics3D(container, data) {
   positionAxes();
   render(); // Rendering twice updates camera.matrixWorldInverse so that ScaleInView works properly
   ScaleInView();
-  render();     
+  render();
   positionticknums();
 }
-
