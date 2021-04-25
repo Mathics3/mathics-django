@@ -49,6 +49,10 @@ install:
 runserver:
 	$(PYTHON) mathics_django/manage.py runserver $o
 
+#: Run Django-based server in testserver mode. Use environment variable "o" for manage options
+testserver:
+	$(PYTHON) mathics_django/manage.py tesetserver $o
+
 check: djangotest doctest
 
 #: Remove derived files
