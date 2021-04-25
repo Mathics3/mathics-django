@@ -45,7 +45,7 @@ Thanks to the authors of all projects that are used in Mathics:
 - scripaculous
 - colorama
 - SymPy
-- Three.js
+- three.js
 - dateutil
 - colorama
 - six
