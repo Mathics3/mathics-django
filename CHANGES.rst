@@ -1,10 +1,14 @@
 CHANGES
 =======
 
-2.2.0
------
+2.2.0rc1
+--------
 
-* Upgade to `Django 3.2 <https://docs.djangoproject.com/en/3.2/releases/3.2/>` or newer. Django 3.2 is `long-term support release <https://docs.djangoproject.com/en/3.2/internals/release-process/#term-long-term-support-release>`_
+* Upgrade to `Django 3.2 <https://docs.djangoproject.com/en/3.2/releases/3.2/>` or newer. Django 3.2 is `long-term support release <https://docs.djangoproject.com/en/3.2/internals/release-process/#term-long-term-support-release>`_
+* Upgrade three.js to r52. See PR #36.
+* Allow Django's database (default ``mathics.sqlite``) to be settable from environment variables ``MATHICS_DJANGO_DB`` and ``MATHICS_DJANGO_DB_PATH``.
+* Update gallery examples with more graphics
+
 2.1.0
 -----
 
