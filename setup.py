@@ -136,7 +136,7 @@ setup(
             "media/js/innerdom/*.js",
             "media/js/prototype/*.js",
             "media/js/scriptaculous/*.js",
-            "media/js/three/Three.js",
+            "media/js/three/three.js",
             "media/js/three/Detector.js",
             "media/js/*.js",
             "templates/*.html",
