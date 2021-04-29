@@ -90,8 +90,8 @@ function save(overwrite) {
 			return;
 		cancelSave();
 		if (response.result == 'overwrite') {
-			showDialog("Overwrite worksheet", "There already exists a worksheet with the name '" +
-				response.form.values.name + "'. Do you want to overwrite it?",
+			showDialog("Overwrite worksheet", "A worksheet with the name '" +
+				response.form.values.name + "' already exists. Do you want to overwrite it?",
 				'Yes, overwrite it', 'No, cancel', function() {
 					save(true);
 				});
