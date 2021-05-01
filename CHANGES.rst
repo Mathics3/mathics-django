@@ -8,6 +8,7 @@ CHANGES
 * Upgrade three.js to r52. See PR #36.
 * Allow Django's database (default ``mathics.sqlite``) to be settable from environment variables ``MATHICS_DJANGO_DB`` and ``MATHICS_DJANGO_DB_PATH``.
 * Update gallery examples with more graphics
+* Add an "about" page to show version information and for installed software three.js and MathJax.
 
 2.1.0
 -----

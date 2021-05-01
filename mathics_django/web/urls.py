@@ -4,24 +4,26 @@
 
 from django.conf.urls import url
 from mathics_django.web.views import (
-    query,
-    main_view,
+    about_view,
+    delete,
+    doc,
+    doc_chapter,
+    doc_part,
+    doc_search,
+    doc_section,
+    get_worksheets,
     login,
     logout,
-    save,
+    main_view,
     open,
-    delete,
-    get_worksheets,
-    doc_search,
-    doc_part,
-    doc_chapter,
-    doc_section,
-    doc,
+    query,
+    save,
 )
 
 urlpatterns = [
     # 'mathics.web.views',
     url("^$", main_view),
+    url("^about(?:\.htm(?:l)?)?$", about_view),
     url("^ajax/query/$", query),
     url("^ajax/login/$", login),
     url("^ajax/logout/$", logout),

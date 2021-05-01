@@ -3,6 +3,7 @@
 import sys
 import traceback
 
+from django import __version__ as django_version
 from django.shortcuts import render
 from django.template import RequestContext, loader
 from django.http import (
@@ -18,13 +19,15 @@ from django.contrib.auth.models import User
 
 from django.core.mail import send_mail
 
+from mathics import version_info as mathics_version_info
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Message, Result
 
-from mathics_django.web.models import Query, Worksheet, get_session_evaluation
-from mathics_django.web.forms import LoginForm, SaveForm
 from mathics_django.doc import documentation
 from mathics_django.doc.doc import DocPart, DocChapter
+from mathics_django.version import __version__
+from mathics_django.web.forms import LoginForm, SaveForm
+from mathics_django.web.models import Query, Worksheet, get_session_evaluation
 
 documentation.load_pymathics_doc()
 
@@ -47,6 +50,7 @@ def is_authenticated(user):
         return user.is_authenticated()
     return user.is_authenticated
 
+
 # def require_ajax_login(func):
 #     def new_func(request, *args, **kwargs):
 #         if not is_authenticated(request.user):
@@ -60,12 +64,62 @@ from mathics.settings import default_pymathics_modules
 
 definitions = Definitions(add_builtin=True, extension_modules=default_pymathics_modules)
 
+import re
+import os.path as osp
+from builtins import open as builtin_open
+def get_three_version():
+    """
+    Get the three.js version the static and hacky way not involving javascript.
+    """
+    three_file = osp.join(osp.normcase(osp.dirname(osp.abspath(__file__))),
+                                     "media", "js", "three", "three.js")
+    pattern = "var THREE = THREE \|\| \{ REVISION: '(\d+)'"
+    match = re.search(pattern, builtin_open(three_file).read())
+    if match:
+        return "r" + match.group(1)
+    else:
+        return "r??"
+
+def get_MathJax_version():
+    """
+    Get the MathMax version the static and hacky way not involving javascript.
+    """
+    three_file = osp.join(osp.normcase(osp.dirname(osp.abspath(__file__))),
+                                     "media", "js", "mathjax", "MathJax.js")
+    pattern = 'MathJax.version="(\d\.\d)"'
+    match = re.search(pattern, builtin_open(three_file).read())
+    if match:
+        return match.group(1)
+    else:
+        return "?.?"
+
+def about_view(request):
+    """
+    This view gives information about the version and software we have loaded.
+    """
+    return render(request, "about.html", {
+        "django_version": django_version,
+        "three_js_version": get_three_version(),
+        "MathJax_version": get_MathJax_version(),
+        "mathics_version": mathics_version_info["mathics"],
+        "mathics_django_version": __version__,
+        "mpmath_version": mathics_version_info["mpmath"],
+        "numpy_version": mathics_version_info["mathics"],
+        "python_version": mathics_version_info["python"],
+        "sympy_version": mathics_version_info["sympy"],
+        })
+
 
 def require_ajax_login(f):
     return f
 
 
 def main_view(request):
+    """
+    This is what people normally see when running the server.
+    It contains the banner line with logo and icons to load and save and
+    a worksheet area to evaluate expressions. Off the the right is optional documentation.
+    """
     context = {
         "login_form": LoginForm(),
         "save_form": SaveForm(),
@@ -272,6 +326,7 @@ def logout(request):
     auth.logout(request)
     return JsonResponse()
 
+
 @require_ajax_login
 def save(request):
     if settings.DEBUG and not request.POST:
@@ -364,6 +419,7 @@ def delete(request):
             "content": content,
         }
     )
+
 
 # auxiliary function
 

@@ -270,6 +270,23 @@ a.pdf {
   display: inline-block;
 }
 
+#about {
+  position:relative;
+  margin: 14px;
+  top: 54px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: white;
+  overflow: auto;
+  padding-top: 14px;
+  z-index: 0;
+  padding: 14px 1.5em 28px 1.5em;
+  display: flex;
+  flex-direction: row;
+
+}
+
 #document,
 #code {
   position: absolute;
