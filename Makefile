@@ -51,7 +51,7 @@ runserver:
 
 #: Run Django-based server in testserver mode. Use environment variable "o" for manage options
 testserver:
-	$(PYTHON) mathics_django/manage.py tesetserver $o
+	$(PYTHON) mathics_django/manage.py testserver $o
 
 check: djangotest doctest
 
