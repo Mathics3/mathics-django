@@ -9,6 +9,7 @@ from django.contrib.sessions.models import Session
 
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Output
+from mathics.core.expression import(Expression, Symbol, SymbolTrue, String)
 from mathics_django.web.format import format_output
 
 
@@ -30,6 +31,7 @@ def get_session_evaluation(session):
             definitions, format='unformatted', output=WebOutput())
         _evaluations[session.session_key] = evaluation
         evaluation.format_output = lambda expr, format: format_output(evaluation, expr, format)
+        Expression('LoadModule', String("pymathics.asy")).evaluate(evaluation)
     return evaluation
 
 
