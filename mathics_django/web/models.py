@@ -7,9 +7,10 @@ from django.contrib.auth.models import User
 from django.db.models.signals import pre_delete
 from django.contrib.sessions.models import Session
 
-from mathics.core.definitions import Definitions
+from mathics.core.definitions import Definitions, autoload_files
 from mathics.core.evaluation import Evaluation, Output
 from mathics_django.web.format import format_output
+from mathics_django.settings import ROOT_DIR
 
 
 class WebOutput(Output):
@@ -30,6 +31,7 @@ def get_session_evaluation(session):
             definitions, format='unformatted', output=WebOutput())
         _evaluations[session.session_key] = evaluation
         evaluation.format_output = lambda expr, format: format_output(evaluation, expr, format)
+        autoload_files(definitions, ROOT_DIR, "autoload")
     return evaluation
 
 

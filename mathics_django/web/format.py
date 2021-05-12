@@ -6,7 +6,6 @@ from tempfile import NamedTemporaryFile
 import random
 import math
 import networkx as nx
-import tempfile
 
 
 FORM_TO_FORMAT = {
