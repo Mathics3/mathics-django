@@ -60,8 +60,11 @@ def format_output(obj, expr, format=None):
         # This part is custom to mathics-django:
         if str(expr) == "-Graph-" and hasattr(expr, "G"):
             return format_graph(expr.G)
-        elif str(expr.get_head()) == 'System`CompiledFunction':
+        head = str(expr.get_head())
+        if head == 'System`CompiledFunction':
             result = expr.format(obj, "System`OutputForm")
+        elif head == 'System`String':
+            result = expr.format(obj, "System`InputForm")
         else:
             result = Expression("StandardForm", expr).format(obj, "System`MathMLForm")
     else:
