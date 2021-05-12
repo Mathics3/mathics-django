@@ -53,11 +53,11 @@ DEPENDENCY_LINKS = []
 
 if sys.platform == "darwin":
     INSTALL_REQUIRES += ["scikit-image"]
-
 # General Requirements
 INSTALL_REQUIRES += [
     "Mathics-Scanner >= 1.0.0,<1.2.0",
-    "Mathics3 >= 2.1.0",
+    "Mathics3 @ http://github.com/mathics/Mathics/archive/master.zip",
+    # "Mathics3 >= 2.1.1",
     "django >= 3.2",
     "networkx >= 2.5",
     "requests",
