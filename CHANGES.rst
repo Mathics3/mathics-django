@@ -1,6 +1,21 @@
 CHANGES
 =======
 
+2.2.0
+-----
+
+* Upgrade to MathJax-2.5.0. From `MathJax V2.5 <https://github.com/mathjax/MathJax/releases/tag/2.5.0>`_:
+   This release focused on improving rendering speed and MathML support.
+* Revise "about" section to include:
+  - Software information
+  - Directory information
+  - Machine information
+  - System information
+* Don't use MathJax for string output. (HTML/Hrefs coming later)
+* Create a ``settings.m`` including ``Settings`$UseSansSerif`` and autoload that.
+
+
+
 2.2.0rc1
 --------
 
