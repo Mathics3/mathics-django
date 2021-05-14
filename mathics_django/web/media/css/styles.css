@@ -272,8 +272,8 @@ a.pdf {
 
 #about {
   position:relative;
-  margin: 14px;
-  top: 54px;
+  margin: 20px;
+  top: -50px;
   bottom: 0;
   left: 0;
   right: 0;
@@ -282,8 +282,8 @@ a.pdf {
   padding-top: 14px;
   z-index: 0;
   padding: 14px 1.5em 28px 1.5em;
-  display: flex;
-  flex-direction: row;
+  display: block;
+  /* flex-direction: row; */
 
 }
 
@@ -325,6 +325,30 @@ a.pdf {
 #queriesContainer {
   cursor: vertical-text;
   animation: fadein-anim 0.4s;
+}
+
+#welcomeContainerAbout {
+  position: absolute;
+  margin-left: auto;
+  margin-right: auto;
+  left: 50%;
+  right: 0%;
+  width: 50%;
+  top: 5em;
+}
+
+#welcomeContainerAbout p {
+  margin-top: 0;
+  margin-bottom: 1em;
+}
+#welcomeContainerAbout a {
+  color: #eee;
+  text-decoration: underline;
+  font-weight: bold;
+}
+
+#welcomeContainerAbout a:hover {
+  color: #fff;
 }
 
 #welcomeContainer {

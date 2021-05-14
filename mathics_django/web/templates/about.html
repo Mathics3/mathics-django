@@ -9,7 +9,7 @@
 {% block html_body %}
 
 <header>
-<div id="headerleft">
+<!--div id="headerleft"-->
   <a href="https://mathics.org">
     <img id="logo" class="load" src="{% static 'img/logo-heptatom.svg' %}" height="32" alt="Logo"
     /><img id="logotext" class="load" src="{% static 'img/logo-text.svg' %}" height="26" alt="Mathics" />
@@ -23,15 +23,14 @@
     <a href="javascript:createLink()" title="Generate Worksheet Input Hash"><i class="fa fa-share-alt"></i></a>
   </div>
   -->
-</div>
+<!--/div-->
 </header>
 
 {% block main %}
 
 <div id="about">
 
-  <h1> Version information </h1>
-
+  <h1> Software information </h1>
   <p>
     <ul>
       <li>Django: {{django_version}}</li>
@@ -45,16 +44,48 @@
       <li>Sympy: {{sympy_version}}</li>
     </ul>
   </p>
+
+  <h1> Directory information </h1>
+  <p>
+    <ul>
+      <li>Base Directory: <code>{{BaseDirectory}}</code></li>
+      <li>Home Directory: <code>{{HomeDirectory}}</code></li>
+      <li>Installation Directory: <code>{{InstallationDirectory}}</code></li>
+      <li>Root Directory: <code>{{RootDirectory}}</code></li>
+      <li>Temporary Directory: <code>{{TemporaryDirectory}}</code></li>
+    </ul>
+  </p>
+  <h1> Machine information </h1>
+  <p>
+    <ul>
+      <li>Machine Name: {{MachineName}}</li>
+      <li>Machine: {{Machine}}</li>
+      <li>Processor Type: {{ProcessorType}}</li>
+      <li>Memory Available: {{MemoryAvailable}}</li>
+      <li>System Memory: {{SystemMemory}}</li>
+      <li>Machine Precision: {{MachinePrecision}}</li>
+    </ul>
+  </p>
+
+  <h1> System information </h1>
+  <p>
+    <ul>
+      <li>User Name: {{UserName}}</li>
+      <li>Process ID: {{ProcessID}}</li>
+      <li>System Time Zone: {{SystemTimeZone}}</li>
+    </ul>
+  </p>
+
 </div>
 
 <!-- FIXME: figure out how to reuse welcome.html. We can't run ajax from here. -->
-<div id="welcomeContainer">
-<div id="welcome">
-<p><h1>Welcome to Mathics!</h1></p>
-<p>Mathics is a general-purpose computer algebra system.</p>
-<p>Enter queries and evaluate them by pressing <code>Shift</code> + <code>Return</code>.
-See the <a href="/doc">documentation</a> for a full list of supported functions.
-
+<div id="welcomeContainerAbout">
+  <div id="welcome">
+  <p><h1>About Mathics!</h1></p>
+  <p>Mathics is a general-purpose computer algebra system.</p>
+  <p>See the <a href="/doc">online documentation in fullscreen</a> for a full list of supported functions, or
+  <a href="/">go back to the main page</a>.
+  </div>
 </div>
 
 {% endblock main %}

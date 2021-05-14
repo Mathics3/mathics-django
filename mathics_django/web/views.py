@@ -22,6 +22,7 @@ from django.core.mail import send_mail
 from mathics import version_info as mathics_version_info
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Message, Result
+from mathics.system_info import mathics_system_info
 
 from mathics_django.doc import documentation
 from mathics_django.doc.doc import DocPart, DocChapter
@@ -67,12 +68,19 @@ definitions = Definitions(add_builtin=True, extension_modules=default_pymathics_
 import re
 import os.path as osp
 from builtins import open as builtin_open
+
+
 def get_three_version():
     """
     Get the three.js version the static and hacky way not involving javascript.
     """
-    three_file = osp.join(osp.normcase(osp.dirname(osp.abspath(__file__))),
-                                     "media", "js", "three", "three.js")
+    three_file = osp.join(
+        osp.normcase(osp.dirname(osp.abspath(__file__))),
+        "media",
+        "js",
+        "three",
+        "three.js",
+    )
     pattern = "var THREE = THREE \|\| \{ REVISION: '(\d+)'"
     match = re.search(pattern, builtin_open(three_file).read())
     if match:
@@ -80,12 +88,18 @@ def get_three_version():
     else:
         return "r??"
 
+
 def get_MathJax_version():
     """
     Get the MathMax version the static and hacky way not involving javascript.
     """
-    three_file = osp.join(osp.normcase(osp.dirname(osp.abspath(__file__))),
-                                     "media", "js", "mathjax", "MathJax.js")
+    three_file = osp.join(
+        osp.normcase(osp.dirname(osp.abspath(__file__))),
+        "media",
+        "js",
+        "mathjax",
+        "MathJax.js",
+    )
     pattern = 'MathJax.version="(\d\.\d)"'
     match = re.search(pattern, builtin_open(three_file).read())
     if match:
@@ -93,21 +107,48 @@ def get_MathJax_version():
     else:
         return "?.?"
 
+
 def about_view(request):
     """
     This view gives information about the version and software we have loaded.
     """
-    return render(request, "about.html", {
-        "django_version": django_version,
-        "three_js_version": get_three_version(),
-        "MathJax_version": get_MathJax_version(),
-        "mathics_version": mathics_version_info["mathics"],
-        "mathics_django_version": __version__,
-        "mpmath_version": mathics_version_info["mpmath"],
-        "numpy_version": mathics_version_info["mathics"],
-        "python_version": mathics_version_info["python"],
-        "sympy_version": mathics_version_info["sympy"],
-        })
+    evaluation = get_session_evaluation(request.session)
+    system_info = mathics_system_info(evaluation.definitions)
+
+    return render(
+        request,
+        "about.html",
+        {
+            "django_version": django_version,
+            "three_js_version": get_three_version(),
+            "MathJax_version": get_MathJax_version(),
+            "mathics_version": mathics_version_info["mathics"],
+            "mathics_django_version": __version__,
+            "mpmath_version": mathics_version_info["mpmath"],
+            "numpy_version": mathics_version_info["mathics"],
+            "python_version": mathics_version_info["python"],
+            "sympy_version": mathics_version_info["sympy"],
+
+            "BaseDirectory": system_info["$BaseDirectory"],
+            "HomeDirectory": system_info["$HomeDirectory"],
+            "InstallationDirectory": system_info["$InstallationDirectory"],
+            "RootDirectory": system_info["$RootDirectory"],
+            "TemporaryDirectory": system_info["$TemporaryDirectory"],
+
+            "MachinePrecision": system_info["MachinePrecision"],
+            "MemoryAvailable": system_info["MemoryAvailable[]"],
+            "SystemMemory": system_info["$SystemMemory"],
+
+            "Machine": system_info["$Machine"],
+            "MachineName": system_info["$MachineName"],
+            "ProcessID": system_info["$ProcessID"],
+            "ProcessorType": system_info["$ProcessorType"],
+
+            "SystemID": system_info["$SystemID"],
+            "SystemTimeZone": system_info["$SystemTimeZone"],
+            "UserName": system_info["$UserName"],
+        },
+    )
 
 
 def require_ajax_login(f):
