@@ -100,12 +100,12 @@ def get_MathJax_version():
         "mathjax",
         "MathJax.js",
     )
-    pattern = 'MathJax.version="(\d\.\d)"'
+    pattern = 'MathJax.version="(\d\.\d\.\d)"'
     match = re.search(pattern, builtin_open(three_file).read())
     if match:
         return match.group(1)
     else:
-        return "?.?"
+        return "?.?.?"
 
 
 def about_view(request):
