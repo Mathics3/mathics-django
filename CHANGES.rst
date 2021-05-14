@@ -4,13 +4,8 @@ CHANGES
 2.2.0
 -----
 
-* Upgrade to MathJax-2.5.0. From `MathJax V2.5 <https://github.com/mathjax/MathJax/releases/tag/2.5.0>`_:
-   This release focused on improving rendering speed and MathML support.
-* Revise "about" section to include:
-  - Software information
-  - Directory information
-  - Machine information
-  - System information
+* Upgrade to MathJax-2.7.9. See `MathJax v2.7.9 <https://github.com/mathjax/MathJax/releases/tag/2.7.9>`_.
+  Over a decade of improvements here. One that I like is that output which is too large to fit on this screen can be viewed in the Zoom popup which has a scrollbar.
 * Don't use MathJax for string output. (HTML/Hrefs coming later)
 * Create a ``settings.m`` including ``Settings`$UseSansSerif`` and autoload that.
 
