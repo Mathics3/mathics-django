@@ -10,6 +10,7 @@ CHANGES
 * String output is no longer passed to MathJax for rendering in MathML. As a result its output is more visually distinct from unexpanded and symbol output:
   it is left aligned and in a different monospace font. In the future we may consider settings for enabling/disabling this.
 * Create a ``settings.m`` including ``Settings`$UseSansSerif`` and autoload that.
+* "About" page expanded to include Machine, System, and Directory information
 
 
 
