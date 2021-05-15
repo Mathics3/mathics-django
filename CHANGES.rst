@@ -7,6 +7,8 @@ CHANGES
 * Upgrade to MathJax-2.7.9. See `MathJax v2.7.9 <https://github.com/mathjax/MathJax/releases/tag/2.7.9>`_.
   Over a decade of improvements here. One that I like is that output which is too large to fit on this screen can be viewed in the Zoom popup which has a scrollbar.
 * Don't use MathJax for string output. (HTML/Hrefs coming later)
+* String output is no longer passed to MathJax for rendering in MathML. As a result its output is more visually distinct from unexpanded and symbol output:
+  it is left aligned and in a different monospace font. In the future we may consider settings for enabling/disabling this.
 * Create a ``settings.m`` including ``Settings`$UseSansSerif`` and autoload that.
 
 
