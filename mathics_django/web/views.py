@@ -26,6 +26,7 @@ from mathics.system_info import mathics_system_info
 
 from mathics_django.doc import documentation
 from mathics_django.doc.doc import DocPart, DocChapter
+from mathics_django.settings import MATHICS_DJANGO_DB_PATH
 from mathics_django.version import __version__
 from mathics_django.web.forms import LoginForm, SaveForm
 from mathics_django.web.models import Query, Worksheet, get_session_evaluation
@@ -129,11 +130,21 @@ def about_view(request):
             "python_version": mathics_version_info["python"],
             "sympy_version": mathics_version_info["sympy"],
 
+            "SystemID": system_info["$SystemID"],
+            "SystemTimeZone": system_info["$SystemTimeZone"],
+            "UserName": system_info["$UserName"],
+
             "BaseDirectory": system_info["$BaseDirectory"],
             "HomeDirectory": system_info["$HomeDirectory"],
             "InstallationDirectory": system_info["$InstallationDirectory"],
             "RootDirectory": system_info["$RootDirectory"],
             "TemporaryDirectory": system_info["$TemporaryDirectory"],
+            "DB_PATH": MATHICS_DJANGO_DB_PATH,
+
+            "HTTP_USER_AGENT": request.META.get("HTTP_USER_AGENT", ""),
+            "REMOTE_USER": request.META.get("REMOTE_USER", ""),
+            "REMOTE_ADDR": request.META.get("REMOTE_ADDR", ""),
+            "REMOTE_HOST": request.META.get("REMOTE_HOST", ""),
 
             "MachinePrecision": system_info["MachinePrecision"],
             "MemoryAvailable": system_info["MemoryAvailable[]"],
@@ -144,9 +155,7 @@ def about_view(request):
             "ProcessID": system_info["$ProcessID"],
             "ProcessorType": system_info["$ProcessorType"],
 
-            "SystemID": system_info["$SystemID"],
-            "SystemTimeZone": system_info["$SystemTimeZone"],
-            "UserName": system_info["$UserName"],
+
         },
     )
 
