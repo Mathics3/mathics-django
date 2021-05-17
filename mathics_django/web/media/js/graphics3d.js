@@ -525,10 +525,19 @@ function drawGraphics3D(container, data) {
   var ticknums = new Array(3);
   for (var i = 0; i < 3; i++) {
     if (hasaxes[i]) {
+      var color;
+      if (i == 0) {
+        color = 'red';
+      } else if (i == 1) {
+        color = 'green';
+      } else {
+        color = 'blue';
+      }
+
       ticknums[i] = new Array(data.axes.ticks[i][0].length);
       for (var j = 0; j < ticknums[i].length; j++) {
         ticknums[i][j] = document.createElement('div');
-        ticknums[i][j].innerHTML = data.axes.ticks[i][2][j];
+        ticknums[i][j].innerHTML = data.axes.ticks[i][2][j].replace('0.', '.');
 
         // Handle Minus signs
         if (data.axes.ticks[i][0][j] >= 0) {
@@ -539,6 +548,7 @@ function drawGraphics3D(container, data) {
 
         ticknums[i][j].style.position = "absolute";
         ticknums[i][j].style.fontSize = "0.8em";
+        ticknums[i][j].style.color = color;
         container.appendChild(ticknums[i][j]);
       }
     }
