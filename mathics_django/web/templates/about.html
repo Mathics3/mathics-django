@@ -30,7 +30,7 @@
 
 <div id="about">
 
-  <h1> Software information </h1>
+  <h1>Software information</h1>
   <p>
     <ul>
       <li>Django: {{django_version}}</li>
@@ -45,7 +45,16 @@
     </ul>
   </p>
 
-  <h1> Directory information </h1>
+  <h1>System information</h1>
+  <p>
+    <ul>
+      <li>User Name: {{UserName}}</li>
+      <li>Process ID: {{ProcessID}}</li>
+      <li>System Time Zone: {{SystemTimeZone}}</li>
+    </ul>
+  </p>
+
+  <h1>File Paths</h1>
   <p>
     <ul>
       <li>Base Directory: <code>{{BaseDirectory}}</code></li>
@@ -53,9 +62,11 @@
       <li>Installation Directory: <code>{{InstallationDirectory}}</code></li>
       <li>Root Directory: <code>{{RootDirectory}}</code></li>
       <li>Temporary Directory: <code>{{TemporaryDirectory}}</code></li>
+      <li>Database File: <code>{{DB_PATH}}</code></li>
     </ul>
   </p>
-  <h1> Machine information </h1>
+
+  <h1>Machine information</h1>
   <p>
     <ul>
       <li>Machine Name: {{MachineName}}</li>
@@ -67,14 +78,13 @@
     </ul>
   </p>
 
-  <h1> System information </h1>
-  <p>
+  <h1>Connection Information</h1>
     <ul>
-      <li>User Name: {{UserName}}</li>
-      <li>Process ID: {{ProcessID}}</li>
-      <li>System Time Zone: {{SystemTimeZone}}</li>
+      <li>HTTP User Agent: {{HTTP_USER_AGENT}}</li>
+      <li>Remote User: {{REMOTE_USER}}</li>
+      <li>Remote Address: {{REMOTE_ADDR}}</li>
+      <li>Remote Host: {{REMOTE_HOST}}</li>
     </ul>
-  </p>
 
 </div>
 
