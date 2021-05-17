@@ -525,6 +525,7 @@ function drawGraphics3D(container, data) {
   var ticknums = new Array(3);
   for (var i = 0; i < 3; i++) {
     if (hasaxes[i]) {
+      // TODO: implement TickStyle for 3D graphics (see page 132 of https://mathics.org/docs/mathics-latest.pdf)
       var color;
       if (i == 0) {
         color = 'red';
