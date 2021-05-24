@@ -1,4 +1,13 @@
 # -*- coding: utf-8 -*-
+"""
+A module which extracts LaTeX, XML documentation from documentation/*.mdoc and from Mathics modules.
+It also extracts doctests as well.
+
+Running LaTeX, or the tests is done elsewhere, as is viewing extracted XML docs.
+
+FIXME: Note this code is duplicated from Mathics Core.
+This code should be replaced by sphinx and autodoc.
+"""
 
 import re
 from os import getenv, listdir, path
@@ -111,6 +120,15 @@ try:
         xml_data = pickle.load(xml_data_file)
 except IOError:
     xml_data = {}
+
+def get_submodule_names(object):
+    modpkgs = []
+    if hasattr(object, '__path__'):
+        for importer, modname, ispkg in pkgutil.iter_modules(object.__path__):
+            modpkgs.append(modname)
+        modpkgs.sort()
+    return modpkgs
+
 
 
 def filter_comments(doc):
@@ -243,16 +261,18 @@ def escape_latex(text):
         text,
         [
             ("$", r"\$"),
+            ("\u22bc", "nand"),  # \barwedge isn't working
+            ("\u22bd", "nor"),   # \vebarr isn't working
             ("\u03c0", r"$\pi$"),
-            (" ", r"$\ge$"),
-            (" ", r"$\le$"),
-            (" ", r"$\ne$"),
-            ("\u00E7", r"\c{c}"),
+            ("\u2265", r"$\ge$"),
+            ("\u2264", r"$\le$"),
+            ("\u2260", r"$\ne$"),
+            ("\u00e7", r"\c{c}"),
             ("\u00e9", r"\'e"),
             ("\u00ea", r"\^e"),
-            ("\u00f1", r"\~n"),
-            (r" ", r"\int"),
-            ("\uF74C", r"d"),
+            ("\00f1", r"\~n"),
+            ("\u222b", r"\int"),
+            ("\uf74c", r"d"),
         ],
     )
 
@@ -479,6 +499,7 @@ def post_sub(text, post_substitutions):
     return text
 
 
+# FIXME: can we replace this with Python 3's html.escape ?
 def escape_html(text, verbatim_mode=False, counters=None, single_line=False):
     def repl_python(match):
         return (
@@ -793,7 +814,8 @@ class MathicsMainDocumentation(Documentation):
                 title, text = get_module_doc(module)
                 chapter = DocChapter(builtin_part, title, Doc(text))
                 builtins = builtins_by_module[module.__name__]
-                for instance in builtins:
+                section_names = [builtin for builtin in builtins if not builtin.__class__.__name__.endswith("Box")]
+                for instance in section_names:
                     installed = True
                     for package in getattr(instance, "requires", []):
                         try:
