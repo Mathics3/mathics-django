@@ -12,7 +12,6 @@ This code should be replaced by sphinx and autodoc.
 from os import getenv, listdir
 import importlib
 
-from django.utils.html import linebreaks
 from django.utils.safestring import mark_safe
 
 from mathics import settings
@@ -20,36 +19,17 @@ from mathics import settings
 from mathics import builtin
 from mathics.builtin import get_module_doc
 from mathics.core.evaluation import Message, Print
-from mathics_django.doc.utils import slugify
+
+from mathics_django.doc.utils import escape_html, slugify
 
 from mathics.doc.doc import (
-    ALLOWED_TAGS,
-    ALLOWED_TAGS_RE,
     CHAPTER_RE,
-    CONSOLE_RE,
-    DL_ITEM_RE,
-    DL_RE,
-    DocText,
     END_LINE_SENTINAL,
-    HYPERTEXT_RE,
-    IMG_PNG_RE,
-    IMG_RE,
-    LATEX_RE,
-    LIST_ITEM_RE,
-    LIST_RE,
-    MATHICS_RE,
     PYTHON_RE,
-    QUOTATIONS_RE,
-    REF_RE,
     SECTION_RE,
-    SPECIAL_COMMANDS,
-    SUBSECTION_END_RE,
-    SUBSECTION_RE,
     Tests,
     TESTCASE_OUT_RE,
     TESTCASE_RE,
-    _replace_all,
-    escape_html,
     filter_comments,
     post_sub,
     pre_sub,
@@ -277,13 +257,11 @@ class PyMathicsDocumentation(Documentation):
             self.pymathicsmodule = importlib.import_module(module)
         except ImportError:
             print("Module does not exist")
-            mainfolder = ""
             self.pymathicsmodule = None
             self.parts = []
             return
 
         try:
-            mainfolder = self.pymathicsmodule.__path__[0]
             if "name" in self.pymathicsmodule.pymathics_version_data:
                 self.name = self.version = self.pymathicsmodule.pymathics_version_data[
                     "name"
@@ -294,7 +272,6 @@ class PyMathicsDocumentation(Documentation):
             self.author = self.pymathicsmodule.pymathics_version_data["author"]
         except (AttributeError, KeyError, IndexError):
             print(module + " is not a pymathics module.")
-            mainfolder = ""
             self.pymathicsmodule = None
             self.parts = []
             return
@@ -533,11 +510,6 @@ class Doc(object):
             tests.extend(item.get_tests())
         return tests
 
-    def latex(self, output):
-        return "\n".join(
-            item.latex(output) for item in self.items if not item.is_private()
-        )
-
     def html(self):
         counters = {}
         return mark_safe(
@@ -580,19 +552,6 @@ class DocTests(object):
 
     def __str__(self):
         return "\n".join(str(test) for test in self.tests)
-
-    def latex(self, output):
-        if len(self.tests) == 0:
-            return "\n"
-
-        testLatexStrings = [
-            test.latex(output) for test in self.tests if not test.private
-        ]
-        testLatexStrings = [t for t in testLatexStrings if len(t) > 1]
-        if len(testLatexStrings) == 0:
-            return "\n"
-
-        return "\\begin{tests}%%\n%s%%\n\\end{tests}" % ("%\n".join(testLatexStrings))
 
     def html(self, counters=None):
         if len(self.tests) == 0:
