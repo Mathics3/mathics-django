@@ -10,11 +10,11 @@ This code should be replaced by sphinx and autodoc.
 """
 
 import re
-from os import getenv, listdir, path
+from os import getenv, listdir
 import pickle
 import importlib
 
-from django.utils.html import escape, linebreaks
+from django.utils.html import linebreaks
 from django.utils.safestring import mark_safe
 
 from mathics import settings
@@ -777,12 +777,12 @@ class MathicsMainDocumentation(Documentation):
             part_title = file[2:]
             if part_title.endswith(".mdoc"):
                 part_title = part_title[: -len(".mdoc")]
-                part = DocPart(self, part_title)
+                part = DjangoDocPart(self, part_title)
                 text = open(self.doc_dir + file, "rb").read().decode("utf8")
                 text = filter_comments(text)
                 chapters = CHAPTER_RE.findall(text)
                 for title, text in chapters:
-                    chapter = DocChapter(part, title)
+                    chapter = DjangoDocChapter(part, title)
                     text += '<section title=""></section>'
                     sections = SECTION_RE.findall(text)
                     for pre_text, title, text in sections:
@@ -809,10 +809,10 @@ class MathicsMainDocumentation(Documentation):
             # ("Reference of optional symbols", optional.modules,
             #  optional.optional_builtins_by_module, False)]:
 
-            builtin_part = DocPart(self, title, is_reference=start)
+            builtin_part = DjangoDocPart(self, title, is_reference=start)
             for module in modules:
                 title, text = get_module_doc(module)
-                chapter = DocChapter(builtin_part, title, Doc(text))
+                chapter = DjangoDocChapter(builtin_part, title, Doc(text))
                 builtins = builtins_by_module[module.__name__]
                 section_names = [builtin for builtin in builtins if not builtin.__class__.__name__.endswith("Box")]
                 for instance in section_names:
@@ -853,7 +853,7 @@ class MathicsMainDocumentation(Documentation):
             if part.title == "Pymathics Modules":
                 pymathicspart = part
         if pymathicspart is None:
-            pymathicspart = DocPart(self, "Pymathics Modules", is_reference=True)
+            pymathicspart = DjangoDocPart(self, "Pymathics Modules", is_reference=True)
             self.parts.append(pymathicspart)
 
         # For each module, create the documentation object and load the chapters in the pymathics part.
@@ -953,12 +953,12 @@ class PyMathicsDocumentation(Documentation):
             part_title = file[2:]
             if part_title.endswith(".mdoc"):
                 part_title = part_title[: -len(".mdoc")]
-                part = DocPart(self, part_title)
+                part = DjangoDocPart(self, part_title)
                 text = open(self.doc_dir + file, "rb").read().decode("utf8")
                 text = filter_comments(text)
                 chapters = CHAPTER_RE.findall(text)
                 for title, text in chapters:
-                    chapter = DocChapter(part, title)
+                    chapter = DjangoDocChapter(part, title)
                     text += '<section title=""></section>'
                     sections = SECTION_RE.findall(text)
                     for pre_text, title, text in sections:
@@ -975,9 +975,9 @@ class PyMathicsDocumentation(Documentation):
                     appendix.append(part)
 
         # Builds the automatic documentation
-        builtin_part = DocPart(self, "Pymathics Modules", is_reference=True)
+        builtin_part = DjangoDocPart(self, "Pymathics Modules", is_reference=True)
         title, text = get_module_doc(self.pymathicsmodule)
-        chapter = DocChapter(builtin_part, title, Doc(text))
+        chapter = DjangoDocChapter(builtin_part, title, Doc(text))
         for name in self.symbols:
             instance = self.symbols[name]
             installed = True
@@ -1007,7 +1007,7 @@ class PyMathicsDocumentation(Documentation):
                 test.key = (tests.part, tests.chapter, tests.section, test.index)
 
 
-class DocPart(DocElement):
+class DjangoDocPart(DocElement):
     def __init__(self, doc, title, is_reference=False):
         self.doc = doc
         self.title = title
@@ -1039,7 +1039,7 @@ class DocPart(DocElement):
         return self.doc.parts
 
 
-class DocChapter(DocElement):
+class DjangoDocChapter(DocElement):
     def __init__(self, part, title, doc=None):
         self.part = part
         self.title = title

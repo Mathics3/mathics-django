@@ -2,6 +2,6 @@
 # -*- coding: utf-8 -*-
 
 
-from .doc import MathicsMainDocumentation
+from mathics_django.doc.django_doc import MathicsMainDocumentation
 
 documentation = MathicsMainDocumentation()
