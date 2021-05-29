@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 A module which extracts XML documentation from documentation/*.mdoc and from Mathics modules.
-It also extracts doctests as well.
 
-Running the tests is done elsewhere, as is viewing extracted XML docs.
+Viewing extracted XML docs is elswhere.
 
 FIXME: Too much of this code is duplicated from Mathics Core.
 This code should be replaced by sphinx and autodoc.
@@ -12,6 +11,7 @@ This code should be replaced by sphinx and autodoc.
 from os import getenv, listdir
 import importlib
 
+from django.utils.html import linebreaks
 from django.utils.safestring import mark_safe
 
 from mathics import settings
@@ -23,13 +23,31 @@ from mathics.core.evaluation import Message, Print
 from mathics_django.doc.utils import escape_html, slugify
 
 from mathics.doc.doc import (
+    ALLOWED_TAGS,
+    ALLOWED_TAGS_RE,
     CHAPTER_RE,
+    CONSOLE_RE,
+    DL_ITEM_RE,
+    DL_RE,
+    DocElement,
     END_LINE_SENTINAL,
+    HYPERTEXT_RE,
+    IMG_PNG_RE,
+    IMG_RE,
+    LIST_ITEM_RE,
+    LIST_RE,
+    MATHICS_RE,
     PYTHON_RE,
+    REF_RE,
+    QUOTATIONS_RE,
     SECTION_RE,
-    Tests,
+    SPECIAL_COMMANDS,
+    SUBSECTION_END_RE,
+    SUBSECTION_RE,
     TESTCASE_OUT_RE,
     TESTCASE_RE,
+    Tests,
+    _replace_all,
     filter_comments,
     post_sub,
     pre_sub,
@@ -37,7 +55,150 @@ from mathics.doc.doc import (
     xml_data,
 )
 
-class DocElement(object):
+# -------
+# FIXME: can we replace this with Python 3's html.escape ?
+def escape_html(text, verbatim_mode=False, counters=None, single_line=False):
+    def repl_python(match):
+        return (
+            r"""<pre><![CDATA[
+%s
+]]></pre>"""
+            % match.group(1).strip()
+        )
+
+    text, post_substitutions = pre_sub(PYTHON_RE, text, repl_python)
+
+    text = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+    if not verbatim_mode:
+
+        def repl_quotation(match):
+            return r"&ldquo;%s&rdquo;" % match.group(1)
+
+        text = QUOTATIONS_RE.sub(repl_quotation, text)
+
+    if counters is None:
+        counters = {}
+
+    text = text.replace('"', "&quot;")
+    if not verbatim_mode:
+
+        def repl_mathics(match):
+            text = match.group(1)
+            text = text.replace("\\'", "'")
+            text = text.replace(" ", "&nbsp;")
+            if text:
+                return "<code>%s</code>" % text
+            else:
+                return "'"
+
+        def repl_allowed(match):
+            content = _replace_all(
+                match.group(1), [("&ldquo;", '"'), ("&rdquo;", '"'), ("&quot;", '"')]
+            )
+            return "<%s>" % content
+
+        text = MATHICS_RE.sub(repl_mathics, text)
+        for allowed in ALLOWED_TAGS:
+            text = ALLOWED_TAGS_RE[allowed].sub(repl_allowed, text)
+            text = text.replace("&lt;/%s&gt;" % allowed, "</%s>" % allowed)
+
+        def repl_dl(match):
+            text = match.group(1)
+            text = DL_ITEM_RE.sub(
+                lambda m: "<%(tag)s>%(content)s</%(tag)s>\n" % m.groupdict(), text
+            )
+            return "<dl>%s</dl>" % text
+
+        text = DL_RE.sub(repl_dl, text)
+
+        def repl_list(match):
+            tag = match.group("tag")
+            content = match.group("content")
+            content = LIST_ITEM_RE.sub(lambda m: "<li>%s</li>" % m.group(1), content)
+            return "<%s>%s</%s>" % (tag, content, tag)
+
+        text = LIST_RE.sub(repl_list, text)
+
+        def repl_hypertext(match):
+            tag = match.group("tag")
+            content = match.group("content")
+            if tag == "em":
+                return r"<em>%s</em>" % content
+            elif tag == "url":
+                return r'<a href="%s">%s</a>' % (content, content)
+
+        text = HYPERTEXT_RE.sub(repl_hypertext, text)
+
+        def repl_console(match):
+            tag = match.group("tag")
+            content = match.group("content")
+            tag = "div" if tag == "console" else "span"
+            content = content.strip()
+            pre = post = ""
+
+            # gets replaced for <br /> later by DjangoDocText.html()
+            content = content.replace("\n", "<br>")
+
+            return r'<%s class="console">%s%s%s</%s>' % (tag, pre, content, post, tag)
+
+        text = CONSOLE_RE.sub(repl_console, text)
+
+        def repl_img(match):
+            src = match.group("src")
+            title = match.group("title")
+            return (
+                r'<a href="/media/doc/%(src)s.pdf">'
+                r'<img src="/media/doc/%(src)s.png" title="%(title)s" />'
+                r"</a>"
+            ) % {"src": src, "title": title}
+
+        text = IMG_RE.sub(repl_img, text)
+
+        def repl_imgpng(match):
+            src = match.group("src")
+            title = match.group("title")
+            return (r'<img src="/media/doc/%(src)s" title="%(title)s" />') % {
+                "src": src,
+                "title": title,
+            }
+
+        text = IMG_PNG_RE.sub(repl_imgpng, text)
+
+        def repl_ref(match):
+            # TODO: this is not an optimal solution - maybe we need figure
+            # numbers in the XML doc as well?
+            return r"the following figure"
+
+        text = REF_RE.sub(repl_ref, text)
+
+        def repl_subsection(match):
+            return '\n<h2 label="%s">%s</h2>\n' % (match.group(1), match.group(1))
+
+        text = SUBSECTION_RE.sub(repl_subsection, text)
+        text = SUBSECTION_END_RE.sub("", text)
+
+        text = text.replace("\\'", "'")
+    else:
+        text = text.replace(" ", "&nbsp;")
+        text = "<code>%s</code>" % text
+    text = text.replace("'", "&#39;")
+    text = text.replace("---", "&mdash;")
+    for key, (xml, tex) in SPECIAL_COMMANDS.items():
+        text = text.replace("\\" + key, xml)
+
+    if not single_line:
+        text = linebreaks(text)
+        text = text.replace("<br />", "\n").replace("<br>", "<br />")
+
+    text = post_sub(text, post_substitutions)
+
+    text = text.replace("<p><pre>", "<pre>").replace("</pre></p>", "</pre>")
+
+    return text
+
+
+class DjangoDocElement(DocElement):
     def href(self, ajax=False):
         if ajax:
             return "javascript:loadDoc('%s')" % self.get_url()
@@ -64,21 +225,9 @@ class DocElement(object):
         return mark_safe(escape_html(self.title, single_line=True))
 
 
-class Documentation(DocElement):
+class Documentation(DjangoDocElement):
     def __str__(self):
         return "\n\n\n".join(str(part) for part in self.parts)
-
-    def get_tests(self):
-        for part in self.parts:
-            for chapter in part.chapters:
-                tests = chapter.doc.get_tests()
-                if tests:
-                    yield Tests(part.title, chapter.title, "", tests)
-                for section in chapter.sections:
-                    if section.installed:
-                        tests = section.doc.get_tests()
-                        if tests:
-                            yield Tests(part.title, chapter.title, section.title, tests)
 
     def get_part(self, part_slug):
         return self.parts_by_slug.get(part_slug)
@@ -100,6 +249,18 @@ class Documentation(DocElement):
             if chapter:
                 return chapter.sections_by_slug.get(section_slug)
         return None
+
+    def get_tests(self):
+        for part in self.parts:
+            for chapter in part.chapters:
+                tests = chapter.doc.get_tests()
+                if tests:
+                    yield Tests(part.title, chapter.title, "", tests)
+                for section in chapter.sections:
+                    if section.installed:
+                        tests = section.doc.get_tests()
+                        if tests:
+                            yield Tests(part.title, chapter.title, section.title, tests)
 
     def get_url(self):
         return "/"
@@ -135,7 +296,6 @@ class MathicsMainDocumentation(Documentation):
         self.doc_dir = settings.DOC_DIR
         self.xml_data_file = settings.DOC_XML_DATA
         self.tex_data_file = settings.DOC_TEX_DATA
-        self.latex_file = settings.DOC_LATEX_FILE
         self.pymathics_doc_loaded = False
         files = listdir(self.doc_dir)
         files.sort()
@@ -155,9 +315,9 @@ class MathicsMainDocumentation(Documentation):
                     sections = SECTION_RE.findall(text)
                     for pre_text, title, text in sections:
                         if not chapter.doc:
-                            chapter.doc = Doc(pre_text)
+                            chapter.doc = DjangoDoc(pre_text)
                         if title:
-                            section = DocSection(chapter, title, text)
+                            section = DjangoDocSection(chapter, title, text)
                             chapter.sections.append(section)
                     part.chapters.append(chapter)
                 if file[0].isdigit():
@@ -180,9 +340,13 @@ class MathicsMainDocumentation(Documentation):
             builtin_part = DjangoDocPart(self, title, is_reference=start)
             for module in modules:
                 title, text = get_module_doc(module)
-                chapter = DjangoDocChapter(builtin_part, title, Doc(text))
+                chapter = DjangoDocChapter(builtin_part, title, DjangoDoc(text))
                 builtins = builtins_by_module[module.__name__]
-                section_names = [builtin for builtin in builtins if not builtin.__class__.__name__.endswith("Box")]
+                section_names = [
+                    builtin
+                    for builtin in builtins
+                    if not builtin.__class__.__name__.endswith("Box")
+                ]
                 for instance in section_names:
                     installed = True
                     for package in getattr(instance, "requires", []):
@@ -191,7 +355,7 @@ class MathicsMainDocumentation(Documentation):
                         except ImportError:
                             installed = False
                             break
-                    section = DocSection(
+                    section = DjangoDocSection(
                         chapter,
                         strip_system_prefix(instance.get_name()),
                         instance.__doc__ or "",
@@ -245,7 +409,6 @@ class PyMathicsDocumentation(Documentation):
         self.doc_dir = None
         self.xml_data_file = None
         self.tex_data_file = None
-        self.latex_file = None
         self.symbols = {}
         if module is None:
             return
@@ -280,7 +443,6 @@ class PyMathicsDocumentation(Documentation):
         self.doc_dir = self.pymathicsmodule.__path__[0] + "/doc/"
         self.xml_data_file = self.doc_dir + "xml/data"
         self.tex_data_file = self.doc_dir + "tex/data"
-        self.latex_file = self.doc_dir + "tex/documentation.tex"
 
         # Load the dictionary of mathics symbols defined in the module
         self.symbols = {}
@@ -311,7 +473,6 @@ class PyMathicsDocumentation(Documentation):
             self.doc_dir = ""
             self.xml_data_file = ""
             self.tex_data_file = ""
-            self.latex_file = ""
             files = []
         appendix = []
         for file in files:
@@ -328,9 +489,9 @@ class PyMathicsDocumentation(Documentation):
                     sections = SECTION_RE.findall(text)
                     for pre_text, title, text in sections:
                         if not chapter.doc:
-                            chapter.doc = Doc(pre_text)
+                            chapter.doc = DjangoDoc(pre_text)
                         if title:
-                            section = DocSection(chapter, title, text)
+                            section = DjangoDocSection(chapter, title, text)
                             chapter.sections.append(section)
                     part.chapters.append(chapter)
                 if file[0].isdigit():
@@ -342,7 +503,7 @@ class PyMathicsDocumentation(Documentation):
         # Builds the automatic documentation
         builtin_part = DjangoDocPart(self, "Pymathics Modules", is_reference=True)
         title, text = get_module_doc(self.pymathicsmodule)
-        chapter = DjangoDocChapter(builtin_part, title, Doc(text))
+        chapter = DjangoDocChapter(builtin_part, title, DjangoDoc(text))
         for name in self.symbols:
             instance = self.symbols[name]
             installed = True
@@ -352,7 +513,7 @@ class PyMathicsDocumentation(Documentation):
                 except ImportError:
                     installed = False
                     break
-            section = DocSection(
+            section = DjangoDocSection(
                 chapter,
                 strip_system_prefix(name),
                 instance.__doc__ or "",
@@ -372,88 +533,7 @@ class PyMathicsDocumentation(Documentation):
                 test.key = (tests.part, tests.chapter, tests.section, test.index)
 
 
-class DjangoDocPart(DocElement):
-    def __init__(self, doc, title, is_reference=False):
-        self.doc = doc
-        self.title = title
-        self.slug = slugify(title)
-        self.chapters = []
-        self.chapters_by_slug = {}
-        self.is_reference = is_reference
-        self.is_appendix = False
-        doc.parts_by_slug[self.slug] = self
-
-    def __str__(self):
-        return "%s\n\n%s" % (
-            self.title,
-            "\n".join(str(chapter) for chapter in self.chapters),
-        )
-
-    def get_url(self):
-        return f"/{self.slug}/"
-
-    def get_collection(self):
-        return self.doc.parts
-
-
-class DjangoDocChapter(DocElement):
-    def __init__(self, part, title, doc=None):
-        self.part = part
-        self.title = title
-        self.slug = slugify(title)
-        self.doc = doc
-        self.sections = []
-        self.sections_by_slug = {}
-        part.chapters_by_slug[self.slug] = self
-
-    def __str__(self):
-        sections = "\n".join(str(section) for section in self.sections)
-        return f"= {self.title} =\n\n{sections}"
-
-    def get_url(self):
-        return f"/{self.part.slug}/{self.slug}/"
-
-    def get_collection(self):
-        return self.part.chapters
-
-
-class DocSection(DocElement):
-    def __init__(self, chapter, title, text, operator=None, installed=True):
-        self.chapter = chapter
-        self.title = title
-        self.slug = slugify(title)
-        if text.count("<dl>") != text.count("</dl>"):
-            raise ValueError(
-                "Missing opening or closing <dl> tag in "
-                "{} documentation".format(title)
-            )
-        self.doc = Doc(text)
-        self.operator = operator
-        self.installed = installed
-        chapter.sections_by_slug[self.slug] = self
-
-    def __str__(self):
-        return f"== {self.title} ==\n{self.doc}"
-
-    def get_url(self):
-        return f"/{self.chapter.part.slug}/{self.chapter.slug}/{self.slug}/"
-
-    def get_collection(self):
-        return self.chapter.sections
-
-    def html_data(self):
-        indices = set()
-        for test in self.doc.items:
-            indices.update(test.test_indices())
-        result = {}
-        for index in indices:
-            result[index] = xml_data.get(
-                (self.chapter.part.title, self.chapter.title, self.title, index)
-            )
-        return result
-
-
-class Doc(object):
+class DjangoDoc(object):
     def __init__(self, doc):
         self.items = []
         # remove commented lines
@@ -475,12 +555,12 @@ class Doc(object):
                     self.items.append(tests)
                     tests = None
                 text = post_sub(text, post_substitutions)
-                self.items.append(DocText(text))
+                self.items.append(DjangoDocText(text))
                 tests = None
             if index < len(testcases) - 1:
-                test = DocTest(index, testcase)
+                test = DjangoDocTest(index, testcase)
                 if tests is None:
-                    tests = DocTests()
+                    tests = DjangoDocTests()
                 tests.tests.append(test)
             if tests is not None:
                 self.items.append(tests)
@@ -518,40 +598,57 @@ class Doc(object):
             )
         )
 
-
-class DocText(object):
-    def __init__(self, text):
-        self.text = text
-
     def get_tests(self):
-        return []
+        tests = []
+        for item in self.items:
+            tests.extend(item.get_tests())
+        return tests
 
-    def is_private(self):
-        return False
+
+class DjangoDocChapter(DjangoDocElement):
+    """An object for a Django Documentation Chapter.
+    A Chapter is part of a Part and contains Sections.
+    """
+
+    def __init__(self, part, title, doc=None):
+        self.part = part
+        self.title = title
+        self.slug = slugify(title)
+        self.doc = doc
+        self.sections = []
+        self.sections_by_slug = {}
+        part.chapters_by_slug[self.slug] = self
 
     def __str__(self):
-        return self.text
+        sections = "\n".join(str(section) for section in self.sections)
+        return f"= {self.title} =\n\n{sections}"
 
-    def html(self, counters=None):
-        result = escape_html(self.text, counters=counters)
-        return result
+    def get_collection(self):
+        return self.part.chapters
 
-    def test_indices(self):
-        return []
+    def get_url(self):
+        return f"/{self.part.slug}/{self.slug}/"
 
 
-class DocTests(object):
-    def __init__(self):
-        self.tests = []
-
-    def get_tests(self):
-        return self.tests
-
-    def is_private(self):
-        return all(test.private for test in self.tests)
+class DjangoDocPart(DjangoDocElement):
+    def __init__(self, doc, title, is_reference=False):
+        self.doc = doc
+        self.title = title
+        self.slug = slugify(title)
+        self.chapters = []
+        self.chapters_by_slug = {}
+        self.is_reference = is_reference
+        self.is_appendix = False
+        doc.parts_by_slug[self.slug] = self
 
     def __str__(self):
-        return "\n".join(str(test) for test in self.tests)
+        return "%s\n\n%s" % (
+            self.title,
+            "\n".join(str(chapter) for chapter in self.chapters),
+        )
+
+    def get_collection(self):
+        return self.doc.parts
 
     def html(self, counters=None):
         if len(self.tests) == 0:
@@ -559,14 +656,52 @@ class DocTests(object):
         return '<ul class="tests">%s</ul>' % (
             "\n".join(
                 "<li>%s</li>" % test.html() for test in self.tests if not test.private
+                ))
+
+    def get_url(self):
+        return f"/{self.slug}/"
+
+
+class DjangoDocSection(DjangoDocElement):
+    """An object for a Django Documented Section.
+    A Section is part of a Chapter. In the future it can contain subsections.
+    """
+
+    def __init__(self, chapter, title, text, operator=None, installed=True):
+        self.chapter = chapter
+        self.title = title
+        self.slug = slugify(title)
+        if text.count("<dl>") != text.count("</dl>"):
+            raise ValueError(
+                "Missing opening or closing <dl> tag in "
+                "{} documentation".format(title)
             )
-        )
+        self.doc = DjangoDoc(text)
+        self.operator = operator
+        self.installed = installed
+        chapter.sections_by_slug[self.slug] = self
 
-    def test_indices(self):
-        return [test.index for test in self.tests]
+    def __str__(self):
+        return f"== {self.title} ==\n{self.doc}"
 
+    def get_collection(self):
+        return self.chapter.sections
 
-class DocTest(object):
+    def html_data(self):
+        indices = set()
+        for test in self.doc.items:
+            indices.update(test.test_indices())
+        result = {}
+        for index in indices:
+            result[index] = xml_data.get(
+                (self.chapter.part.title, self.chapter.title, self.title, index)
+            )
+        return result
+
+    def get_url(self):
+        return f"/{self.chapter.part.slug}/{self.chapter.slug}/{self.slug}/"
+
+class DjangoDocTest(object):
     """
     DocTest formatting rules:
 
@@ -656,3 +791,62 @@ class DocTest(object):
         result += "</ul>"
         result += "</div>"
         return result
+
+class DjangoDocTests(object):
+    def __init__(self):
+        self.tests = []
+
+    def get_tests(self):
+        return self.tests
+
+    def is_private(self):
+        return all(test.private for test in self.tests)
+
+    def __str__(self):
+        return "\n".join(str(test) for test in self.tests)
+
+    def latex(self, output):
+        if len(self.tests) == 0:
+            return "\n"
+
+        testLatexStrings = [
+            test.latex(output) for test in self.tests if not test.private
+        ]
+        testLatexStrings = [t for t in testLatexStrings if len(t) > 1]
+        if len(testLatexStrings) == 0:
+            return "\n"
+
+        return "\\begin{tests}%%\n%s%%\n\\end{tests}" % ("%\n".join(testLatexStrings))
+
+    def html(self, counters=None):
+        if len(self.tests) == 0:
+            return "\n"
+        return '<ul class="tests">%s</ul>' % (
+            "\n".join(
+                "<li>%s</li>" % test.html() for test in self.tests if not test.private
+            )
+        )
+
+    def test_indices(self):
+        return [test.index for test in self.tests]
+
+
+class DjangoDocText(object):
+    def __init__(self, text):
+        self.text = text
+
+    def get_tests(self):
+        return []
+
+    def is_private(self):
+        return False
+
+    def __str__(self):
+        return self.text
+
+    def html(self, counters=None):
+        result = escape_html(self.text, counters=counters)
+        return result
+
+    def test_indices(self):
+        return []
