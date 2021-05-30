@@ -47,8 +47,8 @@ MATHICS_DJANGO_DB_PATH = os.environ.get("MATHICS_DJANGO_DB_PATH", DATA_DIR + MAT
 
 DOC_DIR = os.path.join(MATHICS_ROOT_DIR, "doc/documentation/")
 
-# Python Pickle format. FIXME: change to use json
-DOC_XML_DATA = os.path.join(DATA_DIR, "doc_xml_data.pcl")
+# Location for XML document data
+DOC_XML_DATA_PATH = os.path.join(DATA_DIR, "doc_xml_data.pcl")
 
 
 DATABASES = {

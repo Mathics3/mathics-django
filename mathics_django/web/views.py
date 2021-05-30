@@ -26,7 +26,7 @@ from mathics.system_info import mathics_system_info
 
 from mathics_django.doc import documentation
 from mathics_django.doc.django_doc import DjangoDocPart, DjangoDocChapter
-from mathics_django.settings import MATHICS_DJANGO_DB_PATH
+from mathics_django.settings import DOC_XML_DATA_PATH, MATHICS_DJANGO_DB_PATH
 from mathics_django.version import __version__
 from mathics_django.web.forms import LoginForm, SaveForm
 from mathics_django.web.models import Query, Worksheet, get_session_evaluation
@@ -140,6 +140,7 @@ def about_view(request):
             "RootDirectory": system_info["$RootDirectory"],
             "TemporaryDirectory": system_info["$TemporaryDirectory"],
             "DB_PATH": MATHICS_DJANGO_DB_PATH,
+            "DOC_XML_DATA_PATH": DOC_XML_DATA_PATH,
 
             "HTTP_USER_AGENT": request.META.get("HTTP_USER_AGENT", ""),
             "REMOTE_USER": request.META.get("REMOTE_USER", ""),
