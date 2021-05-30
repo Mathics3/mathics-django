@@ -9,6 +9,7 @@ This code should be replaced by sphinx and autodoc.
 """
 
 from os import getenv, listdir
+import os.path as osp
 import importlib
 
 from django.utils.html import linebreaks
@@ -20,7 +21,8 @@ from mathics import builtin
 from mathics.builtin import get_module_doc
 from mathics.core.evaluation import Message, Print
 
-from mathics_django.doc.utils import escape_html, slugify
+from mathics_django.doc.utils import slugify
+from mathics_django.settings import DATA_DIR
 
 from mathics.doc.doc import (
     ALLOWED_TAGS,
@@ -54,6 +56,8 @@ from mathics.doc.doc import (
     strip_system_prefix,
     xml_data,
 )
+
+DOC_XML_DATA = osp.join(DATA_DIR, "doc_xml_data")
 
 # -------
 # FIXME: can we replace this with Python 3's html.escape ?
@@ -294,8 +298,7 @@ class MathicsMainDocumentation(Documentation):
         self.parts = []
         self.parts_by_slug = {}
         self.doc_dir = settings.DOC_DIR
-        self.xml_data_file = settings.DOC_XML_DATA
-        self.tex_data_file = settings.DOC_TEX_DATA
+        self.xml_data_file = DOC_XML_DATA
         self.pymathics_doc_loaded = False
         files = listdir(self.doc_dir)
         files.sort()
@@ -408,7 +411,6 @@ class PyMathicsDocumentation(Documentation):
         self.parts_by_slug = {}
         self.doc_dir = None
         self.xml_data_file = None
-        self.tex_data_file = None
         self.symbols = {}
         if module is None:
             return
@@ -804,19 +806,6 @@ class DjangoDocTests(object):
 
     def __str__(self):
         return "\n".join(str(test) for test in self.tests)
-
-    def latex(self, output):
-        if len(self.tests) == 0:
-            return "\n"
-
-        testLatexStrings = [
-            test.latex(output) for test in self.tests if not test.private
-        ]
-        testLatexStrings = [t for t in testLatexStrings if len(t) > 1]
-        if len(testLatexStrings) == 0:
-            return "\n"
-
-        return "\\begin{tests}%%\n%s%%\n\\end{tests}" % ("%\n".join(testLatexStrings))
 
     def html(self, counters=None):
         if len(self.tests) == 0:
