@@ -3,11 +3,13 @@
 
 import sys
 import re
-import pickle
 import os
 from argparse import ArgumentParser
 from datetime import datetime
 import mathics
+
+# FIXME: change to use json and ujson
+import pickle
 
 
 from mathics.core.definitions import Definitions

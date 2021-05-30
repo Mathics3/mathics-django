@@ -46,7 +46,9 @@ MATHICS_DJANGO_DB = os.environ.get("MATHICS_DJANGO_DB", "mathics.sqlite")
 MATHICS_DJANGO_DB_PATH = os.environ.get("MATHICS_DJANGO_DB_PATH", DATA_DIR + MATHICS_DJANGO_DB)
 
 DOC_DIR = os.path.join(MATHICS_ROOT_DIR, "doc/documentation/")
-DOC_XML_DATA = os.path.join(DATA_DIR, "doc_xml_data")
+
+# Python Pickle format. FIXME: change to use json
+DOC_XML_DATA = os.path.join(DATA_DIR, "doc_xml_data.pcl")
 
 
 DATABASES = {
