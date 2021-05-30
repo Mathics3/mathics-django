@@ -289,7 +289,7 @@ def test_all(
             print_and_log("  - %s in %s / %s" % (section, part, chapter))
 
     if generate_output and (failed == 0 or doc_even_if_error):
-        print("Save XML")
+        print(f"Save XML to {DOC_XML_DATA}")
         with open_ensure_dir(DOC_XML_DATA, "wb") as output_file:
             pickle.dump(output_xml, output_file, 0)
 
