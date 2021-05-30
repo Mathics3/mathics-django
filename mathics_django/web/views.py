@@ -25,7 +25,7 @@ from mathics.core.evaluation import Message, Result
 from mathics.system_info import mathics_system_info
 
 from mathics_django.doc import documentation
-from mathics_django.doc.doc import DocPart, DocChapter
+from mathics_django.doc.django_doc import DjangoDocPart, DjangoDocChapter
 from mathics_django.settings import MATHICS_DJANGO_DB_PATH
 from mathics_django.version import __version__
 from mathics_django.web.forms import LoginForm, SaveForm
@@ -572,9 +572,9 @@ def doc_search(request):
     if len([item for exact, item in result if exact]) <= 1:
         for exact, item in result:
             if exact or len(result) == 1:
-                if isinstance(item, DocPart):
+                if isinstance(item, DjangoDocPart):
                     return doc_part(request, item.slug, ajax=True)
-                elif isinstance(item, DocChapter):
+                elif isinstance(item, DjangoDocChapter):
                     return doc_chapter(request, item.part.slug, item.slug, ajax=True)
                 else:
                     return doc_section(

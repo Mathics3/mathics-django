@@ -33,13 +33,33 @@ all: develop
 build:
 	$(PYTHON) ./setup.py build
 
+check: djangotest doctest
+
+#: Remove derived files
+clean:
+	for dir in mathics-django/doc ; do \
+	   ($(MAKE) -C "$$dir" clean); \
+	done;
+
 #: Set up to run from the source tree
 develop:
 	$(PIP) install -e .
 
-#: Make distirbution: wheels, eggs, tarball
+#: Make distribution: wheels, eggs, tarball
 dist:
 	./admin-tools/make-dist.sh
+
+#: Run Django tests
+djangotest:
+	cd mathics_django && $(PYTHON) manage.py test test_django
+
+#: Run tests that appear in docstring in the code.
+doctest:
+	SANDBOX=$(SANDBOX) $(PYTHON) mathics_django/test.py $o
+
+#: Make XML doc data
+doc-data:
+	$(PYTHON) mathics_django/test.py -o
 
 #: Install Mathics-Django
 install:
@@ -49,29 +69,13 @@ install:
 runserver:
 	$(PYTHON) mathics_django/manage.py runserver $o
 
-#: Run Django-based server in testserver mode. Use environment variable "o" for manage options
-testserver:
-	$(PYTHON) mathics_django/manage.py testserver $o
-
-check: djangotest doctest
-
-#: Remove derived files
-clean:
-	for dir in mathics-django/doc ; do \
-	   ($(MAKE) -C "$$dir" clean); \
-	done;
-
-#: Run tests that appear in docstring in the code.
-doctest:
-	SANDBOX=$(SANDBOX) $(PYTHON) mathics_django/test.py $o
-
-#: Run Django tests
-djangotest:
-	cd mathics_django && $(PYTHON) manage.py test test_django
-
 #: Remove ChangeLog
 rmChangeLog:
 	$(RM) ChangeLog || true
+
+#: Run Django-based server in testserver mode. Use environment variable "o" for manage options
+testserver:
+	$(PYTHON) mathics_django/manage.py testserver $o
 
 #: Create a ChangeLog from git via git log and git2cl
 ChangeLog: rmChangeLog
