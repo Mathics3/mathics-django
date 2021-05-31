@@ -194,13 +194,13 @@ def create_output(tests, output_xml, output_tex):
 
 
 def test_section(
-    sections: set, quiet=False, stop_on_failure=False, generate_output=False
+    sections: set, quiet=False, stop_on_failure=False, generate_output=False, reload=False
 ):
     failed = 0
     index = 0
     print("Testing section(s): %s" % ", ".join(sections))
     sections |= {"$" + s for s in sections}
-    output_xml = {}
+    output_xml = load_doc() if reload else {}
     output_tex = {}
     for tests in documentation.get_tests():
         if tests.section in sections:
@@ -307,13 +307,18 @@ def test_all(
         return sys.exit(1)  # Travis-CI knows the tests have failed
 
 
+def load_doc():
+    print(f"Loading XML from {DOC_XML_DATA_PATH}")
+    with open_ensure_dir(DOC_XML_DATA_PATH, "rb") as xml_data_file:
+        return pickle.load(xml_data_file)
+
 def save_doc(output_xml):
     print(f"Writing XML to {DOC_XML_DATA_PATH}")
     with open_ensure_dir(DOC_XML_DATA_PATH, "wb") as output_file:
         pickle.dump(output_xml, output_file, 4)
 
 
-def make_doc(quiet=False):
+def make_doc(quiet=False, reload=False):
     """
     Write XML doc examples.
     """
@@ -321,7 +326,7 @@ def make_doc(quiet=False):
         print("Extracting doc %s" % version_string)
 
     try:
-        output_xml = {}
+        output_xml = load_doc() if reload else {}
         output_tex = {}
         for tests in documentation.get_tests():
             create_output(tests, output_xml, output_tex)
@@ -387,6 +392,13 @@ def main():
         help="generate XML output data",
     )
     parser.add_argument(
+        "--reload",
+        "-r",
+        dest="reload",
+        action="store_true",
+        help="reload XML data",
+    )
+    parser.add_argument(
         "--doc-only",
         dest="doc_only",
         action="store_true",
@@ -436,7 +448,7 @@ def main():
             documentation.load_pymathics_doc()
 
         test_section(
-            sections, stop_on_failure=args.stop_on_failure, generate_output=args.output
+            sections, stop_on_failure=args.stop_on_failure, generate_output=args.output, reload=args.reload
         )
     else:
         # if we want to check also the pymathics modules
@@ -446,6 +458,7 @@ def main():
         elif args.doc_only:
             make_doc(
                 quiet=args.quiet,
+                reload=args.reload,
             )
         else:
             start_at = args.skip + 1
