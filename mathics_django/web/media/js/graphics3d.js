@@ -524,7 +524,13 @@ function drawGraphics3D(container, data) {
   // Axes numbering using divs
   var ticknums = new Array(3);
   for (var i = 0; i < 3; i++) {
-    if (hasaxes[i]) {
+      if (hasaxes[i]) {
+        if (i < data.axes.ticks_style.length) {
+          color = new THREE.Color().setRGB(data.axes.ticks_style[i][0], data.axes.ticks_style[i][1], data.axes.ticks_style[i][2]).getContextStyle();
+        } else {
+           color = "black";
+        }
+
       ticknums[i] = new Array(data.axes.ticks[i][0].length);
       for (var j = 0; j < ticknums[i].length; j++) {
         ticknums[i][j] = document.createElement('div');
@@ -539,6 +545,7 @@ function drawGraphics3D(container, data) {
 
         ticknums[i][j].style.position = "absolute";
         ticknums[i][j].style.fontSize = "0.8em";
+        ticknums[i][j].style.color = color;
         container.appendChild(ticknums[i][j]);
       }
     }
