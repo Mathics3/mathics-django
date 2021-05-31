@@ -9,197 +9,40 @@ This code should be replaced by sphinx and autodoc.
 """
 
 from os import getenv, listdir
-import os.path as osp
 import importlib
 
-from django.utils.html import linebreaks
 from django.utils.safestring import mark_safe
 
-from mathics import settings
-
-from mathics import builtin
+from mathics import builtin, settings
 from mathics.builtin import get_module_doc
 from mathics.core.evaluation import Message, Print
 
-from mathics_django.doc.utils import slugify
-from mathics_django.settings import DATA_DIR
+from mathics_django.doc.utils import escape_html, slugify
+from mathics_django.settings import DOC_XML_DATA_PATH
 
 from mathics.doc.doc import (
-    ALLOWED_TAGS,
-    ALLOWED_TAGS_RE,
     CHAPTER_RE,
-    CONSOLE_RE,
-    DL_ITEM_RE,
-    DL_RE,
     DocElement,
     END_LINE_SENTINAL,
-    HYPERTEXT_RE,
-    IMG_PNG_RE,
-    IMG_RE,
-    LIST_ITEM_RE,
-    LIST_RE,
-    MATHICS_RE,
     PYTHON_RE,
-    REF_RE,
-    QUOTATIONS_RE,
     SECTION_RE,
-    SPECIAL_COMMANDS,
-    SUBSECTION_END_RE,
-    SUBSECTION_RE,
     TESTCASE_OUT_RE,
     TESTCASE_RE,
     Tests,
-    _replace_all,
     filter_comments,
     post_sub,
     pre_sub,
     strip_system_prefix,
-    xml_data,
 )
 
-DOC_XML_DATA = osp.join(DATA_DIR, "doc_xml_data")
+import pickle
 
-# -------
-# FIXME: can we replace this with Python 3's html.escape ?
-def escape_html(text, verbatim_mode=False, counters=None, single_line=False):
-    def repl_python(match):
-        return (
-            r"""<pre><![CDATA[
-%s
-]]></pre>"""
-            % match.group(1).strip()
-        )
-
-    text, post_substitutions = pre_sub(PYTHON_RE, text, repl_python)
-
-    text = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-
-    if not verbatim_mode:
-
-        def repl_quotation(match):
-            return r"&ldquo;%s&rdquo;" % match.group(1)
-
-        text = QUOTATIONS_RE.sub(repl_quotation, text)
-
-    if counters is None:
-        counters = {}
-
-    text = text.replace('"', "&quot;")
-    if not verbatim_mode:
-
-        def repl_mathics(match):
-            text = match.group(1)
-            text = text.replace("\\'", "'")
-            text = text.replace(" ", "&nbsp;")
-            if text:
-                return "<code>%s</code>" % text
-            else:
-                return "'"
-
-        def repl_allowed(match):
-            content = _replace_all(
-                match.group(1), [("&ldquo;", '"'), ("&rdquo;", '"'), ("&quot;", '"')]
-            )
-            return "<%s>" % content
-
-        text = MATHICS_RE.sub(repl_mathics, text)
-        for allowed in ALLOWED_TAGS:
-            text = ALLOWED_TAGS_RE[allowed].sub(repl_allowed, text)
-            text = text.replace("&lt;/%s&gt;" % allowed, "</%s>" % allowed)
-
-        def repl_dl(match):
-            text = match.group(1)
-            text = DL_ITEM_RE.sub(
-                lambda m: "<%(tag)s>%(content)s</%(tag)s>\n" % m.groupdict(), text
-            )
-            return "<dl>%s</dl>" % text
-
-        text = DL_RE.sub(repl_dl, text)
-
-        def repl_list(match):
-            tag = match.group("tag")
-            content = match.group("content")
-            content = LIST_ITEM_RE.sub(lambda m: "<li>%s</li>" % m.group(1), content)
-            return "<%s>%s</%s>" % (tag, content, tag)
-
-        text = LIST_RE.sub(repl_list, text)
-
-        def repl_hypertext(match):
-            tag = match.group("tag")
-            content = match.group("content")
-            if tag == "em":
-                return r"<em>%s</em>" % content
-            elif tag == "url":
-                return r'<a href="%s">%s</a>' % (content, content)
-
-        text = HYPERTEXT_RE.sub(repl_hypertext, text)
-
-        def repl_console(match):
-            tag = match.group("tag")
-            content = match.group("content")
-            tag = "div" if tag == "console" else "span"
-            content = content.strip()
-            pre = post = ""
-
-            # gets replaced for <br /> later by DjangoDocText.html()
-            content = content.replace("\n", "<br>")
-
-            return r'<%s class="console">%s%s%s</%s>' % (tag, pre, content, post, tag)
-
-        text = CONSOLE_RE.sub(repl_console, text)
-
-        def repl_img(match):
-            src = match.group("src")
-            title = match.group("title")
-            return (
-                r'<a href="/media/doc/%(src)s.pdf">'
-                r'<img src="/media/doc/%(src)s.png" title="%(title)s" />'
-                r"</a>"
-            ) % {"src": src, "title": title}
-
-        text = IMG_RE.sub(repl_img, text)
-
-        def repl_imgpng(match):
-            src = match.group("src")
-            title = match.group("title")
-            return (r'<img src="/media/doc/%(src)s" title="%(title)s" />') % {
-                "src": src,
-                "title": title,
-            }
-
-        text = IMG_PNG_RE.sub(repl_imgpng, text)
-
-        def repl_ref(match):
-            # TODO: this is not an optimal solution - maybe we need figure
-            # numbers in the XML doc as well?
-            return r"the following figure"
-
-        text = REF_RE.sub(repl_ref, text)
-
-        def repl_subsection(match):
-            return '\n<h2 label="%s">%s</h2>\n' % (match.group(1), match.group(1))
-
-        text = SUBSECTION_RE.sub(repl_subsection, text)
-        text = SUBSECTION_END_RE.sub("", text)
-
-        text = text.replace("\\'", "'")
-    else:
-        text = text.replace(" ", "&nbsp;")
-        text = "<code>%s</code>" % text
-    text = text.replace("'", "&#39;")
-    text = text.replace("---", "&mdash;")
-    for key, (xml, tex) in SPECIAL_COMMANDS.items():
-        text = text.replace("\\" + key, xml)
-
-    if not single_line:
-        text = linebreaks(text)
-        text = text.replace("<br />", "\n").replace("<br>", "<br />")
-
-    text = post_sub(text, post_substitutions)
-
-    text = text.replace("<p><pre>", "<pre>").replace("</pre></p>", "</pre>")
-
-    return text
+try:
+    with open(DOC_XML_DATA_PATH, "rb") as xml_data_file:
+        xml_data = pickle.load(xml_data_file)
+except IOError:
+    print(f"Trouble reading Doc XML file {DOC_XML_DATA_PATH}")
+    xml_data = {}
 
 
 class DjangoDocElement(DocElement):
@@ -297,9 +140,9 @@ class MathicsMainDocumentation(Documentation):
         self.title = "Overview"
         self.parts = []
         self.parts_by_slug = {}
-        self.doc_dir = settings.DOC_DIR
-        self.xml_data_file = DOC_XML_DATA
         self.pymathics_doc_loaded = False
+        self.xml_data_file = DOC_XML_DATA_PATH
+        self.doc_dir = settings.DOC_DIR
         files = listdir(self.doc_dir)
         files.sort()
         appendix = []
@@ -600,12 +443,6 @@ class DjangoDoc(object):
             )
         )
 
-    def get_tests(self):
-        tests = []
-        for item in self.items:
-            tests.extend(item.get_tests())
-        return tests
-
 
 class DjangoDocChapter(DjangoDocElement):
     """An object for a Django Documentation Chapter.
@@ -658,7 +495,8 @@ class DjangoDocPart(DjangoDocElement):
         return '<ul class="tests">%s</ul>' % (
             "\n".join(
                 "<li>%s</li>" % test.html() for test in self.tests if not test.private
-                ))
+            )
+        )
 
     def get_url(self):
         return f"/{self.slug}/"
@@ -702,6 +540,7 @@ class DjangoDocSection(DjangoDocElement):
 
     def get_url(self):
         return f"/{self.chapter.part.slug}/{self.chapter.slug}/{self.slug}/"
+
 
 class DjangoDocTest(object):
     """
@@ -793,6 +632,7 @@ class DjangoDocTest(object):
         result += "</ul>"
         result += "</div>"
         return result
+
 
 class DjangoDocTests(object):
     def __init__(self):

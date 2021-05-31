@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import sys
-import re
 import os
+import pickle
+import re
+import sys
+
 from argparse import ArgumentParser
 from datetime import datetime
+
 import mathics
-
-# FIXME: change to use json and ujson
-import pickle
-
 
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Output
@@ -18,9 +17,8 @@ from mathics.core.parser import MathicsSingleLineFeeder
 from mathics.builtin import builtins_dict
 
 from mathics import version_string
-from mathics import settings
 
-from mathics_django.settings import DOC_XML_DATA
+from mathics_django.settings import DOC_XML_DATA_PATH
 
 
 builtins = builtins_dict()
@@ -195,11 +193,15 @@ def create_output(tests, output_xml, output_tex):
             }
 
 
-def test_section(sections: set, quiet=False, stop_on_failure=False):
+def test_section(
+    sections: set, quiet=False, stop_on_failure=False, generate_output=False
+):
     failed = 0
     index = 0
     print("Testing section(s): %s" % ", ".join(sections))
     sections |= {"$" + s for s in sections}
+    output_xml = {}
+    output_tex = {}
     for tests in documentation.get_tests():
         if tests.section in sections:
             for test in tests.tests:
@@ -210,12 +212,16 @@ def test_section(sections: set, quiet=False, stop_on_failure=False):
                     failed += 1
                     if stop_on_failure:
                         break
+            if generate_output and failed == 0:
+                create_output(tests, output_xml, output_tex)
 
     print()
     if failed > 0:
         print_and_log("%d test%s failed." % (failed, "s" if failed != 1 else ""))
     else:
         print_and_log("OK")
+    if generate_output and (failed == 0):
+        save_doc(output_xml)
 
 
 def open_ensure_dir(f, *args, **kwargs):
@@ -291,10 +297,7 @@ def test_all(
             print_and_log("  - %s in %s / %s" % (section, part, chapter))
 
     if generate_output and (failed == 0 or doc_even_if_error):
-        print(f"Save XML to {DOC_XML_DATA}")
-        with open_ensure_dir(DOC_XML_DATA, "wb") as output_file:
-            pickle.dump(output_xml, output_file, 0)
-
+        save_doc(output_xml)
         return True
 
     if failed == 0:
@@ -302,6 +305,12 @@ def test_all(
     else:
         print("\nFAILED")
         return sys.exit(1)  # Travis-CI knows the tests have failed
+
+
+def save_doc(output_xml):
+    print(f"Writing XML to {DOC_XML_DATA_PATH}")
+    with open_ensure_dir(DOC_XML_DATA_PATH, "wb") as output_file:
+        pickle.dump(output_xml, output_file, 4)
 
 
 def make_doc(quiet=False):
@@ -320,9 +329,8 @@ def make_doc(quiet=False):
         print("\nAborted.\n")
         return
 
-    print("Save XML")
-    with open_ensure_dir(DOC_XML_DATA, "wb") as output_file:
-        pickle.dump(output_xml, output_file, 0)
+    save_doc(output_xml)
+
 
 def main():
     from mathics.doc import documentation as main_mathics_documentation
@@ -427,7 +435,9 @@ def main():
         if args.pymathics:  # in case the section is in a pymathics module...
             documentation.load_pymathics_doc()
 
-        test_section(sections, stop_on_failure=args.stop_on_failure)
+        test_section(
+            sections, stop_on_failure=args.stop_on_failure, generate_output=args.output
+        )
     else:
         # if we want to check also the pymathics modules
         if args.pymathics:

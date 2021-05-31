@@ -25,10 +25,11 @@ Or, if all else fails, feel free to write to the mathics users list at
 mathics-users@googlegroups.com and ask for help.
 """
 
-import sys
 import os.path as osp
 import platform
+import re
 from setuptools import setup, Command
+import sys
 
 def get_srcdir():
     filename = osp.normcase(osp.dirname(osp.abspath(__file__)))
@@ -59,10 +60,20 @@ INSTALL_REQUIRES += [
     # "Mathics3 @ http://github.com/mathics/Mathics/archive/master.zip",
     "Mathics3 >= 2.2.0",
     "django >= 3.2",
-    "networkx >= 2.5",
+    "networkx >= 2.5", # Used in format, should disappear though
     "requests",
 ]
 
+
+extra_requires = []
+for line in open("requirements-extra.txt").read().split("\n"):
+    if line and not line.startswith("#"):
+        requires = re.sub(r"([^#]+)(\s*#.*$)?", r"\1", line)
+        extra_requires.append(requires)
+
+EXTRA_REQUIRES = {
+    "full": extra_requires
+}
 
 def subdirs(root, file="*.*", depth=10):
     for k in range(depth):
@@ -114,6 +125,16 @@ class initialize(Command):
 
 mathjax_files = list(subdirs("media/js/mathjax/"))
 
+extra_requires = []
+for line in open("requirements-extra.txt").read().split("\n"):
+    if line and not line.startswith("#"):
+        requires = re.sub(r"([^#]+)(\s*#.*$)?", r"\1", line)
+        extra_requires.append(requires)
+
+EXTRA_REQUIRES = {
+    "full": extra_requires
+}
+
 setup(
     name="Mathics-Django",
     version=__version__,
@@ -125,6 +146,7 @@ setup(
         "mathics_django.web.migrations",
     ],
     install_requires=INSTALL_REQUIRES,
+    extra_requires=EXTRA_REQUIRES,
     dependency_links=DEPENDENCY_LINKS,
     package_data={
         "mathics_django.autoload": ["autoload/*.m"],
