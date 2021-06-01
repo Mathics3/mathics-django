@@ -203,7 +203,7 @@ def test_section(
     index = 0
     print("Testing section(s): %s" % ", ".join(sections))
     sections |= {"$" + s for s in sections}
-    output_xml = load_doc() if reload else {}
+    output_xml = load_doc_data() if reload else {}
     for tests in documentation.get_tests():
         if tests.section in sections:
             for test in tests.tests:
@@ -223,7 +223,7 @@ def test_section(
     else:
         print_and_log("OK")
     if generate_output and (failed == 0):
-        save_doc(output_xml)
+        save_doc_data(output_xml)
 
 
 def open_ensure_dir(f, *args, **kwargs):
@@ -298,7 +298,7 @@ def test_all(
             print_and_log("  - %s in %s / %s" % (section, part, chapter))
 
     if generate_output and (failed == 0 or doc_even_if_error):
-        save_doc(output_xml)
+        save_doc_data(output_xml)
         return True
 
     if failed == 0:
@@ -308,14 +308,14 @@ def test_all(
         return sys.exit(1)  # Travis-CI knows the tests have failed
 
 
-def load_doc():
-    print(f"Loading XML from {DOC_XML_DATA_PATH}")
+def load_doc_data():
+    print(f"Loading XML data from {DOC_XML_DATA_PATH}")
     with open_ensure_dir(DOC_XML_DATA_PATH, "rb") as xml_data_file:
         return pickle.load(xml_data_file)
 
 
-def save_doc(output_xml):
-    print(f"Writing XML to {DOC_XML_DATA_PATH}")
+def save_doc_data(output_xml):
+    print(f"Writing XML data to {DOC_XML_DATA_PATH}")
     with open_ensure_dir(DOC_XML_DATA_PATH, "wb") as output_file:
         pickle.dump(output_xml, output_file, 4)
 
@@ -328,14 +328,14 @@ def make_doc(quiet=False, reload=False):
         print("Extracting doc %s" % version_string)
 
     try:
-        output_xml = load_doc() if reload else {}
+        output_xml = load_doc_data() if reload else {}
         for tests in documentation.get_tests():
             create_output(tests, output_xml)
     except KeyboardInterrupt:
         print("\nAborted.\n")
         return
 
-    save_doc(output_xml)
+    save_doc_data(output_xml)
 
 
 def main():
