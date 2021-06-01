@@ -211,12 +211,18 @@ function translateDOMElement(element, svg) {
     if (nodeName == 'svg' || nodeName.toLowerCase() == 'img') {
       width = dom.getAttribute('width');
       height = dom.getAttribute('height');
+      if (!width.endsWith('px')) {
+        width += 'px';
+      }
+      if (!height.endsWith('px')) {
+        height += 'px';
+      }
     } else {
       // TODO: calculate appropriate height and recalculate on every view change
-      width = height = '400';
+      width = height = '400px';
     }
-    object.setAttribute('width', width  + 'px');
-    object.setAttribute('height', height + 'px');
+    object.setAttribute('width', width);
+    object.setAttribute('height', height);
   }
   if (nodeName == 'svg')
     svg = dom;
