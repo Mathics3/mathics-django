@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+Does 2 things which can either be done independently or
+as a pipeline:
+
+1. Extracts tests and runs them from static mdoc files and docstrings from Mathics built-in functions
+2. Creates/updates internal documentation data
+"""
 
 import os
 import pickle
@@ -172,21 +179,22 @@ def test_tests(
     return total, failed, skipped, failed_symbols, index
 
 
-def create_output(tests, output_xml):
+# FIXME: move this to common routine
+def create_output(tests, output, format="xml"):
     definitions.reset_user_definitions()
     for test in tests.tests:
         if test.private:
             continue
         key = test.key
         evaluation = Evaluation(
-            definitions, format="xml", catch_interrupt=False, output=TestOutput()
+            definitions, format=format, catch_interrupt=False, output=TestOutput()
         )
         result = evaluation.parse_evaluate(test.test)
         if result is None:
             result = []
         else:
             result = [result.get_data()]
-        output_xml[key] = {
+        output[key] = {
             "query": test.test,
             "results": result,
         }
