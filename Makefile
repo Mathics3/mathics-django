@@ -55,11 +55,11 @@ djangotest:
 
 #: Run tests that appear in docstring in the code.
 doctest:
-	SANDBOX=$(SANDBOX) $(PYTHON) mathics_django/test.py $o
+	SANDBOX=$(SANDBOX) $(PYTHON) mathics_django/docpipeline.py $o
 
 #: Make XML doc data
 doc-data:
-	$(PYTHON) mathics_django/test.py -o
+	$(PYTHON) mathics_django/docpipeline.py -o
 
 #: Install Mathics-Django
 install:

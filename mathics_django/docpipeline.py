@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+Does 2 things which can either be done independently or
+as a pipeline:
+
+1. Extracts tests and runs them from static mdoc files and docstrings from Mathics built-in functions
+2. Creates/updates internal documentation data
+"""
 
 import os
 import pickle
@@ -172,36 +179,39 @@ def test_tests(
     return total, failed, skipped, failed_symbols, index
 
 
-def create_output(tests, output_xml, output_tex):
-    for format, output in [("xml", output_xml), ("tex", output_tex)]:
-        definitions.reset_user_definitions()
-        for test in tests.tests:
-            if test.private:
-                continue
-            key = test.key
-            evaluation = Evaluation(
-                definitions, format=format, catch_interrupt=False, output=TestOutput()
-            )
-            result = evaluation.parse_evaluate(test.test)
-            if result is None:
-                result = []
-            else:
-                result = [result.get_data()]
-            output[key] = {
-                "query": test.test,
-                "results": result,
-            }
+# FIXME: move this to common routine
+def create_output(tests, output, format="xml"):
+    definitions.reset_user_definitions()
+    for test in tests.tests:
+        if test.private:
+            continue
+        key = test.key
+        evaluation = Evaluation(
+            definitions, format=format, catch_interrupt=False, output=TestOutput()
+        )
+        result = evaluation.parse_evaluate(test.test)
+        if result is None:
+            result = []
+        else:
+            result = [result.get_data()]
+        output[key] = {
+            "query": test.test,
+            "results": result,
+        }
 
 
 def test_section(
-    sections: set, quiet=False, stop_on_failure=False, generate_output=False, reload=False
+    sections: set,
+    quiet=False,
+    stop_on_failure=False,
+    generate_output=False,
+    reload=False,
 ):
     failed = 0
     index = 0
     print("Testing section(s): %s" % ", ".join(sections))
     sections |= {"$" + s for s in sections}
     output_xml = load_doc() if reload else {}
-    output_tex = {}
     for tests in documentation.get_tests():
         if tests.section in sections:
             for test in tests.tests:
@@ -213,7 +223,7 @@ def test_section(
                     if stop_on_failure:
                         break
             if generate_output and failed == 0:
-                create_output(tests, output_xml, output_tex)
+                create_output(tests, output_xml)
 
     print()
     if failed > 0:
@@ -263,7 +273,7 @@ def test_all(
                 max_tests=count,
             )
             if generate_output:
-                create_output(tests, output_xml, output_tex)
+                create_output(tests, output_xml)
             total += sub_total
             failed += sub_failed
             skipped += sub_skipped
@@ -312,6 +322,7 @@ def load_doc():
     with open_ensure_dir(DOC_XML_DATA_PATH, "rb") as xml_data_file:
         return pickle.load(xml_data_file)
 
+
 def save_doc(output_xml):
     print(f"Writing XML to {DOC_XML_DATA_PATH}")
     with open_ensure_dir(DOC_XML_DATA_PATH, "wb") as output_file:
@@ -327,9 +338,8 @@ def make_doc(quiet=False, reload=False):
 
     try:
         output_xml = load_doc() if reload else {}
-        output_tex = {}
         for tests in documentation.get_tests():
-            create_output(tests, output_xml, output_tex)
+            create_output(tests, output_xml)
     except KeyboardInterrupt:
         print("\nAborted.\n")
         return
@@ -448,7 +458,10 @@ def main():
             documentation.load_pymathics_doc()
 
         test_section(
-            sections, stop_on_failure=args.stop_on_failure, generate_output=args.output, reload=args.reload
+            sections,
+            stop_on_failure=args.stop_on_failure,
+            generate_output=args.output,
+            reload=args.reload,
         )
     else:
         # if we want to check also the pymathics modules
