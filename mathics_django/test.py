@@ -172,36 +172,38 @@ def test_tests(
     return total, failed, skipped, failed_symbols, index
 
 
-def create_output(tests, output_xml, output_tex):
-    for format, output in [("xml", output_xml), ("tex", output_tex)]:
-        definitions.reset_user_definitions()
-        for test in tests.tests:
-            if test.private:
-                continue
-            key = test.key
-            evaluation = Evaluation(
-                definitions, format=format, catch_interrupt=False, output=TestOutput()
-            )
-            result = evaluation.parse_evaluate(test.test)
-            if result is None:
-                result = []
-            else:
-                result = [result.get_data()]
-            output[key] = {
-                "query": test.test,
-                "results": result,
-            }
+def create_output(tests, output_xml):
+    definitions.reset_user_definitions()
+    for test in tests.tests:
+        if test.private:
+            continue
+        key = test.key
+        evaluation = Evaluation(
+            definitions, format="xml", catch_interrupt=False, output=TestOutput()
+        )
+        result = evaluation.parse_evaluate(test.test)
+        if result is None:
+            result = []
+        else:
+            result = [result.get_data()]
+        output_xml[key] = {
+            "query": test.test,
+            "results": result,
+        }
 
 
 def test_section(
-    sections: set, quiet=False, stop_on_failure=False, generate_output=False, reload=False
+    sections: set,
+    quiet=False,
+    stop_on_failure=False,
+    generate_output=False,
+    reload=False,
 ):
     failed = 0
     index = 0
     print("Testing section(s): %s" % ", ".join(sections))
     sections |= {"$" + s for s in sections}
-    output_xml = load_doc() if reload else {}
-    output_tex = {}
+    output_xml = load_doc_data() if reload else {}
     for tests in documentation.get_tests():
         if tests.section in sections:
             for test in tests.tests:
@@ -213,7 +215,7 @@ def test_section(
                     if stop_on_failure:
                         break
             if generate_output and failed == 0:
-                create_output(tests, output_xml, output_tex)
+                create_output(tests, output_xml)
 
     print()
     if failed > 0:
@@ -221,7 +223,7 @@ def test_section(
     else:
         print_and_log("OK")
     if generate_output and (failed == 0):
-        save_doc(output_xml)
+        save_doc_data(output_xml)
 
 
 def open_ensure_dir(f, *args, **kwargs):
@@ -252,7 +254,6 @@ def test_all(
         total = failed = skipped = 0
         failed_symbols = set()
         output_xml = {}
-        output_tex = {}
         for tests in documentation.get_tests():
             sub_total, sub_failed, sub_skipped, symbols, index = test_tests(
                 tests,
@@ -263,7 +264,7 @@ def test_all(
                 max_tests=count,
             )
             if generate_output:
-                create_output(tests, output_xml, output_tex)
+                create_output(tests, output_xml)
             total += sub_total
             failed += sub_failed
             skipped += sub_skipped
@@ -297,7 +298,7 @@ def test_all(
             print_and_log("  - %s in %s / %s" % (section, part, chapter))
 
     if generate_output and (failed == 0 or doc_even_if_error):
-        save_doc(output_xml)
+        save_doc_data(output_xml)
         return True
 
     if failed == 0:
@@ -307,13 +308,14 @@ def test_all(
         return sys.exit(1)  # Travis-CI knows the tests have failed
 
 
-def load_doc():
-    print(f"Loading XML from {DOC_XML_DATA_PATH}")
+def load_doc_data():
+    print(f"Loading XML data from {DOC_XML_DATA_PATH}")
     with open_ensure_dir(DOC_XML_DATA_PATH, "rb") as xml_data_file:
         return pickle.load(xml_data_file)
 
-def save_doc(output_xml):
-    print(f"Writing XML to {DOC_XML_DATA_PATH}")
+
+def save_doc_data(output_xml):
+    print(f"Writing XML data to {DOC_XML_DATA_PATH}")
     with open_ensure_dir(DOC_XML_DATA_PATH, "wb") as output_file:
         pickle.dump(output_xml, output_file, 4)
 
@@ -326,15 +328,14 @@ def make_doc(quiet=False, reload=False):
         print("Extracting doc %s" % version_string)
 
     try:
-        output_xml = load_doc() if reload else {}
-        output_tex = {}
+        output_xml = load_doc_data() if reload else {}
         for tests in documentation.get_tests():
-            create_output(tests, output_xml, output_tex)
+            create_output(tests, output_xml)
     except KeyboardInterrupt:
         print("\nAborted.\n")
         return
 
-    save_doc(output_xml)
+    save_doc_data(output_xml)
 
 
 def main():
@@ -448,7 +449,10 @@ def main():
             documentation.load_pymathics_doc()
 
         test_section(
-            sections, stop_on_failure=args.stop_on_failure, generate_output=args.output, reload=args.reload
+            sections,
+            stop_on_failure=args.stop_on_failure,
+            generate_output=args.output,
+            reload=args.reload,
         )
     else:
         # if we want to check also the pymathics modules
