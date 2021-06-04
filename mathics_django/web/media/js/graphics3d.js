@@ -61,38 +61,33 @@ const drawFunctions = {
 
 			const normal = new THREE.Vector4(vector3.x, vector3.y, vector3.z, -vector3.dot(point1)); // point p on the plane iff p.normal = 0
 
-			// point closest to origin - translation
-			const nearest = new THREE.Vector3(
-				normal.x * normal.w / (normal.x ** 2 + normal.y ** 2 + normal.z ** 2),
-				normal.y * normal.w / (normal.x ** 2 + normal.y ** 2 + normal.z ** 2),
-				normal.z * normal.w / (normal.x ** 2 + normal.y ** 2 + normal.z ** 2)
-			);
-
 			// angles to the z axis - rotaton
-			const thetax = Math.acos(normal.z / Math.sqrt(normal.y * normal.y + normal.z ** 2));
-			const thetay = Math.acos(normal.z / Math.sqrt(normal.x * normal.x + normal.z ** 2));
+			const thetaX = Math.acos(normal.z / Math.sqrt(normal.y * normal.y + normal.z ** 2));
+			const thetaY = Math.acos(normal.z / Math.sqrt(normal.x * normal.x + normal.z ** 2));
 
-			// linear transformation matrix - rotation + translation
+			// (linear transformation matrix of closest to origin - traslation) - rotation + translation
 			const linearTransformation = new THREE.Matrix4()
-				.makeTranslation(-nearest.x, -nearest.y, -nearest.z)
-				.multiplySelf(new THREE.Matrix4().makeRotationX(thetax))
-				.multiplySelf(new THREE.Matrix4().makeRotationY(thetay));
+				.makeTranslation(new THREE.Vector3(
+					-normal.x * normal.w / (normal.x ** 2 + normal.y ** 2 + normal.z ** 2),
+					-normal.y * normal.w / (normal.x ** 2 + normal.y ** 2 + normal.z ** 2),
+					-normal.z * normal.w / (normal.x ** 2 + normal.y ** 2 + normal.z ** 2)
+				))
+				.multiplySelf(new THREE.Matrix4().makeRotationX(thetaX))
+				.multiplySelf(new THREE.Matrix4().makeRotationY(thetaY));
 
 			const polygonPath = new THREE.Path();
 
 			element.coords.forEach((coordinate, i) => {
-				let temporaryVector = new THREE.Vector4(...coordinate[0], 1);
-
-				linearTransformation.multiplyVector4(temporaryVector);
+				linearTransformation.multiplyVector4(
+					new THREE.Vector4(...coordinate[0], 1)
+				);
 
 				if (i === 0) {
-					polygonPath.moveTo(temporaryVector.x, temporaryVector.y);
+					polygonPath.moveTo(coordinate[0][0], coordinate[0][1]);
 				} else {
-					polygonPath.lineTo(temporaryVector.x, temporaryVector.y);
+					polygonPath.lineTo(coordinate[0][0], coordinate[0][1]);
 				}
 			});
-
-			polygonPath.lineTo(polygonPath.curves[0].v1.x, polygonPath.curves[0].v1.y); // close the curve
 
 			geometry = new THREE.ExtrudeGeometry(polygonPath.toShapes(), {
 				amount: 0.0,
@@ -104,7 +99,7 @@ const drawFunctions = {
 			geometry.vertices.forEach((vertice, i) => {
 				vertice.set(...element.coords[i][0]);
 			});
-		}
+		};
 
 		geometry.computeFaceNormals();
 
@@ -128,15 +123,15 @@ const drawFunctions = {
 	sphere: (element) => {
 		const geometry = new THREE.Geometry();
 
-		for (let i = 0; i < element.coords.length; i++) {
-			const temporarySphere = new THREE.Mesh(
+		element.coords.forEach((coordinate) => {
+			const sphere = new THREE.Mesh(
 				new THREE.SphereGeometry(element.radius, 48, 48)
 			);
 
-			temporarySphere.position.set(...element.coords[i][0]);
+			sphere.position.set(...coordinate[0]);
 
-			THREE.GeometryUtils.merge(geometry, temporarySphere);
-		}
+			THREE.GeometryUtils.merge(geometry, sphere);
+		});
 
 		geometry.computeFaceNormals();
 
@@ -185,14 +180,12 @@ function drawGraphics3D(container, data) {
 		isMouseDown = false, onMouseDownPosition,
 		theta, onMouseDownTheta, phi, onMouseDownPhi;
 
-	// center of the scene
-	const center = new THREE.Vector3(
+	// where the camera is looking (initialized on center of the scene)
+	const focus = new THREE.Vector3(
 		0.5 * (data.extent.xmin + data.extent.xmax),
 		0.5 * (data.extent.ymin + data.extent.ymax),
-		0.5 * (data.extent.zmin + data.extent.zmax));
-
-	// where the camera is looking
-	const focus = center.clone();
+		0.5 * (data.extent.zmin + data.extent.zmax)
+	);
 
 	const viewPoint = new THREE.Vector3(...data.viewpoint).subSelf(focus);
 	const radius = viewPoint.length();
@@ -202,7 +195,7 @@ function drawGraphics3D(container, data) {
 
 	// scene
 	const scene = new THREE.Scene();
-	scene.position = center;
+	scene.position = focus;
 
 	const camera = new THREE.PerspectiveCamera(
 		35,           // field of view
@@ -225,33 +218,35 @@ function drawGraphics3D(container, data) {
 	scene.add(camera);
 
 	// lighting
-	function addLight(l) {
-		const color = new THREE.Color().setRGB(...l.color);
-		var light;
+	function addLight(element) {
+		const colorHex = new THREE.Color().setRGB(...element.color).getHex();
 
-		if (l.type === 'Ambient') {
-			light = new THREE.AmbientLight(color.getHex());
-		} else if (l.type === 'Directional') {
-			light = new THREE.DirectionalLight(color.getHex(), 1);
-		} else if (l.type === 'Spot') {
-			light = new THREE.SpotLight(color.getHex());
-			light.position.set(...l.position);
-			light.target.position.set(...l.target);
+		let light;
+
+		if (element.type === 'Ambient') {
+			light = new THREE.AmbientLight(colorHex);
+		} else if (element.type === 'Directional') {
+			light = new THREE.DirectionalLight(colorHex, 1);
+		} else if (element.type === 'Spot') {
+			light = new THREE.SpotLight(colorHex);
+			light.position.set(...element.position);
+			light.target.position.set(...element.target);
 			light.target.updateMatrixWorld(); // this fixes bug in THREE.js
-			light.angle = l.angle;
-		} else if (l.type === 'Point') {
-			light = new THREE.PointLight(color.getHex());
-			light.position.set(...l.position);
+			light.angle = element.angle;
+		} else if (element.type === 'Point') {
+			light = new THREE.PointLight(colorHex);
+			light.position.set(...element.position);
 
 			// add visible light sphere
-			var lightsphere = new THREE.Mesh(
+			const lightSphere = new THREE.Mesh(
 				new THREE.SphereGeometry(0.007 * radius, 16, 8),
-				new THREE.MeshBasicMaterial({ color: color.getHex() })
+				new THREE.MeshBasicMaterial({ color: colorHex })
 			);
-			lightsphere.position = light.position;
-			scene.add(lightsphere);
+			lightSphere.position = light.position;
+
+			scene.add(lightSphere);
 		} else {
-			alert('Error: Internal Light Error', l.type);
+			alert('Error: Internal Light Error', element.type);
 
 			return;
 		}
@@ -259,10 +254,10 @@ function drawGraphics3D(container, data) {
 		return light;
 	}
 
-	function getInitLightPos(l) {
+	function getInitLightPos(element) {
 		// initial light position in spherical polar coordinates
-		if (l.position instanceof Array) {
-			const temporaryPosition = new THREE.Vector3(...l.position);
+		if (element.position instanceof Array) {
+			const temporaryPosition = new THREE.Vector3(...element.position);
 
 			const result = {
 				radius: radius * temporaryPosition.length(),
@@ -270,7 +265,7 @@ function drawGraphics3D(container, data) {
 				theta: 0
 			};
 
-			if (!temporaryPosition.isZero()) {
+			if (temporaryPosition.lenght !== 0) {
 				result.phi = (Math.atan2(temporaryPosition.y, temporaryPosition.x) + 2 * Math.PI) % (2 * Math.PI);
 				result.theta = Math.asin(temporaryPosition.z / result.radius);
 			}
@@ -280,14 +275,17 @@ function drawGraphics3D(container, data) {
 	}
 
 	function positionLights() {
-		for (let i = 0; i < lights.length; i++) {
-			if (lights[i] instanceof THREE.DirectionalLight) {
-				lights[i].position.x = initialLightPosition[i].radius * Math.sin(theta + initialLightPosition[i].theta) * Math.cos(phi + initialLightPosition[i].phi);
-				lights[i].position.y = initialLightPosition[i].radius * Math.sin(theta + initialLightPosition[i].theta) * Math.sin(phi + initialLightPosition[i].phi);
-				lights[i].position.z = initialLightPosition[i].radius * Math.cos(theta + initialLightPosition[i].theta);
-				lights[i].position.addSelf(focus);
+		lights.forEach((light, i) => {
+			if (light instanceof THREE.DirectionalLight) {
+				light.position.set(
+					initialLightPosition[i].radius * Math.sin(theta + initialLightPosition[i].theta) * Math.cos(phi + initialLightPosition[i].phi),
+					initialLightPosition[i].radius * Math.sin(theta + initialLightPosition[i].theta) * Math.sin(phi + initialLightPosition[i].phi),
+					initialLightPosition[i].radius * Math.cos(theta + initialLightPosition[i].theta)
+				);
+
+				light.position.addSelf(focus);
 			}
-		}
+		});
 	}
 
 	const lights = new Array(data.lighting.length);
@@ -297,6 +295,7 @@ function drawGraphics3D(container, data) {
 		initialLightPosition[i] = getInitLightPos(data.lighting[i]);
 
 		lights[i] = addLight(data.lighting[i]);
+
 		scene.add(lights[i]);
 	}
 
@@ -308,7 +307,7 @@ function drawGraphics3D(container, data) {
 		),
 		new THREE.MeshBasicMaterial({ color: 0x666666, wireframe: true })
 	);
-	boundingBox.position = center;
+	boundingBox.position = focus;
 	scene.add(boundingBox);
 
 	// draw the axes
@@ -323,18 +322,15 @@ function drawGraphics3D(container, data) {
 	} else {
 		hasAxes = new Array(false, false, false);
 	}
-	const axesMaterial = new THREE.LineBasicMaterial({
-		color: 0x000000,
-		linewidth: 1.5
-	});
+
 	const axesGeometry = [];
 	const axesIndexes = [
 		[[0, 5], [1, 4], [2, 7], [3, 6]],
 		[[0, 2], [1, 3], [4, 6], [5, 7]],
 		[[0, 1], [2, 3], [4, 5], [6, 7]]
 	];
+	const axesLines = new Array(3);
 
-	const axesMesh = new Array(3);
 	for (let i = 0; i < 3; i++) {
 		if (hasAxes[i]) {
 			axesGeometry[i] = new THREE.Geometry();
@@ -344,9 +340,15 @@ function drawGraphics3D(container, data) {
 			axesGeometry[i].vertices.push(new THREE.Vector3().add(
 				boundingBox.geometry.vertices[axesIndexes[i][0][1]], boundingBox.position)
 			);
-			axesMesh[i] = new THREE.Line(axesGeometry[i], axesMaterial);
-			axesMesh[i].geometry.dynamic = true;
-			scene.add(axesMesh[i]);
+			axesLines[i] = new THREE.Line(
+				axesGeometry[i],
+				new THREE.LineBasicMaterial({
+					color: 0x000000,
+					linewidth: 1.5
+				})
+			);
+			axesLines[i].geometry.dynamic = true;
+			scene.add(axesLines[i]);
 		}
 	}
 
@@ -399,15 +401,15 @@ function drawGraphics3D(container, data) {
 						}
 					}
 				}
-				axesMesh[i].geometry.vertices[0].add(
+				axesLines[i].geometry.vertices[0].add(
 					boundingBox.geometry.vertices[axesIndexes[i][maxj][0]],
 					boundingBox.position
 				);
-				axesMesh[i].geometry.vertices[1].add(
+				axesLines[i].geometry.vertices[1].add(
 					boundingBox.geometry.vertices[axesIndexes[i][maxj][1]],
 					boundingBox.position
 				);
-				axesMesh[i].geometry.verticesNeedUpdate = true;
+				axesLines[i].geometry.verticesNeedUpdate = true;
 			}
 		}
 
@@ -499,14 +501,13 @@ function drawGraphics3D(container, data) {
 	function updateAxes() {
 		for (let i = 0; i < 3; i++) {
 			if (hasAxes[i]) {
-				tickdir = getTickDir(i);
-				let smallTickdir = tickdir.clone();
-				smallTickdir.multiplyScalar(0.5);
+				let tickDir = getTickDir(i);
+
 				for (let j = 0; j < data.axes.ticks[i][0].length; j++) {
 					let value = data.axes.ticks[i][0][j];
 
 					ticks[i][j].geometry.vertices[0].copy(axesGeometry[i].vertices[0]);
-					ticks[i][j].geometry.vertices[1].add(axesGeometry[i].vertices[0], tickdir);
+					ticks[i][j].geometry.vertices[1].add(axesGeometry[i].vertices[0], tickDir);
 
 					if (i === 0) {
 						ticks[i][j].geometry.vertices[0].x = value;
@@ -526,7 +527,7 @@ function drawGraphics3D(container, data) {
 					let value = data.axes.ticks[i][1][j];
 
 					ticksSmall[i][j].geometry.vertices[0].copy(axesGeometry[i].vertices[0]);
-					ticksSmall[i][j].geometry.vertices[1].add(axesGeometry[i].vertices[0], smallTickdir);
+					ticksSmall[i][j].geometry.vertices[1].add(axesGeometry[i].vertices[0], tickDir.clone().multiplyScalar(0.5));
 
 					if (i === 0) {
 						ticksSmall[i][j].geometry.vertices[0].x = value;
