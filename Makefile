@@ -33,7 +33,7 @@ all: develop
 build:
 	$(PYTHON) ./setup.py build
 
-check: djangotest doctest
+check: djangotest doctest-workaround
 
 #: Remove derived files
 clean:
@@ -52,6 +52,11 @@ dist:
 #: Run Django tests
 djangotest:
 	cd mathics_django && $(PYTHON) manage.py test test_django
+
+#: Run tests that appear in docstring in the code.
+doctest-workaround:
+	SANDBOX=$(SANDBOX) $(PYTHON) mathics_django/docpipeline.py --exclude=NIntegrate,MaxRecursion
+	SANDBOX=$(SANDBOX) $(PYTHON) mathics_django/docpipeline.py --sections=NIntegrate,MaxRecursion
 
 #: Run tests that appear in docstring in the code.
 doctest:
