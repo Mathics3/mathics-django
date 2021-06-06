@@ -25,6 +25,8 @@ jobs:
         python -m pip install wheel
         choco install llvm
         set LLVM_DIR="C:\Program Files\LLVM"
+        # Can remove when next Mathics is released
+        python -m pip install -e git://github.com/mathics/Mathics#egg=Mathics3
         pip install -e .
     - name: Install Mathics Django
       run: |
