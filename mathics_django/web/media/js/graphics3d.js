@@ -39,65 +39,28 @@ const drawFunctions = {
 	polygon: (element) => {
 		let geometry, material;
 
-		const point1 = new THREE.Vector4(...element.coords[0][0]);
-		const point2 = new THREE.Vector4(...element.coords[1][0]);
-		const point3 = new THREE.Vector4(...element.coords[2][0]);
-
-		if (element.coords.length === 3) { // fast return
+		if (element.coords.length === 3) { // triangle (also usued in cubes)
 			geometry = new THREE.Geometry();
 
-			geometry.vertices.push(point1);
-			geometry.vertices.push(point2);
-			geometry.vertices.push(point3);
+			geometry.vertices.push(new THREE.Vector4(...element.coords[0][0]));
+			geometry.vertices.push(new THREE.Vector4(...element.coords[1][0]));
+			geometry.vertices.push(new THREE.Vector4(...element.coords[2][0]));
 
 			geometry.faces.push(new THREE.Face3(0, 1, 2));
 			geometry.faces.push(new THREE.Face3(0, 2, 1));
 		} else {
-			// TODO: check the 3 points are not colinear
-
-			const vector1 = new THREE.Vector3().sub(point2, point1);
-			const vector2 = new THREE.Vector3().sub(point3, point1);
-			const vector3 = new THREE.Vector3().cross(vector1, vector2); // normal vector
-
-			const normal = new THREE.Vector4(vector3.x, vector3.y, vector3.z, -vector3.dot(point1)); // point p on the plane iff p.normal = 0
-
-			// angles to the z axis - rotaton
-			const thetaX = Math.acos(normal.z / Math.sqrt(normal.y * normal.y + normal.z ** 2));
-			const thetaY = Math.acos(normal.z / Math.sqrt(normal.x * normal.x + normal.z ** 2));
-
-			// (linear transformation matrix of closest to origin - traslation) - rotation + translation
-			const linearTransformation = new THREE.Matrix4()
-				.makeTranslation(new THREE.Vector3(
-					-normal.x * normal.w / (normal.x ** 2 + normal.y ** 2 + normal.z ** 2),
-					-normal.y * normal.w / (normal.x ** 2 + normal.y ** 2 + normal.z ** 2),
-					-normal.z * normal.w / (normal.x ** 2 + normal.y ** 2 + normal.z ** 2)
-				))
-				.multiplySelf(new THREE.Matrix4().makeRotationX(thetaX))
-				.multiplySelf(new THREE.Matrix4().makeRotationY(thetaY));
-
 			const polygonPath = new THREE.Path();
 
-			element.coords.forEach((coordinate, i) => {
-				linearTransformation.multiplyVector4(
-					new THREE.Vector4(...coordinate[0], 1)
-				);
+			polygonPath.moveTo(...element.coords[0][0]);
 
-				if (i === 0) {
-					polygonPath.moveTo(coordinate[0][0], coordinate[0][1]);
-				} else {
-					polygonPath.lineTo(coordinate[0][0], coordinate[0][1]);
-				}
-			});
+			for (let i = 1; i < element.coords.length; i++) {
+				polygonPath.lineTo(...element.coords[i][0])
+			}
 
 			geometry = new THREE.ExtrudeGeometry(polygonPath.toShapes(), {
-				amount: 0.0,
+				amount: 0,
 				steps: 0,
 				bevelEnabled: false
-			});
-
-			// undo the linear transformation
-			geometry.vertices.forEach((vertice, i) => {
-				vertice.set(...element.coords[i][0]);
 			});
 		};
 
@@ -160,7 +123,7 @@ const drawFunctions = {
 
 function drawGraphics3D(container, data) {
 	// data is decoded JSON data such as
-	// {'elements': [{'coords': [[[1.0, 0.0, 0.0], null], [[1.0, 1.0, 1.0], null], [[0.0, 0.0, 1.0], null]], 'type': 'polygon', 'faceColor': [0, 0, 0, 1]}], 'axes': {}, 'extent': {'zmax': 1.0, 'ymax': 1.0, 'zmin': 0.0, 'xmax': 1.0, 'xmin': 0.0, 'ymin': 0.0}, 'lighting': []}
+	// {'elements': [{'coords': [[[1, 0, 0], null], [[1, 1, 1], null], [[0, 0, 1], null]], 'type': 'polygon', 'faceColor': [0, 0, 0, 1]}], 'axes': {}, 'extent': {'zmax': 1, 'ymax': 1, 'zmin': 0, 'xmax': 1, 'xmin': 0, 'ymin': 0}, 'lighting': []}
 	// the nulls are the 'scaled' parts of coordinates that depend on the
 	// size of the final graphics (see Mathematica's Scaled). TODO.
 
@@ -176,7 +139,7 @@ function drawGraphics3D(container, data) {
 
 	// TODO: shading, handling of VertexNormals.
 
-	var renderer, boundingBox, hasAxes,
+	let renderer, boundingBox, hasAxes,
 		isMouseDown = false, onMouseDownPosition,
 		theta, onMouseDownTheta, phi, onMouseDownPhi;
 
@@ -187,7 +150,7 @@ function drawGraphics3D(container, data) {
 		0.5 * (data.extent.zmin + data.extent.zmax)
 	);
 
-	const viewPoint = new THREE.Vector3(...data.viewpoint).subSelf(focus);
+	const viewPoint = new THREE.Vector3(...data.viewpoint).sub(focus);
 	const radius = viewPoint.length();
 
 	onMouseDownTheta = theta = Math.acos(viewPoint.z / radius);
@@ -205,10 +168,12 @@ function drawGraphics3D(container, data) {
 	);
 
 	function updateCameraPosition() {
-		camera.position.x = radius * Math.sin(theta) * Math.cos(phi);
-		camera.position.y = radius * Math.sin(theta) * Math.sin(phi);
-		camera.position.z = radius * Math.cos(theta);
-		camera.position.addSelf(focus);
+		camera.position.set(
+			radius * Math.sin(theta) * Math.cos(phi),
+			radius * Math.sin(theta) * Math.sin(phi),
+			radius * Math.cos(theta)
+		).add(focus);
+
 		camera.lookAt(focus);
 	}
 
@@ -254,7 +219,7 @@ function drawGraphics3D(container, data) {
 		return light;
 	}
 
-	function getInitLightPos(element) {
+	function getInitialLightPosition(element) {
 		// initial light position in spherical polar coordinates
 		if (element.position instanceof Array) {
 			const temporaryPosition = new THREE.Vector3(...element.position);
@@ -281,9 +246,7 @@ function drawGraphics3D(container, data) {
 					initialLightPosition[i].radius * Math.sin(theta + initialLightPosition[i].theta) * Math.cos(phi + initialLightPosition[i].phi),
 					initialLightPosition[i].radius * Math.sin(theta + initialLightPosition[i].theta) * Math.sin(phi + initialLightPosition[i].phi),
 					initialLightPosition[i].radius * Math.cos(theta + initialLightPosition[i].theta)
-				);
-
-				light.position.addSelf(focus);
+				).add(focus);
 			}
 		});
 	}
@@ -291,13 +254,13 @@ function drawGraphics3D(container, data) {
 	const lights = new Array(data.lighting.length);
 	const initialLightPosition = new Array(data.lighting.length);
 
-	for (var i = 0; i < data.lighting.length; i++) {
-		initialLightPosition[i] = getInitLightPos(data.lighting[i]);
+	data.lighting.forEach((light, i) => {
+		initialLightPosition[i] = getInitialLightPosition(light);
 
-		lights[i] = addLight(data.lighting[i]);
+		lights[i] = addLight(light);
 
 		scene.add(lights[i]);
-	}
+	});
 
 	boundingBox = new THREE.Mesh(
 		new THREE.CubeGeometry(
@@ -334,12 +297,14 @@ function drawGraphics3D(container, data) {
 	for (let i = 0; i < 3; i++) {
 		if (hasAxes[i]) {
 			axesGeometry[i] = new THREE.Geometry();
-			axesGeometry[i].vertices.push(new THREE.Vector3().add(
-				boundingBox.geometry.vertices[axesIndexes[i][0][0]], boundingBox.position)
-			);
-			axesGeometry[i].vertices.push(new THREE.Vector3().add(
-				boundingBox.geometry.vertices[axesIndexes[i][0][1]], boundingBox.position)
-			);
+
+			axesGeometry[i].vertices.push(new THREE.Vector3().addVectors(
+				boundingBox.geometry.vertices[axesIndexes[i][0][0]], boundingBox.position
+			));
+			axesGeometry[i].vertices.push(new THREE.Vector3().addVectors(
+				boundingBox.geometry.vertices[axesIndexes[i][0][1]], boundingBox.position
+			));
+
 			axesLines[i] = new THREE.Line(
 				axesGeometry[i],
 				new THREE.LineBasicMaterial({
@@ -352,26 +317,16 @@ function drawGraphics3D(container, data) {
 		}
 	}
 
-	function boxEdgeLength(i, j) {
-		const edge = new THREE.Vector3().sub(
-			toCanvasCoords(boundingBox.geometry.vertices[axesIndexes[i][j][0]]),
-			toCanvasCoords(boundingBox.geometry.vertices[axesIndexes[i][j][1]])
-		);
-		edge.z = 0;
-
-		return edge.length();
-	}
-
 	function positionAxes() {
 		// automatic axes placement
-		let nearJ = null, nearLenght = 10 * radius, farJ = null, farLenght = 0;
+		let nearJ, nearLenght = 10 * radius, farJ, farLenght = 0;
 
 		const temporaryVector = new THREE.Vector3();
 		for (let i = 0; i < 8; i++) {
-			temporaryVector.add(
+			temporaryVector.addVectors(
 				boundingBox.geometry.vertices[i],
 				boundingBox.position
-			).subSelf(camera.position);
+			).sub(camera.position);
 
 			const temporaryLenght = temporaryVector.length();
 
@@ -385,28 +340,32 @@ function drawGraphics3D(container, data) {
 		}
 		for (let i = 0; i < 3; i++) {
 			if (hasAxes[i]) {
-				maxj = null;
-				maxl = 0.0;
+				let maxJ, maxLenght = 0;
+
 				for (let j = 0; j < 4; j++) {
 					if (axesIndexes[i][j][0] !== nearJ &&
 						axesIndexes[i][j][1] !== nearJ &&
 						axesIndexes[i][j][0] !== farJ &&
 						axesIndexes[i][j][1] !== farJ
 					) {
-						const temporaryLenght = boxEdgeLength(i, j);
+						const edge = new THREE.Vector3().subVectors(
+							toCanvasCoords(boundingBox.geometry.vertices[axesIndexes[i][j][0]]),
+							toCanvasCoords(boundingBox.geometry.vertices[axesIndexes[i][j][1]])
+						);
+						edge.z = 0;
 
-						if (temporaryLenght > maxl) {
-							maxl = temporaryLenght;
-							maxj = j;
+						if (edge.length() > maxLenght) {
+							maxLenght = edge.length();
+							maxJ = j;
 						}
 					}
 				}
-				axesLines[i].geometry.vertices[0].add(
-					boundingBox.geometry.vertices[axesIndexes[i][maxj][0]],
+				axesLines[i].geometry.vertices[0].addVectors(
+					boundingBox.geometry.vertices[axesIndexes[i][maxJ][0]],
 					boundingBox.position
 				);
-				axesLines[i].geometry.vertices[1].add(
-					boundingBox.geometry.vertices[axesIndexes[i][maxj][1]],
+				axesLines[i].geometry.vertices[1].addVectors(
+					boundingBox.geometry.vertices[axesIndexes[i][maxJ][1]],
 					boundingBox.position
 				);
 				axesLines[i].geometry.verticesNeedUpdate = true;
@@ -430,20 +389,26 @@ function drawGraphics3D(container, data) {
 			ticks[i] = [];
 
 			for (let j = 0; j < data.axes.ticks[i][0].length; j++) {
-				tickgeom = new THREE.Geometry();
-				tickgeom.vertices.push(new THREE.Vector3());
-				tickgeom.vertices.push(new THREE.Vector3());
-				ticks[i].push(new THREE.Line(tickgeom, tickMaterial));
+				const tickGeometry = new THREE.Geometry();
+
+				tickGeometry.vertices.push(new THREE.Vector3());
+				tickGeometry.vertices.push(new THREE.Vector3());
+
+				ticks[i].push(new THREE.Line(tickGeometry, tickMaterial));
+
 				scene.add(ticks[i][j]);
 			}
 
 			ticksSmall[i] = [];
 
 			for (let j = 0; j < data.axes.ticks[i][1].length; j++) {
-				tickgeom = new THREE.Geometry();
-				tickgeom.vertices.push(new THREE.Vector3());
-				tickgeom.vertices.push(new THREE.Vector3());
-				ticksSmall[i].push(new THREE.Line(tickgeom, tickMaterial));
+				const tickGeometry = new THREE.Geometry();
+
+				tickGeometry.vertices.push(new THREE.Vector3());
+				tickGeometry.vertices.push(new THREE.Vector3());
+
+				ticksSmall[i].push(new THREE.Line(tickGeometry, tickMaterial));
+				
 				scene.add(ticksSmall[i][j]);
 			}
 		}
@@ -507,7 +472,10 @@ function drawGraphics3D(container, data) {
 					let value = data.axes.ticks[i][0][j];
 
 					ticks[i][j].geometry.vertices[0].copy(axesGeometry[i].vertices[0]);
-					ticks[i][j].geometry.vertices[1].add(axesGeometry[i].vertices[0], tickDir);
+					ticks[i][j].geometry.vertices[1].addVectors(
+						axesGeometry[i].vertices[0],
+						tickDir
+					);
 
 					if (i === 0) {
 						ticks[i][j].geometry.vertices[0].x = value;
@@ -527,7 +495,10 @@ function drawGraphics3D(container, data) {
 					let value = data.axes.ticks[i][1][j];
 
 					ticksSmall[i][j].geometry.vertices[0].copy(axesGeometry[i].vertices[0]);
-					ticksSmall[i][j].geometry.vertices[1].add(axesGeometry[i].vertices[0], tickDir.clone().multiplyScalar(0.5));
+					ticksSmall[i][j].geometry.vertices[1].addVectors(
+						axesGeometry[i].vertices[0],
+						tickDir.clone().multiplyScalar(0.5)
+					);
 
 					if (i === 0) {
 						ticksSmall[i][j].geometry.vertices[0].x = value;
@@ -573,36 +544,33 @@ function drawGraphics3D(container, data) {
 	}
 
 	function toCanvasCoords(position) {
-		const positionClone = position.clone();
-
-		const projScreenMat = new THREE.Matrix4();
-		projScreenMat.multiply(camera.projectionMatrix, camera.matrixWorldInverse);
-		projScreenMat.multiplyVector3(positionClone);
+		const temporaryPosition = position.clone().applyProjection(
+			new THREE.Matrix4().multiplyMatrices(
+				camera.projectionMatrix,
+				camera.matrixWorldInverse
+			)
+		);
 
 		return new THREE.Vector3(
-			(positionClone.x + 1) * 200,
-			(1 - positionClone.y) * 200,
-			(positionClone.z + 1) * 200
+			(temporaryPosition.x + 1) * 200,
+			(1 - temporaryPosition.y) * 200,
+			(temporaryPosition.z + 1) * 200
 		);
 	}
 
 	function positionticknums() {
-		for (var i = 0; i < 3; i++) {
+		for (let i = 0; i < 3; i++) {
 			if (hasAxes[i]) {
-				for (var j = 0; j < tickNumbers[i].length; j++) {
-					const tickPosition3D = ticks[i][j].geometry.vertices[0].clone();
-					const tickDir = new THREE.Vector3().sub(
-						ticks[i][j].geometry.vertices[0],
-						ticks[i][j].geometry.vertices[1]
+				for (let j = 0; j < tickNumbers[i].length; j++) {
+					const tickPosition = toCanvasCoords(
+						ticks[i][j].geometry.vertices[0].clone().add(
+							new THREE.Vector3().subVectors(
+								ticks[i][j].geometry.vertices[0],
+								ticks[i][j].geometry.vertices[1]
+							).multiplyScalar(6)
+						)
 					);
-					// tickDir.multiplyScalar(3);
-					tickDir.setLength(3 * tickLength);
-					tickDir.x *= 2.0;
-					tickDir.y *= 2.0;
 
-					tickPosition3D.addSelf(tickDir);
-
-					const tickPosition = toCanvasCoords(tickPosition3D);
 					tickPosition.x -= 10;
 					tickPosition.y += 8;
 
@@ -654,12 +622,15 @@ function drawGraphics3D(container, data) {
 	}
 
 	function scaleInView() {
-		var temporaryFOV = 0;
-		var proj2d = new THREE.Vector3();
+		const proj2d = new THREE.Vector3();
 
-		for (var i = 0; i < 8; i++) {
-			proj2d.add(boundingBox.geometry.vertices[i], boundingBox.position);
-			proj2d = camera.matrixWorldInverse.multiplyVector3(proj2d.clone());
+		let temporaryFOV = 0;
+
+		for (let i = 0; i < 8; i++) {
+			proj2d.addVectors(
+				boundingBox.geometry.vertices[i],
+				boundingBox.position
+			).applyMatrix4(camera.matrixWorldInverse);
 
 			temporaryFOV = Math.max(
 				temporaryFOV,
@@ -753,7 +724,7 @@ function drawGraphics3D(container, data) {
 				phi = 2 * Math.PI * (onMouseDownPosition.x - event.clientX) / 400 + onMouseDownPhi;
 				phi = (phi + 2 * Math.PI) % (2 * Math.PI);
 				theta = 2 * Math.PI * (onMouseDownPosition.y - event.clientY) / 400 + onMouseDownTheta;
-				var epsilon = 1e-12; // prevents spinnging from getting stuck
+				const epsilon = 1e-12; // prevents spinnging from getting stuck
 				theta = Math.max(Math.min(Math.PI - epsilon, theta), epsilon);
 
 				updateCameraPosition();
@@ -786,8 +757,7 @@ function drawGraphics3D(container, data) {
 	container.addEventListener('mousedown', onDocumentMouseDown, false);
 	container.addEventListener('mouseup', onDocumentMouseUp, false);
 	onMouseDownPosition = new THREE.Vector2();
-	var autoRescale = true;
-
+	let autoRescale = true;
 	updateCameraPosition();
 	positionAxes();
 	render(); // rendering twice updates camera.matrixWorldInverse so that scaleInView works properly
