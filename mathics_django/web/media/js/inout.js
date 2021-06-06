@@ -275,10 +275,11 @@ function showGallery() {
 	    'Graphics3D[{Yellow, Sphere[{{-1, 0, 0}, {1, 0, 0}, {0, 0, Sqrt[3.]}}, 1]}]',
             'Plot3D[Sin[x y], {x, -2, 2}, {y, -2, 2}, Mesh->Full, PlotPoints->21]',
 	    'Plot3D[ Abs[Zeta[x + I y] ], {x, -1, 2}, {y, 2, 20}, PlotPoints->30]',
-	    'Graphics3D[Polygon[{{0,0,0}, {0,1,1}, {1,0,0}}]]',
+	    'Graphics3D[Polygon[Table[{Cos[2 Pi k/6], Sin[2 Pi k/6], 0}, {k, 0, 5}]]]',
 	    '(**** Combinatorica: for Implementing Discrete Mathematics. ****)',
 	    'Needs["DiscreteMath`CombinatoricaV0.9`"]',
 	    'ShowGraph[K[6,6,6]]',
-	    'ShowGraph[ CirculantGraph[20, RandomSubset[Range[10]]] ]'
+	    'ShowGraph[ CirculantGraph[20, RandomSubset[Range[10]]] ]',
+	    'FerrersDiagram[RandomInteger[{0, 3}, 50]]'
 	]);
 }
