@@ -193,7 +193,6 @@ function drawGraphics3D(container, data) {
 	onMouseDownTheta = theta = Math.acos(viewPoint.z / radius);
 	onMouseDownPhi = phi = (Math.atan2(viewPoint.y, viewPoint.x) + 2 * Math.PI) % (2 * Math.PI);
 
-	// scene
 	const scene = new THREE.Scene();
 	scene.position = focus;
 
@@ -217,7 +216,6 @@ function drawGraphics3D(container, data) {
 
 	scene.add(camera);
 
-	// lighting
 	function addLight(element) {
 		const colorHex = new THREE.Color().setRGB(...element.color).getHex();
 
@@ -450,52 +448,53 @@ function drawGraphics3D(container, data) {
 	}
 
 	function getTickDir(i) {
-		var tickdir = new THREE.Vector3();
+		const tickDir = new THREE.Vector3();
+
 		if (i === 0) {
 			if (0.25 * Math.PI < theta && theta < 0.75 * Math.PI) {
 				if (axesGeometry[0].vertices[0].z > boundingBox.position.z) {
-					tickdir.setZ(-tickLength);
+					tickDir.setZ(-tickLength);
 				} else {
-					tickdir.setZ(tickLength);
+					tickDir.setZ(tickLength);
 				}
 			} else {
 				if (axesGeometry[0].vertices[0].y > boundingBox.position.y) {
-					tickdir.setY(-tickLength);
+					tickDir.setY(-tickLength);
 				} else {
-					tickdir.setY(tickLength);
+					tickDir.setY(tickLength);
 				}
 			}
 		} else if (i === 1) {
 			if (0.25 * Math.PI < theta && theta < 0.75 * Math.PI) {
 				if (axesGeometry[1].vertices[0].z > boundingBox.position.z) {
-					tickdir.setZ(-tickLength);
+					tickDir.setZ(-tickLength);
 				} else {
-					tickdir.setZ(tickLength);
+					tickDir.setZ(tickLength);
 				}
 			} else {
 				if (axesGeometry[1].vertices[0].x > boundingBox.position.x) {
-					tickdir.setX(-tickLength);
+					tickDir.setX(-tickLength);
 				} else {
-					tickdir.setX(tickLength);
+					tickDir.setX(tickLength);
 				}
 			}
 		} else if (i === 2) {
 			if ((0.25 * Math.PI < phi && phi < 0.75 * Math.PI) || (1.25 * Math.PI < phi && phi < 1.75 * Math.PI)) {
 				if (axesGeometry[2].vertices[0].x > boundingBox.position.x) {
-					tickdir.setX(-tickLength);
+					tickDir.setX(-tickLength);
 				} else {
-					tickdir.setX(tickLength);
+					tickDir.setX(tickLength);
 				}
 			} else {
 				if (axesGeometry[2].vertices[0].y > boundingBox.position.y) {
-					tickdir.setY(-tickLength);
+					tickDir.setY(-tickLength);
 				} else {
-					tickdir.setY(tickLength);
+					tickDir.setY(tickLength);
 				}
 			}
 		}
 
-		return tickdir;
+		return tickDir;
 	}
 
 	function updateAxes() {
@@ -554,7 +553,16 @@ function drawGraphics3D(container, data) {
 	for (let i = 0; i < 3; i++) {
 		if (hasAxes[i]) {
 			tickNumbers[i] = new Array(data.axes.ticks[i][0].length);
+
 			for (let j = 0; j < tickNumbers[i].length; j++) {
+				let color = 'black';
+
+				if (i < data.axes.ticks_style.length) {
+					color = new THREE.Color()
+						.setRGB(...data.axes.ticks_style[i])
+						.getStyle();
+				}
+
 				tickNumbers[i][j] = document.createElement('div');
 				tickNumbers[i][j].innerHTML = data.axes.ticks[i][2][j];
 
@@ -567,6 +575,7 @@ function drawGraphics3D(container, data) {
 
 				tickNumbers[i][j].style.position = 'absolute';
 				tickNumbers[i][j].style.fontSize = '0.8em';
+				tickNumbers[i][j].style.color = color;
 				container.appendChild(tickNumbers[i][j]);
 			}
 		}
