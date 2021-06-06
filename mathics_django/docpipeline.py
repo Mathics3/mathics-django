@@ -264,7 +264,7 @@ def test_all(
 ):
     global documentation
     if not quiet:
-        print("Testing %s" % version_string)
+        print(f"Testing {version_string}")
 
     try:
         index = 0
@@ -338,12 +338,13 @@ def save_doc_data(output_xml):
         pickle.dump(output_xml, output_file, 4)
 
 
-def make_doc(quiet=False, reload=False):
+def extract_doc_from_source(quiet=False, reload=False):
     """
-    Write XML doc examples.
+    Write internal (pickled) XML doc files and example data from docstrings.
     """
     if not quiet:
-        print("Extracting doc %s" % version_string)
+        print(f"Extracting internal doc data for {version_string}")
+        print("This may take a while...")
 
     try:
         output_xml = load_doc_data() if reload else {}
@@ -353,6 +354,7 @@ def make_doc(quiet=False, reload=False):
         print("\nAborted.\n")
         return
 
+    print("done.\n")
     save_doc_data(output_xml)
 
 
@@ -384,6 +386,7 @@ def main():
     parser.add_argument(
         "--exclude",
         "-X",
+        default="",
         dest="exclude",
         metavar="SECTION",
         help="excude SECTION(s). "
@@ -486,7 +489,7 @@ def main():
             print("Building pymathics documentation object")
             documentation.load_pymathics_doc()
         elif args.doc_only:
-            make_doc(
+            extract_doc_from_source(
                 quiet=args.quiet,
                 reload=args.reload,
             )
