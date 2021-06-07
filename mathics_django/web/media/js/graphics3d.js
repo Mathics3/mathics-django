@@ -2,24 +2,24 @@ const drawFunctions = {
 	point: (element) => {
 		const geometry = new THREE.Geometry();
 
-		element.coords.forEach((coordinate) => {
-			geometry.vertices.push(new THREE.Vector3(...coordinate[0]));
-		});
+		geometry.vertices = element.coords.map(
+			(coordinate) => new THREE.Vector3(...coordinate[0])
+		);
 
 		return new THREE.ParticleSystem(
 			geometry,
 			new THREE.ParticleBasicMaterial({
 				color: new THREE.Color().setRGB(...element.color).getHex(),
-				size: 0.05
+				size: element.pointSize
 			})
 		);
 	},
 	line: (element) => {
 		const geometry = new THREE.Geometry();
 
-		element.coords.forEach((coordinate) => {
-			geometry.vertices.push(new THREE.Vector3(...coordinate[0]));
-		});
+		geometry.vertices = element.coords.map(
+			(coordinate) => new THREE.Vector3(...coordinate[0])
+		);
 
 		const line = new THREE.Line(
 			geometry,
@@ -42,9 +42,9 @@ const drawFunctions = {
 		if (element.coords.length === 3) { // triangle (also usued in cubes)
 			geometry = new THREE.Geometry();
 
-			geometry.vertices.push(new THREE.Vector4(...element.coords[0][0]));
-			geometry.vertices.push(new THREE.Vector4(...element.coords[1][0]));
-			geometry.vertices.push(new THREE.Vector4(...element.coords[2][0]));
+			geometry.vertices = element.coords.map(
+				(coordinate) => new THREE.Vector3(...coordinate[0])
+			);
 
 			geometry.faces.push(new THREE.Face3(0, 1, 2));
 			geometry.faces.push(new THREE.Face3(0, 2, 1));
@@ -54,7 +54,7 @@ const drawFunctions = {
 			polygonPath.moveTo(...element.coords[0][0]);
 
 			for (let i = 1; i < element.coords.length; i++) {
-				polygonPath.lineTo(...element.coords[i][0])
+				polygonPath.lineTo(...element.coords[i][0]);
 			}
 
 			geometry = new THREE.ExtrudeGeometry(polygonPath.toShapes(), {
@@ -406,7 +406,7 @@ function drawGraphics3D(container, data) {
 				tickGeometry.vertices.push(new THREE.Vector3());
 
 				ticksSmall[i].push(new THREE.Line(tickGeometry, tickMaterial));
-				
+
 				scene.add(ticksSmall[i][j]);
 			}
 		}
