@@ -2,15 +2,22 @@ const drawFunctions = {
 	point: (element) => {
 		const geometry = new THREE.Geometry();
 
-		geometry.vertices = element.coords.map(
-			(coordinate) => new THREE.Vector3(...coordinate[0])
-		);
+		element.coords.forEach((coordinate) => {
+			const sphere = new THREE.Mesh(
+				new THREE.SphereGeometry(element.pointSize / 2, 24, 24)
+			);
 
-		return new THREE.ParticleSystem(
+			sphere.position.set(...coordinate[0]);
+
+			THREE.GeometryUtils.merge(geometry, sphere);
+		});
+
+		geometry.computeFaceNormals();
+
+		return new THREE.Mesh(
 			geometry,
-			new THREE.ParticleBasicMaterial({
-				color: new THREE.Color().setRGB(...element.color).getHex(),
-				size: element.pointSize
+			new THREE.MeshBasicMaterial({
+				color: new THREE.Color().setRGB(...element.color).getHex()
 			})
 		);
 	},
