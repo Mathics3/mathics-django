@@ -105,7 +105,7 @@ const drawFunctions = {
 
 		return new THREE.Mesh(
 			geometry,
-			new THREE.MeshPhongMaterial({
+			new THREE.MeshLambertMaterial({
 				color: new THREE.Color().setRGB(...element.faceColor).getHex(),
 				transparent: true
 			})
