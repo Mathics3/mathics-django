@@ -2,26 +2,28 @@ const drawFunctions = {
 	point: (element) => {
 		const geometry = new THREE.Geometry();
 
-		element.coords.forEach((coordinate) => {
-			const point = new THREE.Mesh(
-				new THREE.SphereGeometry(element.pointSize / 2, 24, 24)
-			);
-
-			point.position.set(...coordinate[0]);
-
-			point.updateMatrix();
-
-			geometry.merge(point.geometry, point.matrix);
-		});
-
-		geometry.computeFaceNormals();
-
-		return new THREE.Mesh(
-			geometry,
-			new THREE.MeshBasicMaterial({
-				color: new THREE.Color().setRGB(...element.color).getHex()
-			})
+		geometry.vertices = element.coords.map(
+			(coordinate) => new THREE.Vector3(...coordinate[0])
 		);
+
+		return new THREE.Points(geometry, new THREE.ShaderMaterial({
+			transparent: true,
+			uniforms: {
+				// 84 is the scale for this size of canvas
+				size: { value: element.pointSize * 84 },
+				color: { value: new THREE.Color().setRGB(...element.color) },
+			},
+			vertexShader: THREE.ShaderLib.points.vertexShader,
+			fragmentShader: `
+				uniform vec3 color;
+				
+				void main() {
+					if (length(gl_PointCoord - vec2(0.5)) > 0.5) discard;
+
+					gl_FragColor = vec4(color, 1.0);
+				}
+			`
+		}));
 	},
 	line: (element) => {
 		const geometry = new THREE.Geometry();
@@ -30,17 +32,15 @@ const drawFunctions = {
 			(coordinate) => new THREE.Vector3(...coordinate[0])
 		);
 
-		const line = new THREE.Line(
+		return new THREE.Line(
 			geometry,
 			new THREE.LineBasicMaterial({
 				color: new THREE.Color().setRGB(...element.color).getHex()
 			})
 		);
-
-		return line;
 	},
 	polygon: (element) => {
-		let geometry, material;
+		let geometry;
 
 		if (element.coords.length === 3) { // triangle (also usued in cubes)
 			geometry = new THREE.Geometry();
@@ -52,16 +52,16 @@ const drawFunctions = {
 			geometry.faces.push(new THREE.Face3(0, 1, 2));
 			geometry.faces.push(new THREE.Face3(0, 2, 1));
 		} else {
-			const polygonPath = new THREE.Path();
+			const polygonShape = new THREE.Shape();
 
-			polygonPath.moveTo(...element.coords[0][0]);
+			polygonShape.moveTo(...element.coords[0][0]);
 
 			for (let i = 1; i < element.coords.length; i++) {
-				polygonPath.lineTo(...element.coords[i][0]);
+				polygonShape.lineTo(...element.coords[i][0]);
 			}
 
-			geometry = new THREE.ExtrudeGeometry(polygonPath.toShapes(), {
-				amount: 0,
+			geometry = new THREE.ExtrudeGeometry(polygonShape, {
+				depth: 0,
 				steps: 0,
 				bevelEnabled: false
 			});
@@ -69,54 +69,32 @@ const drawFunctions = {
 
 		geometry.computeFaceNormals();
 
-		const color = new THREE.Color().setRGB(...element.faceColor);
-
-		if (Detector.webgl) {
-			material = new THREE.MeshPhongMaterial({
-				color: color.getHex(),
-				transparent: true
-			});
-		} else {
-			material = new THREE.MeshLambertMaterial({
-				color: color.getHex(),
-				transparent: true,
-				overdraw: true
-			});
-		}
-
-		return new THREE.Mesh(geometry, material);
+		return new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({
+			color: new THREE.Color().setRGB(...element.faceColor).getHex()
+		}));
 	},
 	sphere: (element) => {
-		const geometry = new THREE.Geometry();
-
-		element.coords.forEach((coordinate) => {
-			const sphere = new THREE.Mesh(
-				new THREE.SphereGeometry(element.radius, 48, 48)
-			);
-
-			sphere.position.set(...coordinate[0]);
-
-			sphere.updateMatrix();
-
-			geometry.merge(sphere.geometry, sphere.matrix);
-		});
-
-		geometry.computeFaceNormals();
-
-		return new THREE.Mesh(
-			geometry,
+		const spheres = new THREE.InstancedMesh(
+			new THREE.SphereGeometry(element.radius, 48, 48),
 			new THREE.MeshLambertMaterial({
-				color: new THREE.Color().setRGB(...element.faceColor).getHex(),
-				transparent: true
-			})
+				color: new THREE.Color().setRGB(...element.faceColor).getHex()
+			}),
+			element.coords.length
 		);
+
+		element.coords.forEach((coordinate, i) => spheres.setMatrixAt(
+			i,
+			new THREE.Matrix4()
+				.setPosition(new THREE.Vector3(...coordinate[0]))
+		));
+
+		return spheres;
 	},
 	cube: (element) => {
 		const cube = new THREE.Mesh(
 			new THREE.BoxGeometry(...element.size[0]),
-			new THREE.MeshPhongMaterial({
-				color: new THREE.Color().setRGB(...element.faceColor).getHex(),
-				transparent: true
+			new THREE.MeshLambertMaterial({
+				color: new THREE.Color().setRGB(...element.faceColor).getHex()
 			})
 		);
 
@@ -144,8 +122,7 @@ function drawGraphics3D(container, data) {
 
 	// TODO: shading, handling of VertexNormals.
 
-	let renderer, hasAxes,
-		isMouseDown = false,
+	let hasAxes, isMouseDown = false,
 		theta, onMouseDownTheta, phi, onMouseDownPhi;
 
 	// where the camera is looking (initialized on center of the scene)
@@ -162,7 +139,6 @@ function drawGraphics3D(container, data) {
 	onMouseDownPhi = phi = (Math.atan2(viewPoint.y, viewPoint.x) + 2 * Math.PI) % (2 * Math.PI);
 
 	const scene = new THREE.Scene();
-	scene.position.copy(focus);
 
 	const camera = new THREE.PerspectiveCamera(
 		35,           // field of view
@@ -273,10 +249,12 @@ function drawGraphics3D(container, data) {
 
 	boundingBox.position.copy(focus);
 
-	const boundingBoxEdges = new THREE.EdgesHelper(boundingBox, 0x666666);
+	const boundingBoxEdges = new THREE.LineSegments(
+		new THREE.EdgesGeometry(boundingBox.geometry),
+		new THREE.LineBasicMaterial({ color: 0x666666 })
+	);
 
 	boundingBoxEdges.position.copy(focus);
-	boundingBoxEdges.matrixAutoUpdate = true;
 
 	scene.add(boundingBoxEdges);
 
@@ -544,7 +522,8 @@ function drawGraphics3D(container, data) {
 				}
 
 				tickNumbers[i][j] = document.createElement('div');
-				tickNumbers[i][j].innerHTML = data.axes.ticks[i][2][j];
+				tickNumbers[i][j].innerHTML = data.axes.ticks[i][2][j]
+					.replace('0.', '.');
 
 				// handle minus signs
 				if (data.axes.ticks[i][0][j] >= 0) {
@@ -562,7 +541,7 @@ function drawGraphics3D(container, data) {
 	}
 
 	function toCanvasCoords(position) {
-		const temporaryPosition = position.clone().applyProjection(
+		const temporaryPosition = position.clone().applyMatrix4(
 			new THREE.Matrix4().multiplyMatrices(
 				camera.projectionMatrix,
 				camera.matrixWorldInverse
@@ -612,27 +591,15 @@ function drawGraphics3D(container, data) {
 	});
 
 	// renderer (set preserveDrawingBuffer to deal with issue of weird canvas content after switching windows)
-	if (Detector.webgl) {
-		renderer = new THREE.WebGLRenderer({
-			antialias: true,
-			preserveDrawingBuffer: true,
-			alpha: true
-		});
-	} else {
-		renderer = new THREE.CanvasRenderer({
-			antialias: true,
-			preserveDrawingBuffer: true
-		});
 
-		const message = document.createElement('div');
-		message.innerHTML = 'Canvas Renderer support is experimental, please enable WebGL where possible.';
-		message.style.position = 'absolute';
-		message.style.fontSize = '0.8em';
-		message.style.color = '#FF6060';
-		container.appendChild(message);
-	}
+	const renderer = new THREE.WebGLRenderer({
+		antialias: true,
+		preserveDrawingBuffer: true,
+		alpha: true
+	});
 
 	renderer.setSize(400, 400);
+	renderer.setPixelRatio(window.devicePixelRatio);
 	container.appendChild(renderer.domElement);
 
 	function render() {

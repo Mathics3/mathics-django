@@ -162,7 +162,6 @@ setup(
             "media/js/scriptaculous/*.js",
             "media/js/three/three.js",  # unimiminized three.js
             "media/js/three/three.min.js", # imiminized three.js
-            "media/js/three/Detector.js",
             "media/js/*.js",
             "templates/*.html",
             "templates/doc/*.html",
