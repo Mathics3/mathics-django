@@ -3,13 +3,15 @@ const drawFunctions = {
 		const geometry = new THREE.Geometry();
 
 		element.coords.forEach((coordinate) => {
-			const sphere = new THREE.Mesh(
+			const point = new THREE.Mesh(
 				new THREE.SphereGeometry(element.pointSize / 2, 24, 24)
 			);
 
-			sphere.position.set(...coordinate[0]);
+			point.position.set(...coordinate[0]);
 
-			THREE.GeometryUtils.merge(geometry, sphere);
+			point.updateMatrix();
+
+			geometry.merge(point.geometry, point.matrix);
 		});
 
 		geometry.computeFaceNormals();
@@ -31,15 +33,9 @@ const drawFunctions = {
 		const line = new THREE.Line(
 			geometry,
 			new THREE.LineBasicMaterial({
-				color: new THREE.Color().setRGB(...element.color).getHex(),
-				overdraw: true
+				color: new THREE.Color().setRGB(...element.color).getHex()
 			})
 		);
-
-		// these three lines prevent grid from being put on the wrong side
-		line.material.polygonOffset = true;
-		line.material.polygonOffsetFactor = 1;
-		line.material.polygonOffsetUnits = 1;
 
 		return line;
 	},
@@ -100,7 +96,9 @@ const drawFunctions = {
 
 			sphere.position.set(...coordinate[0]);
 
-			THREE.GeometryUtils.merge(geometry, sphere);
+			sphere.updateMatrix();
+
+			geometry.merge(sphere.geometry, sphere.matrix);
 		});
 
 		geometry.computeFaceNormals();
@@ -115,7 +113,7 @@ const drawFunctions = {
 	},
 	cube: (element) => {
 		const cube = new THREE.Mesh(
-			new THREE.CubeGeometry(...element.size[0]),
+			new THREE.BoxGeometry(...element.size[0]),
 			new THREE.MeshPhongMaterial({
 				color: new THREE.Color().setRGB(...element.faceColor).getHex(),
 				transparent: true
@@ -146,8 +144,8 @@ function drawGraphics3D(container, data) {
 
 	// TODO: shading, handling of VertexNormals.
 
-	let renderer, boundingBox, hasAxes,
-		isMouseDown = false, onMouseDownPosition,
+	let renderer, hasAxes,
+		isMouseDown = false,
 		theta, onMouseDownTheta, phi, onMouseDownPhi;
 
 	// where the camera is looking (initialized on center of the scene)
@@ -164,7 +162,7 @@ function drawGraphics3D(container, data) {
 	onMouseDownPhi = phi = (Math.atan2(viewPoint.y, viewPoint.x) + 2 * Math.PI) % (2 * Math.PI);
 
 	const scene = new THREE.Scene();
-	scene.position = focus;
+	scene.position.copy(focus);
 
 	const camera = new THREE.PerspectiveCamera(
 		35,           // field of view
@@ -184,7 +182,7 @@ function drawGraphics3D(container, data) {
 	}
 
 	updateCameraPosition();
-	camera.up = new THREE.Vector3(0, 0, 1);
+	camera.up.copy(new THREE.Vector3(0, 0, 1));
 
 	scene.add(camera);
 
@@ -212,7 +210,7 @@ function drawGraphics3D(container, data) {
 				new THREE.SphereGeometry(0.007 * radius, 16, 8),
 				new THREE.MeshBasicMaterial({ color: colorHex })
 			);
-			lightSphere.position = light.position;
+			lightSphere.position.copy(light.position);
 
 			scene.add(lightSphere);
 		} else {
@@ -267,16 +265,20 @@ function drawGraphics3D(container, data) {
 		scene.add(lights[i]);
 	});
 
-	boundingBox = new THREE.Mesh(
-		new THREE.CubeGeometry(
-			data.extent.xmax - data.extent.xmin,
-			data.extent.ymax - data.extent.ymin,
-			data.extent.zmax - data.extent.zmin
-		),
-		new THREE.MeshBasicMaterial({ color: 0x666666, wireframe: true })
-	);
-	boundingBox.position = focus;
-	scene.add(boundingBox);
+	const boundingBox = new THREE.Mesh(new THREE.BoxGeometry(
+		data.extent.xmax - data.extent.xmin,
+		data.extent.ymax - data.extent.ymin,
+		data.extent.zmax - data.extent.zmin
+	));
+
+	boundingBox.position.copy(focus);
+
+	const boundingBoxEdges = new THREE.EdgesHelper(boundingBox, 0x666666);
+
+	boundingBoxEdges.position.copy(focus);
+	boundingBoxEdges.matrixAutoUpdate = true;
+
+	scene.add(boundingBoxEdges);
 
 	// draw the axes
 	if (data.axes.hasaxes instanceof Array) {
@@ -317,7 +319,7 @@ function drawGraphics3D(container, data) {
 					linewidth: 1.5
 				})
 			);
-			axesLines[i].geometry.dynamic = true;
+
 			scene.add(axesLines[i]);
 		}
 	}
@@ -574,7 +576,7 @@ function drawGraphics3D(container, data) {
 		);
 	}
 
-	function positionticknums() {
+	function positionTickNumbers() {
 		for (let i = 0; i < 3; i++) {
 			if (hasAxes[i]) {
 				for (let j = 0; j < tickNumbers[i].length; j++) {
@@ -587,11 +589,11 @@ function drawGraphics3D(container, data) {
 						)
 					);
 
-					tickPosition.x -= 10;
-					tickPosition.y += 8;
+					tickPosition.setX(tickPosition.x - 10);
+					tickPosition.setY(tickPosition.y + 8);
 
-					tickNumbers[i][j].style.left = tickPosition.x.toString() + 'px';
-					tickNumbers[i][j].style.top = tickPosition.y.toString() + 'px';
+					tickNumbers[i][j].style.left = `${tickPosition.x}px`;
+					tickNumbers[i][j].style.top = `${tickPosition.y}px`;
 
 					if (tickPosition.x < 5 || tickPosition.x > 395 || tickPosition.y < 5 || tickPosition.y > 395) {
 						tickNumbers[i][j].style.display = 'none';
@@ -613,7 +615,8 @@ function drawGraphics3D(container, data) {
 	if (Detector.webgl) {
 		renderer = new THREE.WebGLRenderer({
 			antialias: true,
-			preserveDrawingBuffer: true
+			preserveDrawingBuffer: true,
+			alpha: true
 		});
 	} else {
 		renderer = new THREE.CanvasRenderer({
@@ -681,7 +684,7 @@ function drawGraphics3D(container, data) {
 		event.preventDefault();
 
 		if (isMouseDown) {
-			positionticknums();
+			positionTickNumbers();
 
 			if (event.shiftKey) { // pan
 				if (!isShiftDown) {
@@ -765,19 +768,19 @@ function drawGraphics3D(container, data) {
 
 		positionAxes();
 		render();
-		positionticknums();
+		positionTickNumbers();
 	}
 
 	// bind mouse events
 	container.addEventListener('mousemove', onDocumentMouseMove, false);
 	container.addEventListener('mousedown', onDocumentMouseDown, false);
 	container.addEventListener('mouseup', onDocumentMouseUp, false);
-	onMouseDownPosition = new THREE.Vector2();
+	const onMouseDownPosition = new THREE.Vector2();
 	let autoRescale = true;
 	updateCameraPosition();
 	positionAxes();
 	render(); // rendering twice updates camera.matrixWorldInverse so that scaleInView works properly
 	scaleInView();
 	render();
-	positionticknums();
+	positionTickNumbers();
 }
