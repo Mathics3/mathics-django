@@ -82,7 +82,7 @@ def get_three_version():
         "three",
         "three.js",
     )
-    pattern = "var THREE = \{ REVISION: '(\d+)'"
+    pattern = """var REVISION = '(\d+)'"""
     match = re.search(pattern, builtin_open(three_file).read())
     if match:
         return "r" + match.group(1)
