@@ -323,6 +323,13 @@ function createLine(value) {
 		dom.updateDOM(value);
 		convertMathGlyphs(dom);
 		return translateDOMElement(dom.childNodes[0]);
+	} else if (value.startsWith('<graphics3d data=')) {
+		var dom = document.createElement('div');
+		drawGraphics3D(dom, JSON.parse(value.replace('<graphics3d data="', '').replace('"/>', '')));
+		dom.style.position = 'relative';
+		dom.style.width = '400px';
+		dom.style.margin = 'auto';
+		return dom;
 	} else {
 		var lines = value.split('\n');
 		var p = $E('p');

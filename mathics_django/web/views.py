@@ -92,7 +92,7 @@ def get_three_version():
 
 def get_MathJax_version():
     """
-    Get the MathMax version the static and hacky way not involving javascript.
+    Get the MathJax version the static and hacky way not involving javascript.
     """
     three_file = osp.join(
         osp.normcase(osp.dirname(osp.abspath(__file__))),
@@ -209,6 +209,9 @@ def error_500_view(request):
 
 
 def query(request):
+    """
+    Handles Mathics input expressions.
+    """
     global definitions
     from mathics.core.parser import MathicsMultiLineFeeder
 
@@ -270,9 +273,7 @@ def query(request):
     return JsonResponse(result)
 
 
-# taken from http://code.activestate.com/recipes/410076/
-
-
+# nicepass is taken from http://code.activestate.com/recipes/410076/
 def nicepass(alpha=6, numeric=2):
     """
     returns a human-readble password (say rol86din instead of
