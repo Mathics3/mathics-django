@@ -1,5 +1,5 @@
 function showSave() {
-	requireLogin("You must login to save worksheets online.", function() {
+	requireLogin("You must login to save worksheets online.", () => {
 		showPopup($('save'));
 	});
 }
@@ -11,41 +11,43 @@ function openWorksheet(name) {
 		parameters: {
 			'name': name
 		},
-		onSuccess: function(transport) {
+		onSuccess: function (transport) {
 			var response = transport.responseText.evalJSON();
-			if ($('document').visible())
+			if ($('document').visible()) {
 				setContent(response.content);
-			else
+			} else {
 				$('codetext').value = response.content;
+			}
 		}
-	})
+	});
 }
 
 function showWorksheets(isOpen) {
 	new Ajax.Request('/ajax/getworksheets/', {
 		method: 'get',
-		onSuccess: function(transport) {
+		onSuccess: function (transport) {
 			var response = transport.responseText.evalJSON();
 			var tbody = $('openFilelist');
 			tbody.deleteChildNodes();
-			response.worksheets.each(function(worksheet) {
+			response.worksheets.each(function (worksheet) {
 				tbody.appendChild($E('tr',
 					$E('td',
-						$E('a', {'href': 'javascript:openWorksheet("' + worksheet.name + '")'},
+						$E('a', { 'href': 'javascript:openWorksheet("' + worksheet.name + '")' },
 							$T(worksheet.name)
 						)
 					),
 					$E('td',
-						$E('a', {'href': 'javascript:deleteWorksheet("' + worksheet.name + '")'},
+						$E('a', { 'href': 'javascript:deleteWorksheet("' + worksheet.name + '")' },
 							$T("Delete")
 						)
 					)
 				));
 			});
 
-			// If the popup is not open, open it.
-			if (!isOpen)
+			// if the popup isn't open, open it
+			if (!isOpen) {
 				showPopup($('open'));
+			}
 		}
 	});
 }
@@ -56,43 +58,41 @@ function deleteWorksheet(name) {
 		parameters: {
 			'name': name
 		},
-		onSuccess: function(transport) {
-			var response = transport.responseText.evalJSON();
+		onSuccess: () => {
 			showWorksheets(true);
 		}
-	})
+	});
 }
 
 function showOpen() {
-	requireLogin("You must login to open online worksheets.", function() {
+	requireLogin("You must login to open online worksheets.", () => {
 		showWorksheets(false);
 	});
 }
 
-function cancelSave() {
-	hidePopup();
-}
-
-function cancelOpen() {
-	hidePopup();
-}
-
 function save(overwrite) {
-	if (!overwrite)
+	if (!overwrite) {
 		overwrite = '';
+	}
+
 	var content;
-	if ($('document').visible())
+
+	if ($('document').visible()) {
 		content = getContent();
-	else
+	} else {
 		content = $('codetext').value;
-	submitForm('saveForm', '/ajax/save/', function(response) {
-		if (!checkLogin(response))
+	}
+
+	submitForm('saveForm', '/ajax/save/', function (response) {
+		if (!checkLogin(response)) {
 			return;
-		cancelSave();
+		}
+
+		hidePopup();
 		if (response.result == 'overwrite') {
 			showDialog("Overwrite worksheet", "A worksheet with the name '" +
 				response.form.values.name + "' already exists. Do you want to overwrite it?",
-				'Yes, overwrite it', 'No, cancel', function() {
+				'Yes, overwrite it', 'No, cancel', function () {
 					save(true);
 				});
 		}
@@ -122,17 +122,18 @@ function switchCode() {
 }
 
 function getContent() {
-	var queries = [];
-	$('queries').childElements().each(function(query) {
-		var item = {};
-		var textarea = query.select('textarea.request')[0];
-		item.request = textarea.value;
-		item.results = textarea.results;
-		queries.push(item);
-	});
-	var content = Object.toJSON(queries);
+	const queries = [];
 
-	return content;
+	$('queries').childElements().each(function (query) {
+		const textarea = query.select('textarea.request')[0];
+
+		queries.push({
+			request: textarea.value,
+			results: textarea.results
+		});
+	});
+
+	return Object.toJSON(queries);
 }
 
 function setContent(content) {
@@ -141,10 +142,10 @@ function setContent(content) {
 	$('welcome').hide();
 
 	var queries = content.evalJSON();
-	queries.each(function(item) {
+	queries.each(function (item) {
 		var li = createQuery(null, true, true);
 		li.textarea.value = item.request;
-		if( item.results != undefined ) {
+		if (item.results != undefined) {
 			setResult(li.ul, item.results);
 			li.textarea.results = item.results;
 		}
@@ -155,131 +156,139 @@ function setContent(content) {
 	refreshInputSizes();
 
 	lastFocus = null;
-	if ($('queries').lastChild)
+	if ($('queries').lastChild) {
 		$('queries').lastChild.textarea.focus();
+	}
 }
 
 function createLink() {
 	var queries = new Array();
-	$('queries').childElements().each(function(query) {
+	$('queries').childElements().each(function (query) {
 		var text = query.select('textarea.request')[0].getText();
 		queries[queries.length] = 'queries=' + encodeURIComponent(text);
 	});
 	var query = queries.join('&');
-	location.hash = '#' + btoa(query); //encodeURI(query);
+	location.hash = '#' + btoa(query); // encodeURI(query);
 }
 
 function setQueries(queries) {
 	var list = [];
-	queries.each(function(query) {
+	queries.each(function (query) {
 		var li = createQuery(null, true, true);
 		li.textarea.value = query;
-		list.push({'li': li, 'query': query});
+		list.push({ 'li': li, 'query': query });
 	});
 	refreshInputSizes();
 	function load(index) {
 		if (index < list.length) {
 			var item = list[index];
-			submitQuery(item.li.textarea, function() {
+			submitQuery(item.li.textarea, function () {
 				load(index + 1);
 			});
 		} else {
 			createSortable();
 			lastFocus = null;
-			if ($('queries').lastChild)
+			if ($('queries').lastChild) {
 				$('queries').lastChild.textarea.focus();
+			}
 		}
 	}
+
 	load(0);
 }
 
 function loadLink() {
-	var hash = location.hash;
+	const hash = location.hash;
+
 	if (hash && hash.length > 1) {
 		var params = atob(hash.slice(1)).split('&');
-		var queries = [];
-		params.each(function(param) {
+		const queries = [];
+		params.each(function (param) {
 			if (param.startsWith('queries=')) {
 				param = param.slice(8);
 				param = decodeURIComponent(param);
-				if (param != "")
+				if (param != "") {
 					queries.push(param);
+				}
 			}
 		});
+
 		setQueries(queries);
+
 		return queries.length > 0;
-	} else
+	} else {
 		return false;
+	}
 }
 
 function showGallery() {
 	setQueries([
-	    '(**** Calculation ****)',
-	    'Sin[Pi]',
-	    "E ^ (Pi I) (* Euler's famous equation *)",
-	    'N[E, 30] (* 30-digit Numeric approximation of E *)',
-	    '30! (* Factorial *)',
-	    '% // N',
-	    'Sum[2 i + 1, {i, 0, 10}] (* Sum of 1st n odd numbers (n+1)**2 *)',
-	    'n = 8; 2 ^ # & /@ Range[0, n] (* Powers of 2 *)',
-	    'Total[%] (* Sum is 2 ^ n - 1 *)',
+		'(**** Calculation ****)',
+		'Sin[Pi]',
+		"E ^ (Pi I) (* Euler's famous equation *)",
+		'N[E, 30] (* 30-digit Numeric approximation of E *)',
+		'30! (* Factorial *)',
+		'% // N',
+		'Sum[2 i + 1, {i, 0, 10}] (* Sum of 1st n odd numbers (n+1)**2 *)',
+		'n = 8; 2 ^ # & /@ Range[0, n] (* Powers of 2 *)',
+		'Total[%] (* Sum is 2 ^ n - 1 *)',
 
-	    '(**** Functions ****)',
-            '(* Colatz Conjecture https://oeis.org/A006577 *)',
-	    'f[n_] := Module[{a=n, k=0}, While[a!=1, k++; If[EvenQ[a], a=a/2, a=a*3+1]]; k]',
-            'Table[f[n], {n, 4!}]',
-	    '(**** Symbolic Manipulation ****)',
-	    'Apart[1 / (x^2 + 5x + 6)]',
-	    'Cancel[x / x ^ 2]',
-	    'Expand[(x + y)^ 3]',
-	    'Factor[x ^ 2 + 2 x + 1]',
-	    'Simplify[5*Sin[x]^2 + 5*Cos[x]^2]',
-	    '(**** Calculus ****)',
-	    "Sin'[x]",
-	    "Sin''[x]",
-	    'D[Sin[2x] + Log[x] ^ 2, x]',
-	    'Integrate[Tan[x] ^ 5, x]',
+		'(**** Functions ****)',
+		'(* Colatz Conjecture https://oeis.org/A006577 *)',
+		'f[n_] := Module[{a=n, k=0}, While[a!=1, k++; If[EvenQ[a], a=a/2, a=a*3+1]]; k]',
+		'Table[f[n], {n, 4!}]',
+		'(**** Symbolic Manipulation ****)',
+		'Apart[1 / (x^2 + 5x + 6)]',
+		'Cancel[x / x ^ 2]',
+		'Expand[(x + y)^ 3]',
+		'Factor[x ^ 2 + 2 x + 1]',
+		'Simplify[5*Sin[x]^2 + 5*Cos[x]^2]',
+		'(**** Calculus ****)',
+		"Sin'[x]",
+		"Sin''[x]",
+		'D[Sin[2x] + Log[x] ^ 2, x]',
+		'Integrate[Tan[x] ^ 5, x]',
 
-	    '(**** Linear Algebra ****)',
-	    'MagicSquare = {{2, 7, 6}, {9, 5, 1}, {4, 3, 8}}; MatrixForm[MagicSquare]',
-	    'LinearSolve[MagicSquare, {1, 1, 1}] // MatrixForm',
-	    'Eigenvalues[MagicSquare]',
-	    '(**** Chemical Data ***)',
-	    '(* 2nd and 3rd Row of Periodic Table *)',
-	    'Grid[{Table[ElementData[i], {i, 3, 10}], Table[ElementData[i], {i, 11, 18}]}]',
-	    'ListLinePlot[Table[ElementData[z, "MeltingPoint"], {z, 118}]]',
+		'(**** Linear Algebra ****)',
+		'MagicSquare = {{2, 7, 6}, {9, 5, 1}, {4, 3, 8}}; MatrixForm[MagicSquare]',
+		'LinearSolve[MagicSquare, {1, 1, 1}] // MatrixForm',
+		'Eigenvalues[MagicSquare]',
+		'(**** Chemical Data ***)',
+		'(* 2nd and 3rd Row of Periodic Table *)',
+		'Grid[{Table[ElementData[i], {i, 3, 10}], Table[ElementData[i], {i, 11, 18}]}]',
+		'ListLinePlot[Table[ElementData[z, "MeltingPoint"], {z, 118}]]',
 
-	    '(**** Some graphs ****)',
-	    'ListPlot[{Sqrt[Range[40]], Log[Range[40, 80]]}, TicksStyle->{Blue,Purple}]',
-	    'Plot[{Sin[x], Cos[x], Tan[x]}, {x, -3Pi, 3Pi}]',
+		'(**** Some graphs ****)',
+		'ListPlot[{Sqrt[Range[40]], Log[Range[40, 80]]}, TicksStyle->{Blue,Purple}]',
+		'Plot[{Sin[x], Cos[x], Tan[x]}, {x, -3Pi, 3Pi}]',
 
-	    '(* Bouncing Ping-Pong Ball at equal time intervals *)',
-	    'Plot[Abs[Sin[t] / (t + 1)], {t, 0, 4 Pi}, Mesh->Full, PlotRange->{0, 1 / 2}]',
-	    'BarChart[{{1, 2, 3}, {2, 3, 4}}]',
+		'(* Bouncing Ping-Pong Ball at equal time intervals *)',
+		'Plot[Abs[Sin[t] / (t + 1)], {t, 0, 4 Pi}, Mesh->Full, PlotRange->{0, 1 / 2}]',
+		'BarChart[{{1, 2, 3}, {2, 3, 4}}]',
 
-	    'Graphics[Table[Circle[{x,y}], {x, 0, 10, 2}, {y, 0, 10, 2}]]',
+		'Graphics[Table[Circle[{x,y}], {x, 0, 10, 2}, {y, 0, 10, 2}]]',
 
-	    '(* Target Practice. *)',
-	    'Graphics[Circle[], Axes-> True]',
+		'(* Target Practice. *)',
+		'Graphics[Circle[], Axes-> True]',
 
-	    '(* Random dots in Sierpinski Triangle. *)',
-            'vertices = {{0,0}, {1,0}, {.5, .5 Sqrt[3]}};',
-            'points = NestList[.5(vertices[[ RandomInteger[{1,3}] ]] + #) &, {0.,0.}, 600];',
-	    'Graphics[Point[points], ImageSize->Small]',
+		'(* Random dots in Sierpinski Triangle. *)',
+		'vertices = {{0,0}, {1,0}, {.5, .5 Sqrt[3]}};',
+		'points = NestList[.5(vertices[[ RandomInteger[{1,3}] ]] + #) &, {0.,0.}, 600];',
+		'Graphics[Point[points], ImageSize->Small]',
 
-	    'Graphics[Table[{EdgeForm[{GrayLevel[0, 0.5]}], Hue[(-11+q+10r)/72, 1, 1, 0.6], Disk[(8-r){Cos[2Pi q/12], Sin [2Pi q/12]}, (8-r)/3]}, {r, 6}, {q, 12}]]',
-	    'Table[Plot[x^i Sin[j Pi x], {x, 0, 2}],{i, 2},{j, 2}]//MatrixForm',
+		'Graphics[Table[{EdgeForm[{GrayLevel[0, 0.5]}], Hue[(-11+q+10r)/72, 1, 1, 0.6], Disk[(8-r){Cos[2Pi q/12], Sin [2Pi q/12]}, (8-r)/3]}, {r, 6}, {q, 12}]]',
+		'Table[Plot[x^i Sin[j Pi x], {x, 0, 2}],{i, 2},{j, 2}]//MatrixForm',
 
-	    '(**** 3D graphics ****)',
+		'(**** 3D graphics ****)',
 
-	    'Graphics3D[{Darker[Yellow], Sphere[{{-1, 0, 0}, {1, 0, 0}, {0, 0, Sqrt[3.]}}, 1]}]',
-            'Plot3D[Sin[x y], {x, -2, 2}, {y, -2, 2}, Mesh->Full, PlotPoints->21, TicksStyle->{Darker[Magenta], Darker[Blue]}]',
-	    'Plot3D[ Abs[Zeta[x + I y] ], {x, -1, 2}, {y, 2, 20}, PlotPoints->30]',
-	    'Graphics3D[Polygon[Table[{Cos[2 Pi k/6], Sin[2 Pi k/6], 0}, {k, 0, 5}]]]',
-	    '(**** Combinatorica: for Implementing Discrete Mathematics. ****)',
-	    'Needs["DiscreteMath`CombinatoricaV0.9`"]',
-	    'ShowGraph[K[6,6,6]]',
-	    'ShowGraph[ CirculantGraph[20, RandomSubset[Range[10]]] ]',
-	    'FerrersDiagram[RandomInteger[{0, 3}, 50]]'
+		'Graphics3D[{Darker[Yellow], Sphere[{{-1, 0, 0}, {1, 0, 0}, {0, 0, Sqrt[3.]}}, 1]}]',
+		'Plot3D[Sin[x y], {x, -2, 2}, {y, -2, 2}, Mesh->Full, PlotPoints->21, TicksStyle->{Darker[Magenta], Darker[Blue]}]',
+		'Plot3D[ Abs[Zeta[x + I y] ], {x, -1, 2}, {y, 2, 20}, PlotPoints->30]',
+		'Graphics3D[Polygon[Table[{Cos[2 Pi k/6], Sin[2 Pi k/6], 0}, {k, 0, 5}]]]',
+		'(**** Combinatorica: for Implementing Discrete Mathematics. ****)',
+		'Needs["DiscreteMath`CombinatoricaV0.9`"]',
+		'ShowGraph[K[6,6,6]]',
+		'ShowGraph[ CirculantGraph[20, RandomSubset[Range[10]]] ]',
+		'FerrersDiagram[RandomInteger[{0, 3}, 50]]'
 	]);
 }

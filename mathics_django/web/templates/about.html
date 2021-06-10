@@ -7,97 +7,91 @@
 {% endblock %}
 
 {% block html_body %}
+	<header>
+		<!--div id="headerleft"-->
+		<a href="https://mathics.org">
+			<img id="logo" class="load" src="{% static 'img/logo-heptatom.svg' %}" height="32" alt="Logo" />
+			<img id="logotext" class="load" src="{% static 'img/logo-text.svg' %}" height="26" alt="Mathics" />
+		</a>
 
-<header>
-<!--div id="headerleft"-->
-  <a href="https://mathics.org">
-    <img id="logo" class="load" src="{% static 'img/logo-heptatom.svg' %}" height="32" alt="Logo"
-    /><img id="logotext" class="load" src="{% static 'img/logo-text.svg' %}" height="26" alt="Mathics" />
-  </a>
+		<!-- worksheet controls are not wanted here ->
+			<div class="menu">
+				<a href="javascript:showOpen()" title="Open Worksheet"><i class="fa fa-file-text"></i></a>
+				<a href="javascript:showSave()" title="Save Worksheet"><i class="fa fa-download"></i></a>
+				<a href="javascript:createLink()" title="Generate Worksheet Input Hash"><i class="fa fa-share-alt"></i></a>
+			</div>
+		-->
+		<!--/div-->
+	</header>
 
-  <!-- worksheet controls are not wanted here ->
-  <!--
-  <div class="menu">
-    <a href="javascript:showOpen()" title="Open Worksheet"><i class="fa fa-file-text"></i></a>
-    <a href="javascript:showSave()" title="Save Worksheet"><i class="fa fa-download"></i></a>
-    <a href="javascript:createLink()" title="Generate Worksheet Input Hash"><i class="fa fa-share-alt"></i></a>
-  </div>
-  -->
-<!--/div-->
-</header>
+	{% block main %}
+		<div id="about">
 
-{% block main %}
+			<h1>Software information</h1>
+			<p>
+				<ul>
+					<li>Django: {{django_version}}</li>
+					<li>three.js: {{three_js_version}}</li>
+					<li>MathJax: {{MathJax_version}}</li>
+					<li>Mathics: {{mathics_version}}</li>
+					<li>Mathics Django: {{mathics_django_version}}</li>
+					<li>mpmath: {{mpmath_version}}</li>
+					<li>Numpy: {{numpy_version}}</li>
+					<li>Python: {{python_version}}</li>
+					<li>Sympy: {{sympy_version}}</li>
+				</ul>
+			</p>
 
-<div id="about">
+			<h1>System information</h1>
+			<p>
+				<ul>
+					<li>User Name: {{UserName}}</li>
+					<li>Process ID: {{ProcessID}}</li>
+					<li>System Time Zone: {{SystemTimeZone}}</li>
+				</ul>
+			</p>
 
-  <h1>Software information</h1>
-  <p>
-    <ul>
-      <li>Django: {{django_version}}</li>
-      <li>three.js: {{three_js_version}}</li>
-      <li>MathJax: {{MathJax_version}}</li>
-      <li>Mathics: {{mathics_version}}</li>
-      <li>Mathics Django: {{mathics_django_version}}</li>
-      <li>mpmath: {{mpmath_version}}</li>
-      <li>Numpy: {{numpy_version}}</li>
-      <li>Python: {{python_version}}</li>
-      <li>Sympy: {{sympy_version}}</li>
-    </ul>
-  </p>
+			<h1>File Paths</h1>
+			<p>
+				<ul>
+					<li>Base Directory: <code>{{BaseDirectory}}</code></li>
+					<li>Home Directory: <code>{{HomeDirectory}}</code></li>
+					<li>Installation Directory: <code>{{InstallationDirectory}}</code></li>
+					<li>Root Directory: <code>{{RootDirectory}}</code></li>
+					<li>Temporary Directory: <code>{{TemporaryDirectory}}</code></li>
+					<li>Database File: <code>{{DB_PATH}}</code></li>
+					<li>Document XML Data: <code>{{DOC_XML_DATA_PATH}}</code></li>
+				</ul>
+			</p>
 
-  <h1>System information</h1>
-  <p>
-    <ul>
-      <li>User Name: {{UserName}}</li>
-      <li>Process ID: {{ProcessID}}</li>
-      <li>System Time Zone: {{SystemTimeZone}}</li>
-    </ul>
-  </p>
+			<h1>Machine information</h1>
+			<p>
+				<ul>
+					<li>Machine Name: {{MachineName}}</li>
+					<li>Machine: {{Machine}}</li>
+					<li>Processor Type: {{ProcessorType}}</li>
+					<li>Memory Available: {{MemoryAvailable}}</li>
+					<li>System Memory: {{SystemMemory}}</li>
+					<li>Machine Precision: {{MachinePrecision}}</li>
+				</ul>
+			</p>
 
-  <h1>File Paths</h1>
-  <p>
-    <ul>
-      <li>Base Directory: <code>{{BaseDirectory}}</code></li>
-      <li>Home Directory: <code>{{HomeDirectory}}</code></li>
-      <li>Installation Directory: <code>{{InstallationDirectory}}</code></li>
-      <li>Root Directory: <code>{{RootDirectory}}</code></li>
-      <li>Temporary Directory: <code>{{TemporaryDirectory}}</code></li>
-      <li>Database File: <code>{{DB_PATH}}</code></li>
-      <li>Document XML Data: <code>{{DOC_XML_DATA_PATH}}</code></li>
-    </ul>
-  </p>
+			<h1>Connection Information</h1>
+			<ul>
+				<li>HTTP User Agent: {{HTTP_USER_AGENT}}</li>
+				<li>Remote User: {{REMOTE_USER}}</li>
+				<li>Remote Address: {{REMOTE_ADDR}}</li>
+				<li>Remote Host: {{REMOTE_HOST}}</li>
+			</ul>
+		</div>
 
-  <h1>Machine information</h1>
-  <p>
-    <ul>
-      <li>Machine Name: {{MachineName}}</li>
-      <li>Machine: {{Machine}}</li>
-      <li>Processor Type: {{ProcessorType}}</li>
-      <li>Memory Available: {{MemoryAvailable}}</li>
-      <li>System Memory: {{SystemMemory}}</li>
-      <li>Machine Precision: {{MachinePrecision}}</li>
-    </ul>
-  </p>
-
-  <h1>Connection Information</h1>
-    <ul>
-      <li>HTTP User Agent: {{HTTP_USER_AGENT}}</li>
-      <li>Remote User: {{REMOTE_USER}}</li>
-      <li>Remote Address: {{REMOTE_ADDR}}</li>
-      <li>Remote Host: {{REMOTE_HOST}}</li>
-    </ul>
-
-</div>
-
-<!-- FIXME: figure out how to reuse welcome.html. We can't run ajax from here. -->
-<div id="welcomeContainerAbout">
-  <div id="welcome">
-  <p><h1>About Mathics!</h1></p>
-  <p>Mathics is a general-purpose computer algebra system.</p>
-  <p>See the <a href="/doc">online documentation in fullscreen</a> for a full list of supported functions, or
-  <a href="/">go back to the main page</a>.
-  </div>
-</div>
-
-{% endblock main %}
+		<!-- FIXME: figure out how to reuse welcome.html. We can't run ajax from here. -->
+		<div id="welcomeContainerAbout">
+			<div id="welcome">
+				<p><h1>About Mathics!</h1></p>
+				<p>Mathics is a general-purpose computer algebra system.</p>
+				<p>See the <a href="/doc">online documentation in fullscreen</a> for a full list of supported functions, or <a href="/">go back to the main page</a>.
+			</div>
+		</div>
+	{% endblock main %}
 {% endblock html_body %}
