@@ -1,33 +1,32 @@
-var docLoaded = false;
-var lastSearchValue = '';
+var docLoaded = false, lastSearchValue = '';
 
 function showPage(response) {
 	if ($('doc')) {
 		$('doc').updateDOM(response.content);
 	}
 
-    $$('li.test p').each(function(test){
-        test.insert($E('span',
-                    {'class': 'submitbutton', 'title': "Run this example!"},
-					submitButton = $E('span', $T('='))
-				));
+	$$('li.test p').each(function (test) {
+		test.insert($E('span',
+			{ 'class': 'submitbutton', 'title': "Run this example!" },
+			submitButton = $E('span', $T('='))
+		));
 
-        test.observe('mouseover', function(e){
-            $(test).addClassName('focused');
-        });
-        test.observe('mouseout', function(e){
-            $(test).removeClassName('focused');
-        });
+		test.observe('mouseover', function (e) {
+			$(test).addClassName('focused');
+		});
+		test.observe('mouseout', function (e) {
+			$(test).removeClassName('focused');
+		});
 
-        $(test).descendants()[1].observe('click', function(){
-            var query = $(test).descendants()[0].innerHTML;
-            query = query.replace(/\xA0/g, ' ');
-            query = query.unescapeHTML();
-            setQueries([query]);
-        });
-    });
+		$(test).descendants()[1].observe('click', function () {
+			var query = $(test).descendants()[0].innerHTML;
+			query = query.replace(/\xA0/g, ' ');
+			query = query.unescapeHTML();
+			setQueries([query]);
+		});
+	});
 
-	$$('ul.test').each(function(test) {
+	$$('ul.test').each(function (test) {
 		var id = test.id.substr(5); // 'test_...'
 		var data = response.data[id];
 		setResult(test, data.results);
@@ -38,7 +37,7 @@ function showPage(response) {
 function loadDoc(page) {
 	new Ajax.Request('/ajax/doc' + page, {
 		method: 'get',
-		onSuccess: function(transport) {
+		onSuccess: function (transport) {
 			docLoaded = true;
 			var response = transport.responseText.evalJSON();
 			showPage(response);
@@ -52,12 +51,13 @@ function showDoc() {
 	$('code').addClassName('doc');
 	$('doc').show();
 	$('doclink').addClassName('active');
-  $('doclink').select('i')[0].removeClassName('fa-question-circle-o');
-  $('doclink').select('i')[0].addClassName('fa-question-circle');
-  $('search').addClassName('shown');
-  // $('search').focus();
-	if (!docLoaded)
+	$('doclink').select('i')[0].removeClassName('fa-question-circle-o');
+	$('doclink').select('i')[0].addClassName('fa-question-circle');
+	$('search').addClassName('shown');
+	// $('search').focus();
+	if (!docLoaded) {
 		loadDoc('/');
+	}
 }
 
 function hideDoc() {
@@ -65,17 +65,19 @@ function hideDoc() {
 	$('document').removeClassName('doc');
 	$('code').removeClassName('doc');
 	$('doclink').removeClassName('active');
-  $('doclink').select('i')[0].removeClassName('fa-question-circle');
-  $('doclink').select('i')[0].addClassName('fa-question-circle-o');
-  $('search').removeClassName('shown');
+	$('doclink').select('i')[0].removeClassName('fa-question-circle');
+	$('doclink').select('i')[0].addClassName('fa-question-circle-o');
+	$('search').removeClassName('shown');
 }
 
 function toggleDoc() {
-	if ($('doc').visible())
+	if ($('doc').visible()) {
 		hideDoc();
-	else
+	}
+	else {
 		showDoc();
-    $('search').select();
+	}
+	$('search').select();
 }
 
 function searchChange(event) {
@@ -87,20 +89,21 @@ function searchChange(event) {
 				parameters: {
 					query: query
 				},
-				onSuccess: function(transport) {
+				onSuccess: function (transport) {
 					docLoaded = true;
 					var response = transport.responseText.evalJSON();
 					showPage(response);
 					showDoc();
 				}
 			});
-		} else if (lastSearchValue != ''){
+		} else if (lastSearchValue != '') {
 			hideDoc();
 			loadDoc('/');
 		}
 		lastSearchValue = query;
-	} else
+	} else {
 		lastSearchValue = '';
+	}
 }
 
 function searchFocus() {
@@ -128,13 +131,16 @@ function searchKeyUp(event) {
 }
 
 function searchKeyDown(event) {
-	if (isGlobalKey(event))
+	if (isGlobalKey(event)) {
 		event.stop();
+	}
 }
 
 function initDoc() {
-	if (!$('search'))
+	if (!$('search')) {
 		return;
+	}
+	
 	new Form.Element.Observer('search', 0.2, searchChange.bindAsEventListener($('search')));
 	$('search').observe('focus', searchFocus);
 	$('search').observe('blur', searchBlur);

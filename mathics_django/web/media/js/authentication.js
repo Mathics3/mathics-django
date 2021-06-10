@@ -1,21 +1,15 @@
-var authenticated = false;
-
-var loginReason;
-var loginNext;
+var authenticated = false, loginReason, loginNext;
 
 function showLogin(reason, next) {
 	$('passwordSent').hide();
 	if (reason) {
 		$('loginReason').show();
 		$('loginReason').setText(reason);
-	} else
+	} else {
 		$('loginReason').hide();
+	}
 	showPopup($('login'));
 	loginNext = next;
-}
-
-function cancelLogin() {
-	hidePopup();
 }
 
 function onLogin(username) {
@@ -29,24 +23,26 @@ function onLogout() {
 	$('authenticated').hide();
 	$('notAuthenticated').show();
 	$('username').setText('');
-	authenticated = false;	
+	authenticated = false;
 }
 
 function login() {
-	submitForm('loginForm', '/ajax/login/', function(response) {
+	submitForm('loginForm', '/ajax/login/', function (response) {
 		var result = response.result;
 		var email = response.form.values.email;
 		if (result == 'ok') {
 			onLogin(email);
-			cancelLogin();
-			if (loginNext)
+			hidePopup();
+
+			if (loginNext) {
 				loginNext();
+			}
 		} else {
 			$('passwordEmail').setText(email);
 			$('passwordSent').show();
-			$('id_password').activate(); 
+			$('id_password').activate();
 		}
-	})
+	});
 }
 
 function logout() {
@@ -58,10 +54,11 @@ function logout() {
 
 function requireLogin(reason, onLogin) {
 	loginReason = reason;
-	if (REQUIRE_LOGIN && !authenticated)
+	if (REQUIRE_LOGIN && !authenticated) {
 		showLogin(reason, onLogin);
-	else
+	} else {
 		onLogin();
+	}
 }
 
 function checkLogin(response) {
@@ -70,6 +67,7 @@ function checkLogin(response) {
 		hidePopup();
 		showLogin(loginReason, loginNext);
 		return false;
-	} else
-		return true;
+	}
+
+	return true;
 }

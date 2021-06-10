@@ -1,29 +1,21 @@
 {% extends "base.html" %}
 
 {% block main %}
+	<div id="document">
+		<div id="queriesContainer"></div>
 
-<div id="document">
+		{% include 'welcome.html' %}
+			</div>
 
-<div id="queriesContainer"></div>
+			<div id="welcomeBrowser" style="display: none">
+				<p>It seems that you are using an unsupported Web browser. Please consider running Mathics with <a href="http://www.getfirefox.com" target="_blank">Firefox</a>, <a href="http://www.google.com/chrome" target="_blank">Chrome</a>, or <a href="http://www.apple.com/safari" target="_blank">Safari</a>.</p>
+			</div>
+		</div>
+	</div>
 
-{% include 'welcome.html' %}
-</div>
+	<div id="code" style="display: none">
+		<textarea id="codetext" rows="20" cols="80"></textarea>
+	</div>
 
-
-
-<div id="welcomeBrowser" style="display: none">
-<p>It seems that you are using an unsupported Web browser. Please consider running Mathics with <a href="http://www.getfirefox.com" target="_blank">Firefox</a>, <a href="http://www.google.com/chrome" target="_blank">Chrome</a>, or <a href="http://www.apple.com/safari" target="_blank">Safari</a>.</p>
-</div>
-</div>
-
-</div>
-
-<div id="code" style="display: none">
-<textarea id="codetext" rows="20" cols="80"></textarea>
-</div>
-
-<div id="doc" style="display: none">
-
-</div>
-
+	<div id="doc" style="display: none"></div>
 {% endblock main %}

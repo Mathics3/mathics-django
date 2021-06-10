@@ -10,11 +10,11 @@ PIP ?= pip3
 RM  ?= rm
 
 .PHONY: all build \
-   check clean \
-   develop dist doc doc-data djangotest docker \
-   gstest pytest \
-   rmChangeLog \
-   test
+	check clean \
+	develop dist doc doc-data djangotest docker \
+	gstest pytest \
+	rmChangeLog \
+	test
 
 SANDBOX	?=
 ifeq ($(OS),Windows_NT)
@@ -38,7 +38,7 @@ check: djangotest doctest-workaround
 #: Remove derived files
 clean:
 	for dir in mathics-django/doc ; do \
-	   ($(MAKE) -C "$$dir" clean); \
+		($(MAKE) -C "$$dir" clean); \
 	done;
 
 #: Set up to run from the source tree
