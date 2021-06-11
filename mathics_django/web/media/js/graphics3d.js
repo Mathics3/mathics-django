@@ -1,41 +1,41 @@
 const drawFunctions = {
-	point: (element) => {
+	point: (element, canvasSize) => {
 		const geometry = new THREE.Geometry();
 
 		geometry.vertices = element.coords.map(
 			(coordinate) => new THREE.Vector3(...coordinate[0])
 		);
 
-		return new THREE.Points(geometry, new THREE.ShaderMaterial({
-			transparent: true,
-			uniforms: {
-				// 84 is the scale for this size of canvas
-				size: { value: element.pointSize * 84 },
-				color: { value: new THREE.Color().setRGB(...element.color) },
-			},
-			vertexShader: THREE.ShaderLib.points.vertexShader,
-			fragmentShader: `
-				uniform vec3 color;
-				
-				void main() {
-					if (length(gl_PointCoord - vec2(0.5)) > 0.5) discard;
+		return new THREE.Points(
+			geometry,
+			new THREE.ShaderMaterial({
+				transparent: true,
+				uniforms: {
+					size: { value: element.pointSize * canvasSize * 0.5 },
+					color: { value: new THREE.Vector4(...element.color, 1) },
+				},
+				vertexShader: THREE.ShaderLib.points.vertexShader,
+				fragmentShader: `
+					uniform vec4 color;
+					
+					void main() {
+						if (length(gl_PointCoord - vec2(0.5)) > 0.5) discard;
 
-					gl_FragColor = vec4(color, 1.0);
-				}
-			`
-		}));
+						gl_FragColor = color;
+					}
+				`
+			})
+		);
 	},
 	line: (element) => {
-		const geometry = new THREE.Geometry();
-
-		geometry.vertices = element.coords.map(
-			(coordinate) => new THREE.Vector3(...coordinate[0])
-		);
-
 		return new THREE.Line(
-			geometry,
+			new THREE.BufferGeometry().setFromPoints(
+				element.coords.map(
+					(coordinate) => new THREE.Vector3(...coordinate[0])
+				)
+			),
 			new THREE.LineBasicMaterial({
-				color: new THREE.Color().setRGB(...element.color).getHex()
+				color: new THREE.Color(...element.color).getHex()
 			})
 		);
 	},
@@ -70,14 +70,14 @@ const drawFunctions = {
 		geometry.computeFaceNormals();
 
 		return new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({
-			color: new THREE.Color().setRGB(...element.faceColor).getHex()
+			color: new THREE.Color(...element.faceColor).getHex()
 		}));
 	},
 	sphere: (element) => {
 		const spheres = new THREE.InstancedMesh(
 			new THREE.SphereGeometry(element.radius, 48, 48),
 			new THREE.MeshLambertMaterial({
-				color: new THREE.Color().setRGB(...element.faceColor).getHex()
+				color: new THREE.Color(...element.faceColor).getHex()
 			}),
 			element.coords.length
 		);
@@ -94,7 +94,7 @@ const drawFunctions = {
 		const cube = new THREE.Mesh(
 			new THREE.BoxGeometry(...element.size[0]),
 			new THREE.MeshLambertMaterial({
-				color: new THREE.Color().setRGB(...element.faceColor).getHex()
+				color: new THREE.Color(...element.faceColor).getHex()
 			})
 		);
 
@@ -121,6 +121,8 @@ function drawGraphics3D(container, data) {
 	// {'type': 'Directional', 'color': [0.3, 0.2, 0.4], 'position': [2, 0, 2]}
 
 	// TODO: shading, handling of VertexNormals.
+
+	let canvasSize = Math.min(400, window.innerWidth * 0.75);
 
 	let hasAxes, isMouseDown = false,
 		theta, onMouseDownTheta, phi, onMouseDownPhi;
@@ -163,7 +165,7 @@ function drawGraphics3D(container, data) {
 	scene.add(camera);
 
 	function addLight(element) {
-		const colorHex = new THREE.Color().setRGB(...element.color).getHex();
+		const colorHex = new THREE.Color(...element.color).getHex();
 
 		let light;
 
@@ -516,8 +518,7 @@ function drawGraphics3D(container, data) {
 				let color = 'black';
 
 				if (i < data.axes.ticks_style.length) {
-					color = new THREE.Color()
-						.setRGB(...data.axes.ticks_style[i])
+					color = new THREE.Color(...data.axes.ticks_style[i])
 						.getStyle();
 				}
 
@@ -566,7 +567,7 @@ function drawGraphics3D(container, data) {
 								ticks[i][j].geometry.vertices[1]
 							).multiplyScalar(6)
 						)
-					);
+					).multiplyScalar(canvasSize / 400);
 
 					tickPosition.setX(tickPosition.x - 10);
 					tickPosition.setY(tickPosition.y + 8);
@@ -587,7 +588,7 @@ function drawGraphics3D(container, data) {
 
 	// plot the primatives
 	data.elements.forEach((element) => {
-		scene.add(drawFunctions[element.type](element));
+		scene.add(drawFunctions[element.type](element, canvasSize));
 	});
 
 	// renderer (set preserveDrawingBuffer to deal with issue of weird canvas content after switching windows)
@@ -598,7 +599,7 @@ function drawGraphics3D(container, data) {
 		alpha: true
 	});
 
-	renderer.setSize(400, 400);
+	renderer.setSize(canvasSize, canvasSize);
 	renderer.setPixelRatio(window.devicePixelRatio);
 	container.appendChild(renderer.domElement);
 
@@ -675,9 +676,9 @@ function drawGraphics3D(container, data) {
 					cameraX
 				);
 
-				focus.x = onMouseDownFocus.x + (radius / 400) * (cameraX.x * (onMouseDownPosition.x - event.clientX) + cameraY.x * (onMouseDownPosition.y - event.clientY));
-				focus.y = onMouseDownFocus.y + (radius / 400) * (cameraX.y * (onMouseDownPosition.x - event.clientX) + cameraY.y * (onMouseDownPosition.y - event.clientY));
-				focus.z = onMouseDownFocus.z + (radius / 400) * (cameraX.z * (onMouseDownPosition.x - event.clientX) + cameraY.z * (onMouseDownPosition.y - event.clientY));
+				focus.x = onMouseDownFocus.x + (radius / canvasSize) * (cameraX.x * (onMouseDownPosition.x - event.clientX) + cameraY.x * (onMouseDownPosition.y - event.clientY));
+				focus.y = onMouseDownFocus.y + (radius / canvasSize) * (cameraX.y * (onMouseDownPosition.x - event.clientX) + cameraY.y * (onMouseDownPosition.y - event.clientY));
+				focus.z = onMouseDownFocus.z + (radius / canvasSize) * (cameraY.z * (onMouseDownPosition.y - event.clientY));
 
 				updateCameraPosition();
 			} else if (event.ctrlKey) { // zoom
@@ -707,9 +708,9 @@ function drawGraphics3D(container, data) {
 					container.style.cursor = 'pointer';
 				}
 
-				phi = 2 * Math.PI * (onMouseDownPosition.x - event.clientX) / 400 + onMouseDownPhi;
+				phi = 2 * Math.PI * (onMouseDownPosition.x - event.clientX) / canvasSize + onMouseDownPhi;
 				phi = (phi + 2 * Math.PI) % (2 * Math.PI);
-				theta = 2 * Math.PI * (onMouseDownPosition.y - event.clientY) / 400 + onMouseDownTheta;
+				theta = 2 * Math.PI * (onMouseDownPosition.y - event.clientY) / canvasSize + onMouseDownTheta;
 				const epsilon = 1e-12; // prevents spinnging from getting stuck
 				theta = Math.max(Math.min(Math.PI - epsilon, theta), epsilon);
 
@@ -739,11 +740,23 @@ function drawGraphics3D(container, data) {
 	}
 
 	// bind mouse events
-	container.addEventListener('mousemove', onDocumentMouseMove, false);
-	container.addEventListener('mousedown', onDocumentMouseDown, false);
-	container.addEventListener('mouseup', onDocumentMouseUp, false);
+	container.addEventListener('mousemove', onDocumentMouseMove);
+	container.addEventListener('mousedown', onDocumentMouseDown);
+	container.addEventListener('mouseup', onDocumentMouseUp);
+
+	window.addEventListener('resize', () => {
+		canvasSize = Math.min(400, window.innerWidth * 0.75);
+
+		renderer.setPixelRatio(window.devicePixelRatio);
+		renderer.setSize(canvasSize, canvasSize);
+
+		positionTickNumbers();
+	});
+
 	const onMouseDownPosition = new THREE.Vector2();
+
 	let autoRescale = true;
+
 	updateCameraPosition();
 	positionAxes();
 	render(); // rendering twice updates camera.matrixWorldInverse so that scaleInView works properly
