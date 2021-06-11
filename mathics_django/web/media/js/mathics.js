@@ -758,5 +758,3 @@ function domLoaded() {
 
 $(document).observe('dom:loaded', domLoaded);
 // Konqueror won't fire dom:loaded, so we still need body.onload.
-
-window.addEventListener('resize', refreshInputSizes);
