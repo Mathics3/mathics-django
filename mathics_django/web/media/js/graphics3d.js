@@ -11,7 +11,7 @@ const drawFunctions = {
 			new THREE.ShaderMaterial({
 				transparent: true,
 				uniforms: {
-					size: { value: element.pointSize * canvasSize },
+					size: { value: element.pointSize * canvasSize * 0.5 },
 					color: { value: new THREE.Vector4(...element.color, 1) },
 				},
 				vertexShader: THREE.ShaderLib.points.vertexShader,
