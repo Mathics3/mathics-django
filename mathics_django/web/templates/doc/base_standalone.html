@@ -6,12 +6,12 @@
 {% block html_head %}
 	{% if data %}
 		<script type="text/javascript">
-		<![CDATA[
-		var data = {{ data|js }};
-		$(document).observe('dom:loaded', function() {
-		showPage({'data': data});
-		});
-		]]>
+			<![CDATA[
+				var data = {{ data|js }};
+				$(document).observe('dom:loaded', function() {
+				showPage({'data': data});
+				});
+			]]>
 		</script>
 	{% endif %}
 {% endblock %}
