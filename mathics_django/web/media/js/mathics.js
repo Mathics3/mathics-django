@@ -332,9 +332,7 @@ function createLine(value) {
 		return dom;
 	} else if (value.startsWith('<svg')) {
 		var dom = document.createElement('div');
-		var svg = document.createElement('svg');
-		svg.updateDOM(value);
-		dom.replaceChildren(svg);
+		dom.innerHTML = value;
 		dom.style.position = 'relative';
 		dom.style.width = '400px';
 		dom.style.margin = 'auto';
@@ -772,5 +770,4 @@ function domLoaded() {
 	}
 }
 
-$(document).observe('dom:loaded', domLoaded);
-// Konqueror won't fire dom:loaded, so we still need body.onload.
+window.addEventListener('DOMContentLoaded', domLoaded);
