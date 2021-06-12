@@ -15,6 +15,7 @@ FORM_TO_FORMAT = {
     "System`OutputForm": "text",
 }
 
+
 def format_output(obj, expr, format=None):
     """
     Handle unformatted output using the *specific* capabilities of mathics-django.
@@ -35,7 +36,6 @@ def format_output(obj, expr, format=None):
                 )
 
         return boxes
-
 
     if format is None:
         format = obj.format
@@ -75,11 +75,11 @@ def format_output(obj, expr, format=None):
         if str(expr) == "-Graph-" and hasattr(expr, "G"):
             return format_graph(expr.G)
         head = str(expr.get_head())
-        if head == 'System`CompiledFunction':
+        if head == "System`CompiledFunction":
             result = expr.format(obj, "System`OutputForm")
-        elif head == 'System`String':
+        elif head == "System`String":
             result = expr.format(obj, "System`InputForm")
-        elif head == 'System`Graphics3D':
+        elif head == "System`Graphics3D":
             form_expr = Expression("StandardForm", expr)
             result = form_expr.format(obj, "System`StandardForm")
             return eval_boxes(result, result.boxes_to_js, obj)
