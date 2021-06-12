@@ -330,6 +330,15 @@ function createLine(value) {
 		dom.style.width = '400px';
 		dom.style.margin = 'auto';
 		return dom;
+	} else if (value.startsWith('\n<svg')) {
+		var dom = document.createElement('div');
+		var svg = document.createElement('svg');
+		svg.updateDOM(value);
+		dom.replaceChildren(svg);
+		dom.style.position = 'relative';
+		dom.style.width = '400px';
+		dom.style.margin = 'auto';
+		return dom;
 	} else {
 		var lines = value.split('\n');
 		var p = $E('p');
