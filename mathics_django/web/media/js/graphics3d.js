@@ -17,7 +17,7 @@ const drawFunctions = {
 				vertexShader: THREE.ShaderLib.points.vertexShader,
 				fragmentShader: `
 					uniform vec4 color;
-					
+
 					void main() {
 						if (length(gl_PointCoord - vec2(0.5)) > 0.5) discard;
 
@@ -569,9 +569,11 @@ function drawGraphics3D(container, data) {
 						)
 					).multiplyScalar(canvasSize / 400);
 
+					// distance of the bounding box
 					tickPosition.setX(tickPosition.x - 10);
 					tickPosition.setY(tickPosition.y + 8);
 
+					tickNumbers[i][j].style.position = `absolute`;
 					tickNumbers[i][j].style.left = `${tickPosition.x}px`;
 					tickNumbers[i][j].style.top = `${tickPosition.y}px`;
 

@@ -15,6 +15,7 @@ FORM_TO_FORMAT = {
     "System`OutputForm": "text",
 }
 
+
 def format_output(obj, expr, format=None):
     """
     Handle unformatted output using the *specific* capabilities of mathics-django.
@@ -22,6 +23,20 @@ def format_output(obj, expr, format=None):
     evaluation.py format_output() from which this was derived is similar but
     it can't make use of a front-ends specific capabilities.
     """
+
+    def eval_boxes(result, fn, obj):
+        try:
+            boxes = fn(evaluation=obj)
+        except BoxError:
+            boxes = None
+            if not hasattr(obj, "seen_box_error"):
+                obj.seen_box_error = True
+                obj.message(
+                    "General", "notboxes", Expression("FullForm", result).evaluate(obj)
+                )
+
+        return boxes
+
     if format is None:
         format = obj.format
 
@@ -49,7 +64,6 @@ def format_output(obj, expr, format=None):
         result = Expression("StandardForm", expr).format(obj, "System`MathMLForm")
 
     # This part was derived from and the same as evaluation.py format_output.
-
     if format == "text":
         result = expr.format(obj, "System`OutputForm")
     elif format == "xml":
@@ -61,25 +75,22 @@ def format_output(obj, expr, format=None):
         if str(expr) == "-Graph-" and hasattr(expr, "G"):
             return format_graph(expr.G)
         head = str(expr.get_head())
-        if head == 'System`CompiledFunction':
+        if head == "System`CompiledFunction":
             result = expr.format(obj, "System`OutputForm")
-        elif head == 'System`String':
+        elif head == "System`String":
             result = expr.format(obj, "System`InputForm")
+        elif head == "System`Graphics3D":
+            form_expr = Expression("StandardForm", expr)
+            result = form_expr.format(obj, "System`StandardForm")
+            return eval_boxes(result, result.boxes_to_js, obj)
         else:
             result = Expression("StandardForm", expr).format(obj, "System`MathMLForm")
     else:
         raise ValueError
 
-    try:
-        boxes = result.boxes_to_text(evaluation=obj)
-    except BoxError:
-        boxes = None
-        if not hasattr(obj, "seen_box_error"):
-            obj.seen_box_error = True
-            obj.message(
-                "General", "notboxes", Expression("FullForm", result).evaluate(obj)
-            )
-    return boxes
+    if result is None:
+        return f"Error in evaluating {expr}"
+    return eval_boxes(result, result.boxes_to_text, obj)
 
 
 cached_pair = None
