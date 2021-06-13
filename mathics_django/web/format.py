@@ -88,6 +88,8 @@ def format_output(obj, expr, format=None):
     else:
         raise ValueError
 
+    if result is None:
+        return f"Error in evaluating {expr}"
     return eval_boxes(result, result.boxes_to_text, obj)
 
 
