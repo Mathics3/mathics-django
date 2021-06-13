@@ -24,9 +24,9 @@ def format_output(obj, expr, format=None):
     it can't make use of a front-ends specific capabilities.
     """
 
-    def eval_boxes(result, fn, obj):
+    def eval_boxes(result, fn, obj, **options):
         try:
-            boxes = fn(evaluation=obj)
+            boxes = fn(evaluation=obj, **options)
         except BoxError:
             boxes = None
             if not hasattr(obj, "seen_box_error"):
@@ -83,6 +83,10 @@ def format_output(obj, expr, format=None):
             form_expr = Expression("StandardForm", expr)
             result = form_expr.format(obj, "System`StandardForm")
             return eval_boxes(result, result.boxes_to_js, obj)
+        elif head == "System`Graphics":
+            form_expr = Expression("StandardForm", expr)
+            result = form_expr.format(obj, "System`StandardForm")
+            return eval_boxes(result, result.boxes_to_svg, obj)
         else:
             result = Expression("StandardForm", expr).format(obj, "System`MathMLForm")
     else:

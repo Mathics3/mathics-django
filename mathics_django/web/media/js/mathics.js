@@ -320,6 +320,15 @@ function convertMathGlyphs(dom) {
 function createLine(value) {
 	const container = document.createElement('div');
 
+	if (value.startsWith('<svg')) {
+	    var dom = document.createElement('div');
+	    dom.innerHTML = value;
+	    dom.style.position = 'relative';
+	    dom.style.width = '400px';
+	    dom.style.margin = 'auto';
+	    return dom;
+	}
+
 	container.innerHTML = value;
 
 	if (container?.firstElementChild?.tagName === 'math') {
@@ -773,5 +782,4 @@ function domLoaded() {
 	}
 }
 
-$(document).observe('dom:loaded', domLoaded);
-// Konqueror won't fire dom:loaded, so we still need body.onload.
+window.addEventListener('DOMContentLoaded', domLoaded);
