@@ -318,33 +318,45 @@ function convertMathGlyphs(dom) {
 }
 
 function createLine(value) {
-	if (value.startsWith('<math')) {
-		var dom = document.createElement('div');
-		dom.updateDOM(value);
-		convertMathGlyphs(dom);
-		return translateDOMElement(dom.childNodes[0]);
-	} else if (value.startsWith('<graphics3d data=')) {
-		var dom = document.createElement('div');
-		drawGraphics3D(dom, JSON.parse(value.replace('<graphics3d data="', '').replace('"/>', '')));
-		dom.style.position = 'relative';
-		dom.style.width = '400px';
-		dom.style.margin = 'auto';
-		return dom;
-	} else if (value.startsWith('<svg')) {
-		var dom = document.createElement('div');
-		dom.innerHTML = value;
-		dom.style.position = 'relative';
-		dom.style.width = '400px';
-		dom.style.margin = 'auto';
-		return dom;
+	const container = document.createElement('div');
+
+	if (value.startsWith('<svg')) {
+	    var dom = document.createElement('div');
+	    dom.innerHTML = value;
+	    dom.style.position = 'relative';
+	    dom.style.width = '400px';
+	    dom.style.margin = 'auto';
+	    return dom;
+	}
+
+	container.innerHTML = value;
+
+	if (container?.firstElementChild?.tagName === 'math') {
+		convertMathGlyphs(container);
+
+		return translateDOMElement(container.childNodes[0]);
+	} else if (container?.firstElementChild?.tagName === 'GRAPHICS3D') {
+		const div = document.createElement('div');
+
+		drawGraphics3D(div, JSON.parse(container.firstElementChild.attributes.data.value));
+
+		div.style.position = 'relative';
+		div.style.width = '400px';
+		div.style.margin = 'auto';
+
+		return div;
 	} else {
-		var lines = value.split('\n');
-		var p = $E('p');
-		for (var index = 0; index < lines.length; ++index) {
-			p.appendChild($T(prepareText(lines[index])));
-			if (index < lines.length - 1)
-				p.appendChild($E('br'));
+		const lines = container.innerHTML.split('\n');
+
+		const p = document.createElement('p');
+
+		for (let i = 0; i < lines.length; ++i) {
+			p.appendChild($T(prepareText(lines[i])));
+			if (i < lines.length - 1) {
+				p.appendChild(document.createElement('br'));
+			}
 		}
+
 		return p;
 	}
 }
