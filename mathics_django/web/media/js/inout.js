@@ -261,6 +261,7 @@ function showGallery() {
 		'(**** Some graphs ****)',
 		'ListPlot[{Sqrt[Range[40]], Log[Range[40, 80]]}, TicksStyle->{Blue,Purple}]',
 		'Plot[{Sin[x], Cos[x], Tan[x]}, {x, -3Pi, 3Pi}]',
+		'Graphics[Polygon[{{150,0},{121,90},{198,35},{102,35},{179,90}}]]',
 
 		'(* Bouncing Ping-Pong Ball at equal time intervals *)',
 		'Plot[Abs[Sin[t] / (t + 1)], {t, 0, 4 Pi}, Mesh->Full, PlotRange->{0, 1 / 2}]',
