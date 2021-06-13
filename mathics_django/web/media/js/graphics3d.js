@@ -569,6 +569,7 @@ function drawGraphics3D(container, data) {
 						)
 					).multiplyScalar(canvasSize / 400);
 
+					// distance of the bounding box
 					tickPosition.setX(tickPosition.x - 10);
 					tickPosition.setY(tickPosition.y + 8);
 
