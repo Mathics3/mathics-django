@@ -511,6 +511,7 @@ function keyDown(event) {
 			}
 		}
 	} else if (isGlobalKey(event)) {
+		event.stop();
 		event.stopPropagation();
 		event.preventDefault();
 	}
@@ -732,9 +733,15 @@ function globalKeyUp(event) {
 			// 	event.stop();
 			// 	break;
 			case 83: // S
+				event.stop();
+				event.stopPropagation();
+				event.preventDefault();
 				showSave();
 				break;
 			case 79: // O
+				event.stop();
+				event.stopPropagation();
+				event.preventDefault();
 				showOpen();
 				break;
 		}

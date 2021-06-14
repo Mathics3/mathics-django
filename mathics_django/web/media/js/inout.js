@@ -79,26 +79,28 @@ function save(overwrite) {
 		return;
 	}
 
-	submitForm('saveForm', '/ajax/save/', (response) => {
-		if (!checkLogin(response)) {
-			return;
-		}
+	submitForm(
+		'saveForm',
+		'/ajax/save/',
+		(response) => {
+			if (!checkLogin(response)) {
+				return;
+			}
 
-		hidePopup();
+			hidePopup();
 
-		if (response.result === 'overwrite') {
-			showDialog(
-				'Overwrite worksheet',
-				'A worksheet with the name \'' + response.form.values.name + '\' already exists. Do you want to overwrite it?',
-				'Yes, overwrite it',
-				'No, cancel',
-				() => save(true)
-			);
-		}
-	}, {
-		content,
-		overwrite: overwrite || ''
-	});
+			if (response.result === 'overwrite') {
+				showDialog(
+					'Overwrite worksheet',
+					`A worksheet with the name '${esponse.form.values.name}' already exists. Do you want to overwrite it?`,
+					'Yes, overwrite it',
+					'No, cancel',
+					() => save(true)
+				);
+			}
+		},
+		{ content, overwrite }
+	);
 }
 
 function switchCode() {

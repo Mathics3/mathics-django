@@ -202,16 +202,21 @@ function submitForm(form, url, onSuccess, extraData) {
 	form.querySelectorAll('input').forEach((input) => {
 		params[input.name] = input.value;
 	});
+
 	form.querySelectorAll('input[type="text"]').forEach((input) => {
 		input.blur();
 	});
+
 	form.querySelectorAll('input, button').forEach((input) => {
 		input.disable();
 	});
+
 	if (!extraData) {
 		extraData = {};
 	}
+
 	params = $H(params).merge(extraData);
+
 	new Ajax.Request(url, {
 		method: 'post',
 		parameters: params,
