@@ -196,14 +196,16 @@ function $T(text) {
 
 function submitForm(form, url, onSuccess, extraData) {
 	var params = {};
-	form = $(form);
-	form.select('input').each(function (input) {
+
+	form = document.getElementById(form);
+
+	form.querySelectorAll('input').forEach((input) => {
 		params[input.name] = input.value;
 	});
-	form.select('input[type="text"]').each(function (input) {
+	form.querySelectorAll('input[type="text"]').forEach((input) => {
 		input.blur();
 	});
-	form.select('input, button').each(function (input) {
+	form.querySelectorAll('input, button').forEach((input) => {
 		input.disable();
 	});
 	if (!extraData) {
@@ -213,13 +215,17 @@ function submitForm(form, url, onSuccess, extraData) {
 	new Ajax.Request(url, {
 		method: 'post',
 		parameters: params,
-		onSuccess: function (transport) {
-			var response = transport.responseText.evalJSON();
-			form.select('ul.errorlist').invoke('deleteElement');
+		onSuccess: (transport) => {
+			var response = JSON.parse(transport.responseText);
+
+			form.querySelectorAll('ul.errorlist').forEach((element) =>
+				element.parentElement.removeChild(element)
+			);
+
 			var errors = false;
 			var errorFocus = false;
 			if (response.form.fieldErrors) {
-				$H(response.form.fieldErrors).each(function (pair) {
+				$H(response.form.fieldErrors).forEach((pair) => {
 					errors = true;
 					var errorlist = $E('ul', { 'class': 'errorlist' });
 					var input = form.select('[name="' + pair.key + '"]')[0];
@@ -232,20 +238,20 @@ function submitForm(form, url, onSuccess, extraData) {
 				});
 			}
 			if (response.form.generalErrors) {
-				var errorlist = $E('ul', { 'class': 'errorlist' });
-				response.form.generalErrors.each(function (msg) {
+				var errorlist = $E(ul, { class: 'errorlist' });
+				response.form.generalErrors.each((msg) => {
 					errors = true;
 					errorlist.appendChild($E('li', $T(msg)));
 				});
 				form.insert({ top: errorlist });
 				if (!errorFocus) {
-					var firstInput = form.select('input')[0];
+					var firstInput = form.querySelector('input');
 					if (firstInput) {
 						errorFocus = firstInput;
 					}
 				}
 			}
-			form.select('input').each(function (input) {
+			form.querySelectorAll('input').forEach((input) => {
 				input.enable();
 			});
 			if (errorFocus) {
@@ -256,8 +262,8 @@ function submitForm(form, url, onSuccess, extraData) {
 				onSuccess(response);
 			}
 		},
-		onComplete: function () {
-			form.select('input').each(function (input) {
+		onComplete: () => {
+			form.getElementsByTagName('input').forEach((input) => {
 				input.enable();
 			});
 		}

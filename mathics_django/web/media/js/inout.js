@@ -1,22 +1,20 @@
 function showSave() {
-	requireLogin("You must login to save worksheets online.", () => {
-		showPopup($('save'));
-	});
+	requireLogin('You must login to save worksheets online.', () =>
+		showPopup(document.getElementById('save'))
+	);
 }
 
 function openWorksheet(name) {
 	hidePopup();
 	new Ajax.Request('/ajax/open/', {
 		method: 'post',
-		parameters: {
-			'name': name
-		},
-		onSuccess: function (transport) {
-			var response = transport.responseText.evalJSON();
-			if ($('document').visible()) {
+		parameters: { name },
+		onSuccess: (transport) => {
+			var response = JSON.parse(transport.responseText);
+			if (document.getElementById('document').style.display !== 'none') {
 				setContent(response.content);
 			} else {
-				$('codetext').value = response.content;
+				document.getElementById('codetext').value = response.content;
 			}
 		}
 	});
@@ -25,28 +23,34 @@ function openWorksheet(name) {
 function showWorksheets(isOpen) {
 	new Ajax.Request('/ajax/getworksheets/', {
 		method: 'get',
-		onSuccess: function (transport) {
-			var response = transport.responseText.evalJSON();
-			var tbody = $('openFilelist');
-			tbody.deleteChildNodes();
-			response.worksheets.each(function (worksheet) {
-				tbody.appendChild($E('tr',
-					$E('td',
-						$E('a', { 'href': 'javascript:openWorksheet("' + worksheet.name + '")' },
-							$T(worksheet.name)
-						)
-					),
-					$E('td',
-						$E('a', { 'href': 'javascript:deleteWorksheet("' + worksheet.name + '")' },
-							$T("Delete")
-						)
-					)
-				));
-			});
+		onSuccess: (transport) => {
+			var fileList = document.getElementById('openFilelist');
+
+			fileList.innerHTML = '';
+			JSON.parse(transport.responseText).worksheets
+				.forEach((worksheet) => {
+					const row = document.createElement('tr');
+
+					const worksheetNameColumn = document.createElement('td');
+					const worksheetName = document.createElement('a');
+					worksheetName.href = `javascript:openWorksheet("${worksheet.name}")`;
+					worksheetName.innerText = worksheet.name;
+					worksheetNameColumn.appendChild(worksheetName);
+					row.appendChild(worksheetNameColumn);
+
+					const deleteButtonColumn = document.createElement('td');
+					const deleteButton = document.createElement('a');
+					deleteButton.href = `javascript:deleteWorksheet("${worksheet.name}")`;
+					deleteButton.innerText = 'delete';
+					deleteButtonColumn.appendChild(deleteButton);
+					row.appendChild(deleteButtonColumn);
+
+					fileList.appendChild(row);
+				});
 
 			// if the popup isn't open, open it
 			if (!isOpen) {
-				showPopup($('open'));
+				showPopup(document.getElementById('open'));
 			}
 		}
 	});
@@ -55,96 +59,97 @@ function showWorksheets(isOpen) {
 function deleteWorksheet(name) {
 	new Ajax.Request('/ajax/delete/', {
 		method: 'post',
-		parameters: {
-			'name': name
-		},
-		onSuccess: () => {
-			showWorksheets(true);
-		}
+		parameters: { name },
+		onSuccess: () => showWorksheets(true)
 	});
 }
 
 function showOpen() {
-	requireLogin("You must login to open online worksheets.", () => {
-		showWorksheets(false);
-	});
+	requireLogin("You must login to open online worksheets.", () =>
+		showWorksheets(false)
+	);
 }
 
 function save(overwrite) {
-	if (!overwrite) {
-		overwrite = '';
-	}
+	let content;
 
-	var content;
-
-	if ($('document').visible()) {
+	if (document.getElementById('document').style.display !== 'none') {
 		content = getContent();
 	} else {
-		content = $('codetext').value;
+		content = document.getElementById('codetext').value;
 	}
 
-	submitForm('saveForm', '/ajax/save/', function (response) {
+	submitForm('saveForm', '/ajax/save/', (response) => {
 		if (!checkLogin(response)) {
 			return;
 		}
 
 		hidePopup();
-		if (response.result == 'overwrite') {
-			showDialog("Overwrite worksheet", "A worksheet with the name '" +
-				response.form.values.name + "' already exists. Do you want to overwrite it?",
-				'Yes, overwrite it', 'No, cancel', function () {
-					save(true);
-				});
+
+		if (response.result === 'overwrite') {
+			showDialog(
+				'Overwrite worksheet',
+				'A worksheet with the name \'' + response.form.values.name + '\' already exists. Do you want to overwrite it?',
+				'Yes, overwrite it',
+				'No, cancel',
+				() => save(true)
+			);
 		}
 	}, {
-		'content': content,
-		'overwrite': overwrite
+		content,
+		overwrite: overwrite || ''
 	});
 }
 
 function switchCode() {
-	if ($('document').visible()) {
-		$('document').hide();
-		var content = getContent();
-		$('codetext').value = content;
-		$('code').show();
-		$('codelink').setText("Interactive mode");
+	const documentElement = document.getElementById('document');
+	const codeText = document.getElementById('codetext');
+	const code = document.getElementById('code');
+	const codeLink = document.getElementById('codelink');
+
+	if (documentElement.style.display !== 'none') {
+		documentElement.style.display = 'none';
+
+		codeText.value = getContent();
+		code.style.display = 'block';
+		codeLink.innerText = 'Interactive mode';
 	} else {
-		var content = $('codetext').value;
-		setContent(content);
-		function load() {
-			$('code').hide();
-			$('document').show();
-			$('codelink').setText("View/edit code");
-		}
-		load();
+		setContent(codeText.value);
+
+		code.style.display = 'none';
+		documentElement.style.display = 'block';
+		codeLink.innerText = 'View/edit code';
 	}
 }
 
 function getContent() {
 	const queries = [];
 
-	$('queries').childElements().each(function (query) {
-		const textarea = query.select('textarea.request')[0];
+	const queriesElement = document.getElementById('queries');
+
+	for (let i = 0; i < queriesElement.childElementCount; i++) {
+		const textarea = queriesElement.children[i]
+			.querySelector('textarea.request');
 
 		queries.push({
 			request: textarea.value,
 			results: textarea.results
 		});
-	});
+	}
 
-	return Object.toJSON(queries);
+	return JSON.stringify(queries);
 }
 
 function setContent(content) {
-	$('queries').deleteChildNodes();
+	document.getElementById('queries').innerHTML = '';
 
-	$('welcome').hide();
+	document.getElementById('welcome').style.display = 'none';
 
-	var queries = content.evalJSON();
-	queries.each(function (item) {
-		var li = createQuery(null, true, true);
+	JSON.parse(content).forEach((item) => {
+		const li = createQuery(null, true, true);
+
 		li.textarea.value = item.request;
+
 		if (item.results != undefined) {
 			setResult(li.ul, item.results);
 			li.textarea.results = item.results;
@@ -156,29 +161,41 @@ function setContent(content) {
 	refreshInputSizes();
 
 	lastFocus = null;
-	if ($('queries').lastChild) {
-		$('queries').lastChild.textarea.focus();
+
+	const queries = document.getElementById('queries');
+
+	if (queries.lastChild) {
+		queries.lastChild.textarea.focus();
 	}
 }
 
 function createLink() {
-	var queries = new Array();
-	$('queries').childElements().each(function (query) {
-		var text = query.select('textarea.request')[0].getText();
-		queries[queries.length] = 'queries=' + encodeURIComponent(text);
+	const queries = [];
+
+	document.getElementById('queries').childElements().each((query) => {
+		queries.push('queries=' + encodeURIComponent(
+			query.querySelector('textarea.request').value
+		));
 	});
-	var query = queries.join('&');
-	location.hash = '#' + btoa(query); // encodeURI(query);
+
+	location.hash = '#' + btoa(queries.join('&')); // encodeURI(query);
 }
 
 function setQueries(queries) {
-	var list = [];
-	queries.each(function (query) {
-		var li = createQuery(null, true, true);
+	const list = [];
+
+	queries.forEach((query) => {
+		const li = createQuery(null, true, true);
+
 		li.textarea.value = query;
-		list.push({ 'li': li, 'query': query });
+
+		list.push({ li, query });
 	});
+
 	refreshInputSizes();
+
+	const queriesElement = document.getElementById('queries');
+
 	function load(index) {
 		if (index < list.length) {
 			var item = list[index];
@@ -188,8 +205,9 @@ function setQueries(queries) {
 		} else {
 			createSortable();
 			lastFocus = null;
-			if ($('queries').lastChild) {
-				$('queries').lastChild.textarea.focus();
+
+			if (queriesElement.lastChild) {
+				queriesElement.lastChild.textarea.focus();
 			}
 		}
 	}
@@ -201,13 +219,13 @@ function loadLink() {
 	const hash = location.hash;
 
 	if (hash && hash.length > 1) {
-		var params = atob(hash.slice(1)).split('&');
 		const queries = [];
-		params.each(function (param) {
+
+		atob(hash.slice(1)).split('&').forEach((param) => {
 			if (param.startsWith('queries=')) {
-				param = param.slice(8);
-				param = decodeURIComponent(param);
-				if (param != "") {
+				param = decodeURIComponent(param.slice(8));
+
+				if (param !== '') {
 					queries.push(param);
 				}
 			}
@@ -225,7 +243,7 @@ function showGallery() {
 	setQueries([
 		'(**** Calculation ****)',
 		'Sin[Pi]',
-		"E ^ (Pi I) (* Euler's famous equation *)",
+		'E ^ (Pi I) (* Euler\'s famous equation *)',
 		'N[E, 30] (* 30-digit Numeric approximation of E *)',
 		'30! (* Factorial *)',
 		'% // N',

@@ -1,36 +1,42 @@
 var authenticated = false, loginReason, loginNext;
 
 function showLogin(reason, next) {
-	$('passwordSent').hide();
+	document.getElementById('passwordSent').style.display = 'none';
+
+	const loginReasonElement = document.getElementById('loginReason');
+
 	if (reason) {
-		$('loginReason').show();
-		$('loginReason').setText(reason);
+		loginReasonElement.style.display = 'block';
+		loginReasonElement.innerText = reason;
 	} else {
-		$('loginReason').hide();
+		loginReasonElement.style.display = 'none';
 	}
-	showPopup($('login'));
+	showPopup(document.getElementById('login'));
 	loginNext = next;
 }
 
 function onLogin(username) {
-	$('notAuthenticated').hide();
-	$('authenticated').show();
-	$('username').setText(username);
+	document.getElementById('notAuthenticated').style.display = 'none';
+	document.getElementById('authenticated').style.display = 'block';
+	document.getElementById('username').innerText = username;
+
 	authenticated = true;
 }
 
 function onLogout() {
-	$('authenticated').hide();
-	$('notAuthenticated').show();
-	$('username').setText('');
+	document.getElementById('authenticated').style.display = 'none';
+	document.getElementById('notAuthenticated').style.display = 'block';
+	document.getElementById('username').innerText = '';
+
 	authenticated = false;
 }
 
 function login() {
-	submitForm('loginForm', '/ajax/login/', function (response) {
-		var result = response.result;
-		var email = response.form.values.email;
-		if (result == 'ok') {
+	submitForm('loginForm', '/ajax/login/', (response) => {
+		const result = response.result;
+		const email = response.form.values.email;
+
+		if (result === 'ok') {
 			onLogin(email);
 			hidePopup();
 
@@ -38,9 +44,8 @@ function login() {
 				loginNext();
 			}
 		} else {
-			$('passwordEmail').setText(email);
-			$('passwordSent').show();
-			$('id_password').activate();
+			document.getElementById('passwordEmail').innerText = email;
+			document.getElementById('passwordSent').style.display = 'block';
 		}
 	});
 }
@@ -54,6 +59,7 @@ function logout() {
 
 function requireLogin(reason, onLogin) {
 	loginReason = reason;
+
 	if (REQUIRE_LOGIN && !authenticated) {
 		showLogin(reason, onLogin);
 	} else {
@@ -66,6 +72,7 @@ function checkLogin(response) {
 		onLogout();
 		hidePopup();
 		showLogin(loginReason, loginNext);
+
 		return false;
 	}
 
