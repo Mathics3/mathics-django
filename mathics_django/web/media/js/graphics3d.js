@@ -122,7 +122,9 @@ function drawGraphics3D(container, data) {
 
 	// TODO: shading, handling of VertexNormals.
 
-	let canvasSize = Math.min(400, window.innerWidth * 0.75);
+	let canvasSize = Math.min(400, window.innerWidth * 0.6);
+	container.style.width = canvasSize + 'px';
+	container.style.height = canvasSize + 'px';
 
 	let hasAxes, isMouseDown = false,
 		theta, onMouseDownTheta, phi, onMouseDownPhi;
@@ -747,7 +749,9 @@ function drawGraphics3D(container, data) {
 	container.addEventListener('mouseup', onDocumentMouseUp);
 
 	window.addEventListener('resize', () => {
-		canvasSize = Math.min(400, window.innerWidth * 0.75);
+		canvasSize = Math.min(400, window.innerWidth * 0.6);
+		container.style.width = canvasSize + 'px';
+		container.style.height = canvasSize + 'px';
 
 		renderer.setPixelRatio(window.devicePixelRatio);
 		renderer.setSize(canvasSize, canvasSize);

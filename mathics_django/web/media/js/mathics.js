@@ -214,6 +214,7 @@ function translateDOMElement(element, svg) {
 			// TODO: calculate appropriate height and recalculate on every view change
 			width = height = '400px';
 		}
+
 		object.setAttribute('width', width);
 		object.setAttribute('height', height);
 	}
@@ -319,7 +320,6 @@ function createLine(value) {
 		drawGraphics3D(div, JSON.parse(container.firstElementChild.attributes.data.value));
 
 		div.style.position = 'relative';
-		div.style.width = '400px';
 		div.style.margin = 'auto';
 
 		return div;
