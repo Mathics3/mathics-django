@@ -420,7 +420,6 @@ a.pdf {
 
 #queries {
   list-style-type: none;
-  margin: 0;
   padding: 0;
   padding-bottom: 50px;
   padding-left: 0;
@@ -539,12 +538,11 @@ ul.query li.request {
   padding: 0;
 }
 
-.request {
-  width: 99%;
-  min-height: 20px;
+textarea.request {
+  width: calc(100% - 40px);
   overflow: hidden;
   border: none;
-  line-height: 20px;
+  line-height: 17px;
   color: navy;
   margin: 0;
   font-family: monospace;
@@ -554,6 +552,8 @@ ul.query li.request {
   /* hide the blue border in Safari */
   outline-style: none;
   outline-width: 0;
+
+  resize: none;
 }
 
 li.out {
@@ -563,10 +563,12 @@ li.out {
   padding: 0;
 }
 
-#docContent ul.out,
 ul.out {
+  border: 1px solid #666;
   list-style-type: none;
-  margin: 0;
+  margin: 10px 40px 0 0;
+  overflow: hidden;
+  box-sizing: border-box;
   padding: 0;
   font-family: monospace;
   font-size: 1em;
@@ -600,6 +602,10 @@ li.result {
   list-style-image: none;
   margin-top: 3px;
   color: black;
+}
+
+li.result p {
+	word-wrap: break-word;
 }
 
 li.test .submitbutton {
@@ -750,4 +756,9 @@ div.filelist table a {
 
 div.filelist table a:hover {
   color: #33c;
+}
+
+p.string {
+	color: #a61515;
+	text-align: center;
 }
