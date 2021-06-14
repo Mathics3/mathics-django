@@ -28,8 +28,7 @@ function refreshInputSize(textarea) {
 	let lineCount = 0;
 
 	for (let i = 0; i < lines.length; ++i) {
-		const line = lines[i];
-		lineCount += Math.ceil(1.0 * (line.length + 1) * letterWidth / width);
+		lineCount += Math.ceil((lines[i].length + 1) * letterWidth / width);
 	}
 
 	textarea.rows = lineCount;
@@ -55,22 +54,10 @@ function isEmpty(textarea) {
 
 function prepareText(text) {
 	if (text == '') {
-		text = String.fromCharCode(160);
+		text = String.fromCharCode(160); // non breaking space, like &nbsp;
 	}
 
 	return text;
-
-	/*
-	// Place &shy; between every two characters.
-	// Problem: Copy & paste yields weird results!
-	var result = '';
-	for (var index = 0; index < text.length; ++index) {
-	  result += text.charAt(index);
-	  if (index < text.length - 1)
-		result += String.fromCharCode(173); // &shy;
-	}
-	return result;
-	*/
 }
 
 function getDimensions(math, callback) {
@@ -81,7 +68,7 @@ function getDimensions(math, callback) {
 	var container = all.select('.calc_container')[0];
 	container.appendChild(translateDOMElement(math));
 
-	MathJax.Hub.Queue(["Typeset", MathJax.Hub, container]);
+	MathJax.Hub.Queue(['Typeset', MathJax.Hub, container]);
 	MathJax.Hub.Queue(() => {
 		var pos = container.cumulativeOffset();
 		var next = all.select('.calc_next')[0].cumulativeOffset();
@@ -227,6 +214,7 @@ function translateDOMElement(element, svg) {
 			// TODO: calculate appropriate height and recalculate on every view change
 			width = height = '400px';
 		}
+
 		object.setAttribute('width', width);
 		object.setAttribute('height', height);
 	}
@@ -332,7 +320,6 @@ function createLine(value) {
 		drawGraphics3D(div, JSON.parse(container.firstElementChild.attributes.data.value));
 
 		div.style.position = 'relative';
-		div.style.width = '400px';
 		div.style.margin = 'auto';
 
 		return div;
@@ -346,9 +333,11 @@ function createLine(value) {
 		const lines = container.innerHTML.split('\n');
 
 		const p = document.createElement('p');
+		p.className = 'string';
 
 		for (let i = 0; i < lines.length; ++i) {
-			p.appendChild($T(prepareText(lines[i])));
+			p.innerText += prepareText(lines[i]);
+
 			if (i < lines.length - 1) {
 				p.appendChild(document.createElement('br'));
 			}
@@ -404,22 +393,31 @@ function afterProcessResult(ul, command) {
 }
 
 function setResult(ul, results) {
+	var resultUl = document.createElement('ul');
+	resultUl.className = 'out';
+	// we'll just show if it have children
+	resultUl.style.display = 'none';
+
 	results.forEach((result) => {
-		var resultUl = $E('ul', { 'class': 'out' });
-		result.out.each(function (out) {
-			var li = $E('li', { 'class': (out.message ? 'message' : 'print') });
+		result.out.forEach((out) => {
+			var li = $E('li', { class: (out.message ? 'message' : 'print') });
+
 			if (out.message) {
 				li.appendChild($T(out.prefix + ': '));
 			}
+
 			li.appendChild(createLine(out.text));
 			resultUl.appendChild(li);
 		});
-		if (result.result != null) {
-			var li = $E('li', { 'class': 'result' }, createLine(result.result));
-			resultUl.appendChild(li);
+
+		if (result.result !== null) {
+			resultUl.appendChild($E('li', { class: 'result' }, createLine(result.result)));
+			resultUl.style.display = 'block';
 		}
-		ul.appendChild($E('li', { 'class': 'out' }, resultUl));
 	});
+
+	ul.appendChild($E('li', { class: 'out' }, resultUl));
+
 	afterProcessResult(ul);
 }
 
@@ -437,9 +435,7 @@ function submitQuery(textarea, onfinish) {
 	document.getElementById('logo').classList.add('working');
 	new Ajax.Request('/ajax/query/', {
 		method: 'post',
-		parameters: {
-			query: textarea.value
-		},
+		parameters: { query: textarea.value },
 		onSuccess: (transport) => {
 			textarea.ul.select('li[class!=request][class!=submitbutton]').invoke('deleteElement');
 			if (!transport.responseText) {
@@ -590,11 +586,13 @@ var queryIndex = 0;
 function createQuery(before, noFocus, updatingAll) {
 	var ul, textarea, moveHandle, deleteHandle, submitButton;
 	// items need id in order for Sortable.onUpdate to work.
-	var li = $E('li', { 'id': 'query_' + queryIndex++, 'class': 'query' },
-		ul = $E('ul', { 'class': 'query' },
-			$E('li', { 'class': 'request' },
-				textarea = $E('textarea', { 'class': 'request', 'spellcheck': 'false' }),
-				$E('span', { 'class': 'submitbutton', 'title': "Evaluate [Shift+Return]" },
+	var li = $E('li', { id: 'query_' + queryIndex++, class: 'query' },
+		ul = $E('ul', { class: 'query' },
+			$E('li', { class: 'request' },
+				textarea = $E('textarea', { class: 'request', spellcheck: 'false' }),
+				$E(
+					'span',
+					{ class: 'submitbutton', title: 'Evaluate [Shift+Return]' },
 					submitButton = $E('span', $T('='))
 				)
 			)
@@ -751,12 +749,12 @@ function domLoaded() {
 		},
 		MMLorHTML: {
 			// the output jax that is to be preferred when both are possible
-			// (set to "MML" for native MathML, "HTML" for MathJax's HTML-CSS output jax).
+			// (set to 'MML' for native MathML, 'HTML' for MathJax's HTML-CSS output jax).
 			prefer: {
-				MSIE: "HTML",
-				Firefox: "HTML",
-				Opera: "HTML",
-				other: "HTML"
+				MSIE: 'HTML',
+				Firefox: 'HTML',
+				Opera: 'HTML',
+				other: 'HTML'
 			}
 		}
 	});

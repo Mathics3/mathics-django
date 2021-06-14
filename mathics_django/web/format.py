@@ -79,6 +79,10 @@ def format_output(obj, expr, format=None):
             result = expr.format(obj, "System`OutputForm")
         elif head == "System`String":
             result = expr.format(obj, "System`InputForm")
+            # FIXME: In mathicsscript we have a setting --wl-strict-wl-ouput
+            # which controls whether to include quotes when the top-level
+            # output is a string.
+            return result.boxes_to_text(result)
         elif head == "System`Graphics3D":
             form_expr = Expression("StandardForm", expr)
             result = form_expr.format(obj, "System`StandardForm")

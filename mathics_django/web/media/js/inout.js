@@ -1,11 +1,12 @@
 function showSave() {
-	requireLogin('You must login to save worksheets online.', () => {
-		showPopup(document.getElementById('save'));
-	});
+	requireLogin('You must login to save worksheets online.', () =>
+		showPopup(document.getElementById('save'))
+	);
 }
 
 function openWorksheet(name) {
 	hidePopup();
+
 	new Ajax.Request('/ajax/open/', {
 		method: 'post',
 		parameters: { name },
@@ -54,16 +55,15 @@ function deleteWorksheet(name) {
 	new Ajax.Request('/ajax/delete/', {
 		method: 'post',
 		parameters: { name },
-		onSuccess: () => {
-			showWorksheets(true);
-		}
+		onSuccess: () => showWorksheets(true)
 	});
 }
 
 function showOpen() {
-	requireLogin("You must login to open online worksheets.", () => {
-		showWorksheets(false);
-	});
+	requireLogin(
+		'You must login to open online worksheets.',
+		() => showWorksheets(false)
+	);
 }
 
 function save(overwrite) {
@@ -73,6 +73,10 @@ function save(overwrite) {
 		content = getContent();
 	} else {
 		content = document.getElementById('codetext').value;
+	}
+
+	if (JSON.parse(content)[0].request === '') {
+		return;
 	}
 
 	submitForm('saveForm', '/ajax/save/', (response) => {
@@ -147,7 +151,7 @@ function setContent(content) {
 		li.textarea.value = item.request;
 
 		if (item.results != undefined) {
-			setResult(li.ul, item.results);
+			setResult(li.response, item.results);
 			li.textarea.results = item.results;
 		}
 	});
@@ -194,10 +198,7 @@ function setQueries(queries) {
 
 	function load(index) {
 		if (index < list.length) {
-			var item = list[index];
-			submitQuery(item.li.textarea, function () {
-				load(index + 1);
-			});
+			submitQuery(list[index].li.textarea, () => load(index + 1));
 		} else {
 			createSortable();
 			lastFocus = null;
@@ -258,8 +259,8 @@ function showGallery() {
 		'Factor[x ^ 2 + 2 x + 1]',
 		'Simplify[5*Sin[x]^2 + 5*Cos[x]^2]',
 		'(**** Calculus ****)',
-		"Sin'[x]",
-		"Sin''[x]",
+		'Sin\'[x]',
+		'Sin\'\'[x]',
 		'D[Sin[2x] + Log[x] ^ 2, x]',
 		'Integrate[Tan[x] ^ 5, x]',
 
