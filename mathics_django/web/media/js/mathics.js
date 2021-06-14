@@ -393,7 +393,10 @@ function afterProcessResult(ul, command) {
 }
 
 function setResult(ul, results) {
-	var resultUl = $E('ul', { class: 'out' });
+	var resultUl = document.createElement('ul');
+	resultUl.className = 'out';
+	// we'll just show if it have children
+	resultUl.style.display = 'none';
 
 	results.forEach((result) => {
 		result.out.forEach((out) => {
@@ -407,8 +410,9 @@ function setResult(ul, results) {
 			resultUl.appendChild(li);
 		});
 
-		if (result.result != null) {
+		if (result.result !== null) {
 			resultUl.appendChild($E('li', { class: 'result' }, createLine(result.result)));
+			resultUl.style.display = 'block';
 		}
 	});
 
