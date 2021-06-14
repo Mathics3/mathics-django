@@ -539,11 +539,12 @@ ul.query li.request {
   padding: 0;
 }
 
-textarea.request {
+.request {
   width: 99%;
+  min-height: 20px;
   overflow: hidden;
   border: none;
-  line-height: 17px;
+  line-height: 20px;
   color: navy;
   margin: 0;
   font-family: monospace;
@@ -552,10 +553,7 @@ textarea.request {
 
   /* hide the blue border in Safari */
   outline-style: none;
-  outline-width: 0px;
-
-  /* disable resize grid in Safari */
-  resize: none;
+  outline-width: 0;
 }
 
 li.out {
@@ -624,8 +622,6 @@ li.test .submitbutton span {
   color: white;
   padding: 5px;
   border-radius: 5px;
-  -moz-border-radius: 5px;
-  -webkit-border-radius: 5px;
   width: 10px;
   line-height: 10px;
   text-align: center;

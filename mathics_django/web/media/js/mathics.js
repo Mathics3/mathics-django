@@ -14,40 +14,21 @@ function getLetterWidth(element) {
 
 	document.body.appendChild(letter);
 
-	const width = letter.getWidth();
+	const width = letter.offsetWidth;
 
 	document.body.removeChild(letter);
 
 	return width;
 }
 
-function refreshInputSize(textarea) {
-	const letterWidth = getLetterWidth(textarea);
-	const width = textarea.offsetWidth - 15;
-	const lines = textarea.value?.split('\n') || [];
-
-	let lineCount = 0;
-
-	for (let i = 0; i < lines.length; ++i) {
-		const line = lines[i];
-		lineCount += Math.ceil(1.0 * (line.length + 1) * letterWidth / width);
-	}
-
-	textarea.rows = lineCount;
-}
-
 function refreshInputSizes() {
-	document.querySelectorAll('textarea.request').forEach((textarea) => {
-		refreshInputSize(textarea);
-	});
-
 	document.querySelectorAll('#queries ul').forEach((ul) => {
 		afterProcessResult(ul, 'Rerender');
 	});
 }
 
 function isEmpty(textarea) {
-	return textarea.value.strip() === '' && !textarea.submitted;
+	return textarea.innerText.strip() === '' && !textarea.submitted;
 }
 
 function prepareText(text) {
@@ -494,8 +475,6 @@ function keyDown(event) {
 		return;
 	}
 
-	refreshInputSize(textArea);
-
 	if (event.key === 'Enter' && (event.shiftKey || event.location === 3)) {
 		event.stop();
 
@@ -595,30 +574,54 @@ function createSortable() {
 var queryIndex = 0;
 
 function createQuery(before, noFocus, updatingAll) {
-	let ul, textarea, moveHandle, deleteHandle, submitButton;
+	// items need id in order for Sortable.onUpdate to work
+	const li = document.createElement('li');
+	li.id = 'query_' + queryIndex++;
+	li.className = 'query';
 
-	// items need id in order for Sortable.onUpdate to work.
-	const li = $E('li', { 'id': 'query_' + queryIndex++, 'class': 'query' },
-		ul = $E('ul', { 'class': 'query' },
-			$E('li', { 'class': 'request' },
-				textarea = $E('textarea', { 'class': 'request', 'spellcheck': 'false' }),
-				$E('span', { 'class': 'submitbutton', 'title': "Evaluate [Shift+Return]" },
-					submitButton = $E('span', $T('='))
-				)
-			)
-		),
-		moveHandle = $E('span', { class: 'move' }),
-		deleteHandle = $E('span', { class: 'delete', title: 'Delete' }, $T(String.fromCharCode(215)))
-	);
+	const query = document.createElement('ul');
+	query.className = 'query';
 
-	textarea.rows = 1;
-	textarea.ul = ul;
-	textarea.li = li;
-	textarea.submitted = false;
+	li.appendChild(query)
+
+	const request = document.createElement('li');
+	request.className = 'request';
+
+	query.appendChild(request)
+
+	const textArea = document.createElement('span');
+	textArea.className = 'request';
+	textArea.spellcheck = false;
+	textArea.setAttribute('role', 'textbox');
+	textArea.contentEditable = true;
+
+	request.appendChild(textArea)
+
+	const submitButton = document.createElement('span');
+	submitButton.className = 'submitbutton';
+	submitButton.title = 'Evaluate [Shift+Return]';
+	submitButton.innerText = '=';
+
+	request.appendChild(submitButton)
+
+	const moveHandle = document.createElement('span');
+	moveHandle.className = 'move';
+
+	li.appendChild(moveHandle)
+
+	const deleteHandle = document.createElement('span');
+	deleteHandle.className = 'delete';
+	deleteHandle.title = 'Delete';
+	deleteHandle.innerText = '×';
+
+	li.appendChild(deleteHandle)
+
+	textArea.submitted = false;
+	textArea.li = li;
 	moveHandle.li = li;
 	deleteHandle.li = li;
-	li.textarea = textarea;
-	li.ul = ul;
+	li.textarea = textArea;
+	li.ul = query;
 
 	const queries = document.getElementById('queries');
 
@@ -628,13 +631,8 @@ function createQuery(before, noFocus, updatingAll) {
 		queries.appendChild(li);
 	}
 
-	if (!updatingAll) {
-		refreshInputSize(textarea);
-	}
-
-	textarea.addEventListener('keyup', () => refreshInputSize(this));
-	textarea.addEventListener('focus', onFocus);
-	textarea.addEventListener('blur', onBlur);
+	textArea.addEventListener('focus', onFocus);
+	textArea.addEventListener('blur', onBlur);
 	li.addEventListener('mousedown', queryMouseDown);
 	deleteHandle.addEventListener('click', deleteClick);
 	deleteHandle.addEventListener('mousedown', deleteMouseDown);
@@ -642,10 +640,10 @@ function createQuery(before, noFocus, updatingAll) {
 	moveHandle.addEventListener('mouseup', moveMouseUp);
 	document.addEventListener('mouseup', moveMouseUp);
 	submitButton.addEventListener('mousedown', () => {
-		if (textarea.value.strip()) {
-			submitQuery(textarea);
+		if (textArea.value.strip()) {
+			submitQuery(textArea);
 		} else {
-			textarea.focus();
+			textArea.focus();
 		}
 	});
 	if (!updatingAll) {
@@ -653,8 +651,9 @@ function createQuery(before, noFocus, updatingAll) {
 	}
 
 	if (!noFocus) {
-		textarea.focus();
+		textArea.focus();
 	}
+
 	return li;
 }
 
@@ -800,4 +799,3 @@ function domLoaded() {
 }
 
 window.addEventListener('DOMContentLoaded', domLoaded);
-window.addEventListener('resize', refreshInputSizes);
