@@ -218,9 +218,9 @@ function submitForm(form, url, onSuccess, extraData) {
 		onSuccess: (transport) => {
 			var response = JSON.parse(transport.responseText);
 
-			form.querySelectorAll('ul.errorlist').forEach((element) =>
-				element.parentElement.removeChild(element)
-			);
+			form.querySelectorAll('ul.errorlist').forEach((element) => {
+				element.parentElement.removeChild(element);
+			});
 
 			var errors = false;
 			var errorFocus = false;

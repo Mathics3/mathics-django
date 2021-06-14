@@ -1,36 +1,56 @@
-let deleting,
+var deleting,
 	blurredElement,
 	movedItem,
 	clickedQuery,
 	lastFocus = null,
-	welcome = true,
-	position = 0,
-	queryIndex = 0;
+	welcome = true;
 
 function getLetterWidth(element) {
-	const letter = document.createElement('span');
-
-	letter.innerText = 'm';
-	letter.style.fontFamily = element.style?.fontFamily || '';
-	letter.style.fontSize = element.style?.fontSize || '';
+	const letter = $E('span', $T('m'));
+	letter.setStyle({
+		fontFamily: element.getStyle('font-family'),
+		fontSize: element.getStyle('font-size')
+	});
 
 	document.body.appendChild(letter);
 
-	const width = letter.offsetWidth;
+	const width = letter.getWidth();
 
 	document.body.removeChild(letter);
 
 	return width;
 }
 
+function refreshInputSize(textarea) {
+	const letterWidth = getLetterWidth(textarea);
+	const width = textarea.getWidth() - 15;
+	const lines = textarea.value.split('\n');
+	let lineCount = 0;
+
+	for (let i = 0; i < lines.length; ++i) {
+		const line = lines[i];
+		lineCount += Math.ceil(1.0 * (line.length + 1) * letterWidth / width);
+	}
+
+	textarea.rows = lineCount;
+}
+
 function refreshInputSizes() {
+	document.querySelectorAll('textarea.request').forEach((textarea) => {
+		refreshInputSize(textarea);
+	});
+
 	document.querySelectorAll('#queries ul').forEach((ul) => {
 		afterProcessResult(ul, 'Rerender');
 	});
 }
 
+function inputChange() {
+	refreshInputSize(this);
+}
+
 function isEmpty(textarea) {
-	return textarea.innerText.strip() === '' && !textarea.submitted;
+	return textarea.value.strip() == '' && !textarea.submitted;
 }
 
 function prepareText(text) {
@@ -61,7 +81,7 @@ function getDimensions(math, callback) {
 	var container = all.select('.calc_container')[0];
 	container.appendChild(translateDOMElement(math));
 
-	MathJax.Hub.Queue(['Typeset', MathJax.Hub, container]);
+	MathJax.Hub.Queue(["Typeset", MathJax.Hub, container]);
 	MathJax.Hub.Queue(() => {
 		var pos = container.cumulativeOffset();
 		var next = all.select('.calc_next')[0].cumulativeOffset();
@@ -98,7 +118,7 @@ function drawMeshGradient(ctx, points) {
 	ctx.lineTo(0, 1);
 	ctx.closePath();
 
-	ctx.globalCompositeOperation = 'lighter';
+	ctx.globalCompositeOperation = "lighter";
 	ctx.fillStyle = grad1;
 	ctx.fill();
 	ctx.fillStyle = grad2;
@@ -110,7 +130,7 @@ function drawMeshGradient(ctx, points) {
 
 function createMathNode(nodeName) {
 	if (['svg', 'g', 'rect', 'circle', 'polyline', 'polygon', 'path', 'ellipse', 'foreignObject'].include(nodeName)) {
-		return document.createElementNS('http://www.w3.org/2000/svg', nodeName);
+		return document.createElementNS("http://www.w3.org/2000/svg", nodeName);
 	}
 	else {
 		return document.createElement(nodeName);
@@ -126,7 +146,7 @@ function translateDOMElement(element, svg) {
 	}
 	var dom = null;
 	var nodeName = element.nodeName;
-	if (nodeName != 'meshgradient') {
+	if (nodeName != 'meshgradient' && nodeName != 'graphics3d') {
 		dom = createMathNode(element.nodeName);
 		for (var i = 0; i < element.attributes.length; ++i) {
 			var attr = element.attributes[i];
@@ -158,32 +178,39 @@ function translateDOMElement(element, svg) {
 		}
 	}
 	if (nodeName == 'meshgradient') {
-		var data = JSON.parse(element.getAttribute('data'));
-		var div = document.createElementNS('http://www.w3.org/1999/xhtml', 'div');
-		var foreign = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
-		foreign.setAttribute('width', svg.getAttribute('width'));
-		foreign.setAttribute('height', svg.getAttribute('height'));
-		foreign.setAttribute('x', '0px');
-		foreign.setAttribute('y', '0px');
-		foreign.appendChild(div);
+		if (!MathJax.Hub.Browser.isOpera) {
+			var data = JSON.parse(element.getAttribute('data'));
+			var div = document.createElementNS('http://www.w3.org/1999/xhtml', 'div');
+			var foreign = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
+			foreign.setAttribute('width', svg.getAttribute('width'));
+			foreign.setAttribute('height', svg.getAttribute('height'));
+			foreign.setAttribute('x', '0px');
+			foreign.setAttribute('y', '0px');
+			foreign.appendChild(div);
 
-		var canvas = createMathNode('canvas');
-		canvas.setAttribute('width', svg.getAttribute('width'));
-		canvas.setAttribute('height', svg.getAttribute('height'));
-		div.appendChild(canvas);
+			var canvas = createMathNode('canvas');
+			canvas.setAttribute('width', svg.getAttribute('width'));
+			canvas.setAttribute('height', svg.getAttribute('height'));
+			div.appendChild(canvas);
 
-		var ctx = canvas.getContext('2d');
-
-		for (var i = 0; i < data.length; ++i) {
-			if (data[i].length == 3) {
-				drawMeshGradient(ctx, data[i]);
+			var ctx = canvas.getContext('2d');
+			for (var i = 0; i < data.length; ++i) {
+				if (data[i].length == 3) {
+					drawMeshGradient(ctx, data[i]);
+				}
 			}
-		}
 
-		dom = foreign;
+			dom = foreign;
+		}
 	}
 	var object = null;
-	if (nodeName == 'svg' || nodeName.toLowerCase() == 'img') {
+	if (nodeName == 'graphics3d') {
+		var data = JSON.parse(element.getAttribute('data'));
+		var div = document.createElement('div');
+		drawGraphics3D(div, data);
+		dom = div;
+	}
+	if (nodeName == 'svg' || nodeName == 'graphics3d' || nodeName.toLowerCase() == 'img') {
 		// create <mspace> that will contain the graphics
 		object = createMathNode('mspace');
 		var width, height;
@@ -226,12 +253,12 @@ function translateDOMElement(element, svg) {
 		mtable.setAttribute('columnalign', 'left');
 		var nospace = 'cell-spacing: 0; cell-padding: 0; row-spacing: 0; row-padding: 0; border-spacing: 0; padding: 0; margin: 0';
 		mtable.setAttribute('style', nospace);
-		rows.forEach((row) => {
+		rows.each(function (row) {
 			var mtr = createMathNode('mtr');
 			mtr.setAttribute('style', nospace);
 			var mtd = createMathNode('mtd');
 			mtd.setAttribute('style', nospace);
-			row.forEach((element) => {
+			row.each(function (element) {
 				var elmt = translateDOMElement(element, svg);
 				if (nodeName == 'mtext') {
 					// wrap element in mtext
@@ -251,7 +278,7 @@ function translateDOMElement(element, svg) {
 			childParent.appendChild(mtable);
 		}
 	} else
-		rows[0].forEach((element) => {
+		rows[0].each((element) => {
 			childParent.appendChild(translateDOMElement(element, svg));
 		});
 	if (object) {
@@ -267,16 +294,16 @@ function convertMathGlyphs(dom) {
 	// convert mglyphs to their classic representation (<svg> or <img>), so the new mglyph logic does not make
 	// anything worse in the classic Mathics frontend for now. In the long run, this code should vanish.
 
-	const MML = 'http://www.w3.org/1998/Math/MathML';
-	const glyphs = dom.getElementsByTagName('mglyph');
+	const MML = "http://www.w3.org/1998/Math/MathML";
+	const glyphs = dom.getElementsByTagName("mglyph");
 	for (let i = 0; i < glyphs.length; i++) {
 		var glyph = glyphs[i];
 		var src = glyph.getAttribute('src');
 		if (src.startsWith('NUNCAMENENCONTRARASdata:image/svg+xml;base64,')) {
-			var svgText = atob(src.substring(src.indexOf(',') + 1));
-			var mtable = document.createElementNS(MML, 'mtable');
+			var svgText = atob(src.substring(src.indexOf(",") + 1));
+			var mtable = document.createElementNS(MML, "mtable");
 			mtable.innerHTML = '<mtr><mtd>' + svgText + '</mtd></mtr>';
-			var svg = mtable.getElementsByTagNameNS('*', 'svg')[0];
+			var svg = mtable.getElementsByTagNameNS("*", "svg")[0];
 			svg.setAttribute('width', glyph.getAttribute('width'));
 			svg.setAttribute('height', glyph.getAttribute('height'));
 			glyph.parentNode.replaceChild(mtable, glyph);
@@ -337,7 +364,7 @@ function afterProcessResult(ul, command) {
 		command = 'Typeset';
 	}
 	MathJax.Hub.Queue([command, MathJax.Hub, ul]);
-	MathJax.Hub.Queue(() => {
+	MathJax.Hub.Queue(function () {
 		// inject SVG and other non-MathML objects into corresponding <mspace>s
 		ul.querySelectorAll('.mspace').forEach((mspace) => {
 			var id = mspace.getAttribute('id').substr(objectsPrefix.length);
@@ -345,9 +372,11 @@ function afterProcessResult(ul, command) {
 			mspace.appendChild(object);
 		});
 	});
-
-	MathJax.Hub.Queue(['Typeset', MathJax.Hub, ul]);
-
+	if (!MathJax.Hub.Browser.isOpera) {
+		// Opera 11.01 Build 1190 on Mac OS X 10.5.8 crashes on this call for Plot[x,{x,0,1}]
+		// => leave inner MathML untouched
+		MathJax.Hub.Queue(['Typeset', MathJax.Hub, ul]);
+	}
 	MathJax.Hub.Queue(() => {
 		ul.querySelectorAll('foreignObject > span > nobr > span.math')
 			.forEach((math) => {
@@ -376,37 +405,21 @@ function afterProcessResult(ul, command) {
 
 function setResult(ul, results) {
 	results.forEach((result) => {
-		const resultUl = document.createElement('ul');
-		resultUl.className = 'out';
-
-		result.out.forEach((out) => {
-			const li = document.createElement('li');
-			li.className = out.message ? 'message' : 'print';
-
+		var resultUl = $E('ul', { 'class': 'out' });
+		result.out.each(function (out) {
+			var li = $E('li', { 'class': (out.message ? 'message' : 'print') });
 			if (out.message) {
-				li.innerText = out.prefix + ': ';
+				li.appendChild($T(out.prefix + ': '));
 			}
-
 			li.appendChild(createLine(out.text));
-
 			resultUl.appendChild(li);
 		});
-
 		if (result.result != null) {
-			const li = document.createElement('li');
-			li.className = 'result';
-			li.appendChild(createLine(result.result));
-
+			var li = $E('li', { 'class': 'result' }, createLine(result.result));
 			resultUl.appendChild(li);
 		}
-
-		const li = document.createElement('li');
-		li.className = 'out';
-		li.appendChild(resultUl);
-
-		ul.appendChild(li);
+		ul.appendChild($E('li', { 'class': 'out' }, resultUl));
 	});
-
 	afterProcessResult(ul);
 }
 
@@ -447,23 +460,14 @@ function submitQuery(textarea, onfinish) {
 			}
 		},
 		onFailure: () => {
-			textarea.ul.querySelectorAll('li[class!=request]')
-				.forEach((element) =>
-					element.parentElement.removeChild(element)
-				);
-
-			const li = document.createElement('li');
-
-			li.className = 'serverError';
-			li.innerText = 'Sorry, an error occurred while processing your request!';
-
+			textarea.ul.select('li[class!=request]').invoke('deleteElement');
+			const li = $E('li', { class: 'serverError' }, $T("Sorry, an error occurred while processing your request!"));
 			textarea.ul.appendChild(li);
 			textarea.submitted = true;
 		},
 		onComplete: () => {
 			textarea.li.classList.remove('loading');
 			document.getElementById('logo').classList.remove('working');
-
 			if (onfinish) {
 				onfinish();
 			}
@@ -482,14 +486,16 @@ function keyDown(event) {
 		return;
 	}
 
+	refreshInputSize(textArea);
+
 	if (event.key === 'Enter' && (event.shiftKey || event.location === 3)) {
 		event.stop();
 
-		if (textArea.innerText.strip()) {
+		if (textArea.value.strip()) {
 			submitQuery(textArea);
 		}
 	} else if (event.key === 'ArrowUp') {
-		if (position === 0) {
+		if (textArea.selectionStart === 0 && textArea.selectionEnd === 0) {
 			if (isEmpty(textArea)) {
 				if (textArea.li.previousSibling) {
 					textArea.li.previousSibling.textarea.focus();
@@ -499,7 +505,7 @@ function keyDown(event) {
 			}
 		}
 	} else if (event.key === 'ArrowDown') {
-		if (position === textArea.innerText.length - 1 || position === 0) {
+		if (textArea.selectionStart === textArea.value.length && textArea.selectionEnd === textArea.selectionStart) {
 			if (isEmpty(textArea)) {
 				if (textArea.li.nextSibling) {
 					textArea.li.nextSibling.textarea.focus();
@@ -507,10 +513,9 @@ function keyDown(event) {
 			} else {
 				createQuery(textArea.li.nextSibling);
 			}
-
-			position = 0;
 		}
 	} else if (isGlobalKey(event)) {
+		event.stopPropagation();
 		event.preventDefault();
 	}
 }
@@ -580,59 +585,31 @@ function createSortable() {
 	});
 }
 
+var queryIndex = 0;
+
 function createQuery(before, noFocus, updatingAll) {
-	// items need id in order for Sortable.onUpdate to work
-	const li = document.createElement('li');
-	li.id = 'query_' + queryIndex++;
-	li.className = 'query';
-
-	const query = document.createElement('ul');
-	query.className = 'query';
-
-	li.appendChild(query);
-
-	const request = document.createElement('li');
-	request.className = 'request';
-
-	query.appendChild(request);
-
-	const textArea = document.createElement('span');
-	textArea.className = 'request';
-	textArea.spellcheck = false;
-	textArea.setAttribute('role', 'textbox');
-	textArea.contentEditable = true;
-
-	request.appendChild(textArea);
-
-	const submitButton = document.createElement('span');
-	submitButton.className = 'submitbutton';
-	submitButton.title = 'Evaluate [Shift+Return]';
-
-	request.appendChild(submitButton);
-
-	const submitButtonEqual = document.createElement('span');
-	submitButtonEqual.innerText = '=';
-
-	submitButton.appendChild(submitButtonEqual);
-
-	const moveHandle = document.createElement('span');
-	moveHandle.className = 'move';
-
-	li.appendChild(moveHandle);
-
-	const deleteHandle = document.createElement('span');
-	deleteHandle.className = 'delete';
-	deleteHandle.title = 'Delete';
-	deleteHandle.innerText = '×';
-
-	li.appendChild(deleteHandle);
-
-	textArea.submitted = false;
-	textArea.li = li;
+	var ul, textarea, moveHandle, deleteHandle, submitButton;
+	// items need id in order for Sortable.onUpdate to work.
+	var li = $E('li', { 'id': 'query_' + queryIndex++, 'class': 'query' },
+		ul = $E('ul', { 'class': 'query' },
+			$E('li', { 'class': 'request' },
+				textarea = $E('textarea', { 'class': 'request', 'spellcheck': 'false' }),
+				$E('span', { 'class': 'submitbutton', 'title': "Evaluate [Shift+Return]" },
+					submitButton = $E('span', $T('='))
+				)
+			)
+		),
+		moveHandle = $E('span', { class: 'move' }),
+		deleteHandle = $E('span', { class: 'delete', title: 'Delete' }, $T(String.fromCharCode(215)))
+	);
+	textarea.rows = 1;
+	textarea.ul = ul;
+	textarea.li = li;
+	textarea.submitted = false;
 	moveHandle.li = li;
 	deleteHandle.li = li;
-	li.textarea = textArea;
-	li.ul = query;
+	li.textarea = textarea;
+	li.ul = ul;
 
 	const queries = document.getElementById('queries');
 
@@ -642,21 +619,13 @@ function createQuery(before, noFocus, updatingAll) {
 		queries.appendChild(li);
 	}
 
-	textArea.addEventListener('focus', onFocus);
-	textArea.addEventListener('blur', onBlur);
-	textArea.addEventListener('keyup', (event) => {
-		if (
-			event.key === 'Backspace' ||
-			event.key === 'ArrowLeft' ||
-			event.key === 'ArrowUp'
-		) {
-			if (position > 0) {
-				position--;
-			}
-		} else if (position < textArea.innerText.length - 1) {
-			position++;
-		}
-	});
+	if (!updatingAll) {
+		refreshInputSize(textarea);
+	}
+
+	textarea.addEventListener('keyup', inputChange);
+	textarea.addEventListener('focus', onFocus);
+	textarea.addEventListener('blur', onBlur);
 	li.addEventListener('mousedown', queryMouseDown);
 	deleteHandle.addEventListener('click', deleteClick);
 	deleteHandle.addEventListener('mousedown', deleteMouseDown);
@@ -664,10 +633,10 @@ function createQuery(before, noFocus, updatingAll) {
 	moveHandle.addEventListener('mouseup', moveMouseUp);
 	document.addEventListener('mouseup', moveMouseUp);
 	submitButton.addEventListener('mousedown', () => {
-		if (textArea.innerText.strip()) {
-			submitQuery(textArea);
+		if (textarea.value.strip()) {
+			submitQuery(textarea);
 		} else {
-			textArea.focus();
+			textarea.focus();
 		}
 	});
 	if (!updatingAll) {
@@ -675,9 +644,8 @@ function createQuery(before, noFocus, updatingAll) {
 	}
 
 	if (!noFocus) {
-		textArea.focus();
+		textarea.focus();
 	}
-
 	return li;
 }
 
@@ -743,12 +711,10 @@ function focusLast() {
 
 function isGlobalKey(event) {
 	if (event.ctrlKey) {
-		switch (event.keyCode) {
-			case 68:
-			// case 67:
-			case 83:
-			case 79:
-				return true;
+		const key = event.key.toLowerCase();
+
+		if (key === 'd' || key === 's' || key === 'o') {
+			return true;
 		}
 	}
 
@@ -803,10 +769,7 @@ function domLoaded() {
 	const queriesContainer = document.getElementById('queriesContainer');
 
 	if (queriesContainer) {
-		const list = document.createElement('ul');
-		list.id = 'queries';
-
-		queriesContainer.appendChild(list);
+		queriesContainer.appendChild($E('ul', { id: 'queries' }));
 
 		const documentElement = document.getElementById('document');
 
@@ -823,3 +786,4 @@ function domLoaded() {
 }
 
 window.addEventListener('DOMContentLoaded', domLoaded);
+window.addEventListener('resize', refreshInputSizes);

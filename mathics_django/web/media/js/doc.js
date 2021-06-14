@@ -13,16 +13,19 @@ function showPage(response) {
 			submitButton = $E('span', $T('='))
 		));
 
-		test.addEventListener('mouseover', () => test.classList.add('focused'));
-		test.addEventListener('mouseout', () => test.classList.remove('focused'));
+		test.addEventListener('mouseover', () => {
+			test.classList.add('focused');
+		});
+		test.addEventListener('mouseout', () => {
+			test.classList.remove('focused');
+		});
 
-		test.children[1].addEventListener('click', () =>
-			setQueries([
-				test.firstElementChild.innerHTML
-					.replace(/\xA0/g, ' ') // non breaking space (like &nbsp;)
-					.unescapeHTML()
-			])
-		);
+		test.children[1].addEventListener('click', () => {
+			var query = test.firstElementChild.innerHTML;
+			query = query.replace(/\xA0/g, ' ');
+			query = query.unescapeHTML();
+			setQueries([query]);
+		});
 	});
 
 	document.querySelectorAll('ul.test').forEach((test) => {
@@ -52,8 +55,8 @@ function showDoc() {
 	document.getElementById('code').classList.add('doc');
 
 	docLink.classList.add('active');
-	docLink.getElementsByTagName('i')[0].classList.remove('fa-question-circle-o');
-	docLink.getElementsByTagName('i')[0].classList.add('fa-question-circle');
+	docLink.select('i')[0].classList.remove('fa-question-circle-o');
+	docLink.select('i')[0].classList.add('fa-question-circle');
 
 	document.getElementById('search').classList.add('shown');
 

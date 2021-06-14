@@ -1,18 +1,16 @@
 function showSave() {
-	requireLogin('You must login to save worksheets online.', () =>
-		showPopup(document.getElementById('save'))
-	);
+	requireLogin('You must login to save worksheets online.', () => {
+		showPopup(document.getElementById('save'));
+	});
 }
 
 function openWorksheet(name) {
 	hidePopup();
-
 	new Ajax.Request('/ajax/open/', {
 		method: 'post',
 		parameters: { name },
 		onSuccess: (transport) => {
-			const response = JSON.parse(transport.responseText);
-
+			var response = JSON.parse(transport.responseText);
 			if (document.getElementById('document').style.display !== 'none') {
 				setContent(response.content);
 			} else {
@@ -26,29 +24,23 @@ function showWorksheets(isOpen) {
 	new Ajax.Request('/ajax/getworksheets/', {
 		method: 'get',
 		onSuccess: (transport) => {
-			var fileList = document.getElementById('openFilelist');
-
-			fileList.innerHTML = '';
-			JSON.parse(transport.responseText).worksheets
-				.forEach((worksheet) => {
-					const row = document.createElement('tr');
-
-					const worksheetNameColumn = document.createElement('td');
-					const worksheetName = document.createElement('a');
-					worksheetName.href = `javascript:openWorksheet("${worksheet.name}")`;
-					worksheetName.innerText = worksheet.name;
-					worksheetNameColumn.appendChild(worksheetName);
-					row.appendChild(worksheetNameColumn);
-
-					const deleteButtonColumn = document.createElement('td');
-					const deleteButton = document.createElement('a');
-					deleteButton.href = `javascript:deleteWorksheet("${worksheet.name}")`;
-					deleteButton.innerText = 'delete';
-					deleteButtonColumn.appendChild(deleteButton);
-					row.appendChild(deleteButtonColumn);
-
-					fileList.appendChild(row);
-				});
+			var response = JSON.parse(transport.responseText);
+			var tbody = document.getElementById('openFilelist');
+			tbody.deleteChildNodes();
+			response.worksheets.forEach((worksheet) => {
+				tbody.appendChild($E('tr',
+					$E('td',
+						$E('a', { href: 'javascript:openWorksheet("' + worksheet.name + '")' },
+							$T(worksheet.name)
+						)
+					),
+					$E('td',
+						$E('a', { href: 'javascript:deleteWorksheet("' + worksheet.name + '")' },
+							$T('Delete')
+						)
+					)
+				));
+			});
 
 			// if the popup isn't open, open it
 			if (!isOpen) {
@@ -62,14 +54,16 @@ function deleteWorksheet(name) {
 	new Ajax.Request('/ajax/delete/', {
 		method: 'post',
 		parameters: { name },
-		onSuccess: () => showWorksheets(true)
+		onSuccess: () => {
+			showWorksheets(true);
+		}
 	});
 }
 
 function showOpen() {
-	requireLogin("You must login to open online worksheets.", () =>
-		showWorksheets(false)
-	);
+	requireLogin("You must login to open online worksheets.", () => {
+		showWorksheets(false);
+	});
 }
 
 function save(overwrite) {
@@ -143,14 +137,14 @@ function getContent() {
 }
 
 function setContent(content) {
-	document.getElementById('queries').innerHTML = '';
+	document.getElementById('queries').deleteChildNodes();
 
 	document.getElementById('welcome').style.display = 'none';
 
 	JSON.parse(content).forEach((item) => {
 		const li = createQuery(null, true, true);
 
-		li.textarea.innerText = item.request;
+		li.textarea.value = item.request;
 
 		if (item.results != undefined) {
 			setResult(li.ul, item.results);
@@ -176,7 +170,7 @@ function createLink() {
 
 	document.getElementById('queries').childElements().each((query) => {
 		queries.push('queries=' + encodeURIComponent(
-			query.querySelector('textarea.request').value
+			query.querySelector('textarea.request').getText()
 		));
 	});
 

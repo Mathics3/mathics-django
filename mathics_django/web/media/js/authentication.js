@@ -33,9 +33,8 @@ function onLogout() {
 
 function login() {
 	submitForm('loginForm', '/ajax/login/', (response) => {
-		const result = response.result;
-		const email = response.form.values.email;
-
+		var result = response.result;
+		var email = response.form.values.email;
 		if (result === 'ok') {
 			onLogin(email);
 			hidePopup();
@@ -59,7 +58,6 @@ function logout() {
 
 function requireLogin(reason, onLogin) {
 	loginReason = reason;
-
 	if (REQUIRE_LOGIN && !authenticated) {
 		showLogin(reason, onLogin);
 	} else {
@@ -72,7 +70,6 @@ function checkLogin(response) {
 		onLogout();
 		hidePopup();
 		showLogin(loginReason, loginNext);
-
 		return false;
 	}
 
