@@ -1,98 +1,107 @@
 var docLoaded = false, lastSearchValue = '';
 
 function showPage(response) {
-	if ($('doc')) {
-		$('doc').updateDOM(response.content);
+	const doc = document.getElementById('doc');
+
+	if (doc) {
+		doc.updateDOM(response.content);
 	}
 
-	$$('li.test p').each(function (test) {
+	document.querySelectorAll('li.test p').forEach((test) => {
 		test.insert($E('span',
-			{ 'class': 'submitbutton', 'title': "Run this example!" },
+			{ class: 'submitbutton', title: 'Run this example!' },
 			submitButton = $E('span', $T('='))
 		));
 
-		test.observe('mouseover', function (e) {
-			$(test).addClassName('focused');
+		test.addEventListener('mouseover', () => {
+			test.classList.add('focused');
 		});
-		test.observe('mouseout', function (e) {
-			$(test).removeClassName('focused');
+		test.addEventListener('mouseout', () => {
+			test.classList.remove('focused');
 		});
 
-		$(test).descendants()[1].observe('click', function () {
-			var query = $(test).descendants()[0].innerHTML;
+		test.children[1].addEventListener('click', () => {
+			var query = test.firstElementChild.innerHTML;
 			query = query.replace(/\xA0/g, ' ');
 			query = query.unescapeHTML();
 			setQueries([query]);
 		});
 	});
 
-	$$('ul.test').each(function (test) {
+	document.querySelectorAll('ul.test').forEach((test) => {
 		var id = test.id.substr(5); // 'test_...'
 		var data = response.data[id];
 		setResult(test, data.results);
 	});
-
 }
 
 function loadDoc(page) {
 	new Ajax.Request('/ajax/doc' + page, {
 		method: 'get',
-		onSuccess: function (transport) {
+		onSuccess: (transport) => {
 			docLoaded = true;
-			var response = transport.responseText.evalJSON();
-			showPage(response);
-			$$('#doc *')[0].scrollIntoView();
+			showPage(JSON.parse(transport.responseText));
+			document.querySelector('#doc *').scrollIntoView();
 		}
 	});
 }
 
 function showDoc() {
-	$('document').addClassName('doc');
-	$('code').addClassName('doc');
-	$('doc').show();
-	$('doclink').addClassName('active');
-	$('doclink').select('i')[0].removeClassName('fa-question-circle-o');
-	$('doclink').select('i')[0].addClassName('fa-question-circle');
-	$('search').addClassName('shown');
-	// $('search').focus();
+	const docLink = document.getElementById('doclink');
+
+	document.getElementById('doc').style.display = 'block';
+
+	document.getElementById('document').classList.add('doc');
+	document.getElementById('code').classList.add('doc');
+
+	docLink.classList.add('active');
+	docLink.select('i')[0].classList.remove('fa-question-circle-o');
+	docLink.select('i')[0].classList.add('fa-question-circle');
+
+	document.getElementById('search').classList.add('shown');
+
 	if (!docLoaded) {
 		loadDoc('/');
 	}
 }
 
 function hideDoc() {
-	$('doc').hide();
-	$('document').removeClassName('doc');
-	$('code').removeClassName('doc');
-	$('doclink').removeClassName('active');
-	$('doclink').select('i')[0].removeClassName('fa-question-circle');
-	$('doclink').select('i')[0].addClassName('fa-question-circle-o');
-	$('search').removeClassName('shown');
+	const docLink = document.getElementById('doclink');
+
+	document.getElementById('doc').style.display = 'none';
+
+	document.getElementById('document').classList.remove('doc');
+	document.getElementById('code').classList.remove('doc');
+
+	docLink.classList.remove('active');
+	docLink.getElementsByTagName('i')[0].classList.add('fa-question-circle-o');
+	docLink.getElementsByTagName('i')[0].classList.remove('fa-question-circle');
+
+	document.getElementById('search').classList.remove('shown');
 }
 
 function toggleDoc() {
-	if ($('doc').visible()) {
+	if (document.getElementById('doc').style.display !== 'none') {
 		hideDoc();
-	}
-	else {
+	} else {
 		showDoc();
 	}
-	$('search').select();
+	document.getElementById('search').select();
 }
 
-function searchChange(event) {
-	var query = $('search').value.strip();
-	if (!$('search').hasClassName('empty')) {
+function searchChange() {
+	const search = document.getElementById('search');
+
+	const query = search.value.strip();
+
+	if (!search.hasClassName('empty')) {
 		if (query) {
 			new Ajax.Request('/ajax/doc/search/', {
 				method: 'get',
-				parameters: {
-					query: query
-				},
-				onSuccess: function (transport) {
+				parameters: { query },
+				onSuccess: (transport) => {
 					docLoaded = true;
-					var response = transport.responseText.evalJSON();
-					showPage(response);
+					showPage(JSON.parse(transport.responseText));
 					showDoc();
 				}
 			});
@@ -107,23 +116,27 @@ function searchChange(event) {
 }
 
 function searchFocus() {
-	if ($('search').hasClassName('empty')) {
-		$('search').value = '';
-		$('search').removeClassName('empty');
+	const search = document.getElementById('search');
+
+	if (search.hasClassName('empty')) {
+		search.value = '';
+		search.classList.remove('empty');
 	}
 }
 
 function searchBlur() {
-	if (!$('search').value) {
-		$('search').addClassName('empty');
-		$('search').value = "\uf002";
+	const search = document.getElementById('search');
+
+	if (!search.value) {
+		search.classList.add('empty');
+		search.value = "\uf002";
 	}
 }
 
 function searchKeyUp(event) {
-	if (event.keyCode == Event.KEY_ESC) {
+	if (event.key === 'Escape') {
 		event.stop();
-		$('search').value = '';
+		document.getElementById('search').value = '';
 		hideDoc();
 		loadDoc('/');
 		focusLast();
@@ -137,17 +150,16 @@ function searchKeyDown(event) {
 }
 
 function initDoc() {
-	if (!$('search')) {
-		return;
-	}
-	
-	new Form.Element.Observer('search', 0.2, searchChange.bindAsEventListener($('search')));
-	$('search').observe('focus', searchFocus);
-	$('search').observe('blur', searchBlur);
-	$('search').observe('keydown', searchKeyDown.bindAsEventListener($('search')));
-	$('search').observe('keyup', searchKeyUp.bindAsEventListener($('search')));
-	$('search').value = '';
+	const search = document.getElementById('search');
+
+	search.addEventListener('focus', searchFocus);
+	search.addEventListener('blur', searchBlur);
+	search.addEventListener('keydown', searchKeyDown);
+	search.addEventListener('keyup', searchKeyUp);
+	search.addEventListener('keyup', searchChange);
+	search.value = '';
+
 	searchBlur();
 }
 
-$(document).observe('dom:loaded', initDoc);
+window.addEventListener('DOMContentLoaded', initDoc);

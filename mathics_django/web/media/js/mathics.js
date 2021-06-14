@@ -12,11 +12,11 @@ function getLetterWidth(element) {
 		fontSize: element.getStyle('font-size')
 	});
 
-	const parent = $$('body')[0];
-	parent.appendChild(letter);
+	document.body.appendChild(letter);
 
-	var width = letter.getWidth();
-	parent.removeChild(letter);
+	const width = letter.getWidth();
+
+	document.body.removeChild(letter);
 
 	return width;
 }
@@ -27,8 +27,8 @@ function refreshInputSize(textarea) {
 	const lines = textarea.value.split('\n');
 	let lineCount = 0;
 
-	for (let index = 0; index < lines.length; ++index) {
-		const line = lines[index];
+	for (let i = 0; i < lines.length; ++i) {
+		const line = lines[i];
 		lineCount += Math.ceil(1.0 * (line.length + 1) * letterWidth / width);
 	}
 
@@ -36,16 +36,16 @@ function refreshInputSize(textarea) {
 }
 
 function refreshInputSizes() {
-	$$('textarea.request').each(function (textarea) {
+	document.querySelectorAll('textarea.request').forEach((textarea) => {
 		refreshInputSize(textarea);
 	});
 
-	$$('#queries ul').each(function (ul) {
+	document.querySelectorAll('#queries ul').forEach((ul) => {
 		afterProcessResult(ul, 'Rerender');
 	});
 }
 
-function inputChange(event) {
+function inputChange() {
 	refreshInputSize(this);
 }
 
@@ -74,21 +74,21 @@ function prepareText(text) {
 }
 
 function getDimensions(math, callback) {
-	var all = $('calc_all').cloneNode(true);
+	var all = document.getElementById('calc_all').cloneNode(true);
 	all.id = null;
-	var body = $$('body')[0];
-	body.appendChild(all);
+
+	document.body.appendChild(all);
 	var container = all.select('.calc_container')[0];
 	container.appendChild(translateDOMElement(math));
 
 	MathJax.Hub.Queue(["Typeset", MathJax.Hub, container]);
-	MathJax.Hub.Queue(function () {
+	MathJax.Hub.Queue(() => {
 		var pos = container.cumulativeOffset();
 		var next = all.select('.calc_next')[0].cumulativeOffset();
 		var below = all.select('.calc_below')[0].cumulativeOffset();
 		var width = next.left - pos.left + 4;
 		var height = below.top - pos.top + 20;
-		body.removeChild(all);
+		document.body.removeChild(all);
 		callback(width, height);
 	});
 }
@@ -172,13 +172,14 @@ function translateDOMElement(element, svg) {
 			op === '{' ||
 			op === '}' ||
 			op === String.fromCharCode(12314) ||
-			op === String.fromCharCode(12315)) {
+			op === String.fromCharCode(12315)
+		) {
 			dom.setAttribute('maxsize', '3');
 		}
 	}
 	if (nodeName == 'meshgradient') {
 		if (!MathJax.Hub.Browser.isOpera) {
-			var data = element.getAttribute('data').evalJSON();
+			var data = JSON.parse(element.getAttribute('data'));
 			var div = document.createElementNS('http://www.w3.org/1999/xhtml', 'div');
 			var foreign = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
 			foreign.setAttribute('width', svg.getAttribute('width'));
@@ -193,10 +194,9 @@ function translateDOMElement(element, svg) {
 			div.appendChild(canvas);
 
 			var ctx = canvas.getContext('2d');
-			for (var index = 0; index < data.length; ++index) {
-				var points = data[index];
-				if (points.length == 3) {
-					drawMeshGradient(ctx, points);
+			for (var i = 0; i < data.length; ++i) {
+				if (data[i].length == 3) {
+					drawMeshGradient(ctx, data[i]);
 				}
 			}
 
@@ -205,7 +205,7 @@ function translateDOMElement(element, svg) {
 	}
 	var object = null;
 	if (nodeName == 'graphics3d') {
-		var data = element.getAttribute('data').evalJSON();
+		var data = JSON.parse(element.getAttribute('data'));
 		var div = document.createElement('div');
 		drawGraphics3D(div, data);
 		dom = div;
@@ -278,7 +278,7 @@ function translateDOMElement(element, svg) {
 			childParent.appendChild(mtable);
 		}
 	} else
-		rows[0].each(function (element) {
+		rows[0].each((element) => {
 			childParent.appendChild(translateDOMElement(element, svg));
 		});
 	if (object) {
@@ -320,15 +320,6 @@ function convertMathGlyphs(dom) {
 function createLine(value) {
 	const container = document.createElement('div');
 
-	if (value.startsWith('<svg')) {
-	    var dom = document.createElement('div');
-	    dom.innerHTML = value;
-	    dom.style.position = 'relative';
-	    dom.style.width = '400px';
-	    dom.style.margin = 'auto';
-	    return dom;
-	}
-
 	container.innerHTML = value;
 
 	if (container?.firstElementChild?.tagName === 'math') {
@@ -345,6 +336,12 @@ function createLine(value) {
 		div.style.margin = 'auto';
 
 		return div;
+	} else if (container?.firstElementChild?.tagName === 'svg') {
+		container.style.position = 'relative';
+		container.style.width = '400px';
+		container.style.margin = 'auto';
+
+		return container;
 	} else {
 		const lines = container.innerHTML.split('\n');
 
@@ -363,12 +360,13 @@ function createLine(value) {
 
 function afterProcessResult(ul, command) {
 	// command is either 'Typeset' (default) or 'Rerender'
-	if (!command)
+	if (!command) {
 		command = 'Typeset';
+	}
 	MathJax.Hub.Queue([command, MathJax.Hub, ul]);
 	MathJax.Hub.Queue(function () {
 		// inject SVG and other non-MathML objects into corresponding <mspace>s
-		ul.select('.mspace').each(function (mspace) {
+		ul.querySelectorAll('.mspace').forEach((mspace) => {
 			var id = mspace.getAttribute('id').substr(objectsPrefix.length);
 			var object = objects[id];
 			mspace.appendChild(object);
@@ -379,33 +377,34 @@ function afterProcessResult(ul, command) {
 		// => leave inner MathML untouched
 		MathJax.Hub.Queue(['Typeset', MathJax.Hub, ul]);
 	}
-	MathJax.Hub.Queue(function () {
-		ul.select('foreignObject >span >nobr >span.math').each(function (math) {
-			var content = math.childNodes[0].childNodes[0].childNodes[0];
-			math.removeChild(math.childNodes[0]);
-			math.insertBefore(content, math.childNodes[0]);
+	MathJax.Hub.Queue(() => {
+		ul.querySelectorAll('foreignObject > span > nobr > span.math')
+			.forEach((math) => {
+				var content = math.childNodes[0].childNodes[0].childNodes[0];
+				math.removeChild(math.childNodes[0]);
+				math.insertBefore(content, math.childNodes[0]);
 
-			if (command == 'Typeset') {
-				// recalculate positions of insets based on ox/oy properties
-				const foreignObject = math.parentNode.parentNode.parentNode;
-				const dimensions = math.getDimensions();
-				const w = dimensions.width + 4;
-				const h = dimensions.height + 4;
-				let x = parseFloat(foreignObject.getAttribute('x').substr());
-				let y = parseFloat(foreignObject.getAttribute('y'));
-				const ox = parseFloat(foreignObject.getAttribute('ox'));
-				const oy = parseFloat(foreignObject.getAttribute('oy'));
-				x = x - w / 2.0 - ox * w / 2.0;
-				y = y - h / 2.0 + oy * h / 2.0;
-				foreignObject.setAttribute('x', x + 'px');
-				foreignObject.setAttribute('y', y + 'px');
-			}
-		});
+				if (command === 'Typeset') {
+					// recalculate positions of insets based on ox/oy properties
+					const foreignObject = math.parentNode.parentNode.parentNode;
+					const dimensions = math.getDimensions();
+					const w = dimensions.width + 4;
+					const h = dimensions.height + 4;
+					let x = parseFloat(foreignObject.getAttribute('x').substr());
+					let y = parseFloat(foreignObject.getAttribute('y'));
+					const ox = parseFloat(foreignObject.getAttribute('ox'));
+					const oy = parseFloat(foreignObject.getAttribute('oy'));
+					x = x - w / 2.0 - ox * w / 2.0;
+					y = y - h / 2.0 + oy * h / 2.0;
+					foreignObject.setAttribute('x', x + 'px');
+					foreignObject.setAttribute('y', y + 'px');
+				}
+			});
 	});
 }
 
 function setResult(ul, results) {
-	results.each(function (result) {
+	results.forEach((result) => {
 		var resultUl = $E('ul', { 'class': 'out' });
 		result.out.each(function (out) {
 			var li = $E('li', { 'class': (out.message ? 'message' : 'print') });
@@ -426,30 +425,30 @@ function setResult(ul, results) {
 
 function submitQuery(textarea, onfinish) {
 	if (welcome) {
-		$('welcomeContainer').fade({ duration: 0.2 });
-		if ($('hideStartupMsg').checked) {
+		document.getElementById('welcomeContainer').fade({ duration: 0.2 });
+		if (document.getElementById('hideStartupMsg').checked) {
 			localStorage.setItem('hideMathicsStartupMsg', 'true');
 		}
 		welcome = false;
-		$('logo').removeClassName('load');
+		document.getElementById('logo').classList.remove('load');
 	}
 
-	textarea.li.addClassName('loading');
-	$('logo').addClassName('working');
+	textarea.li.classList.add('loading');
+	document.getElementById('logo').classList.add('working');
 	new Ajax.Request('/ajax/query/', {
 		method: 'post',
 		parameters: {
 			query: textarea.value
 		},
-		onSuccess: function (transport) {
+		onSuccess: (transport) => {
 			textarea.ul.select('li[class!=request][class!=submitbutton]').invoke('deleteElement');
 			if (!transport.responseText) {
-				// A fatal Python error has occurred, e.g. on 4.4329408320439^43214234345
+				// a fatal Python error has occurred, e.g. on 4.4329408320439^43214234345
 				// ("Fatal Python error: mp_reallocate failure")
 				// -> print overflow message
 				transport.responseText = '{"results": [{"out": [{"prefix": "General::noserver", "message": true, "tag": "noserver", "symbol": "General", "text": "<math><mrow><mtext>No server running.</mtext></mrow></math>"}]}]}';
 			}
-			var response = transport.responseText.evalJSON();
+			var response = JSON.parse(transport.responseText);
 			setResult(textarea.ul, response.results);
 			textarea.submitted = true;
 			textarea.results = response.results;
@@ -460,15 +459,15 @@ function submitQuery(textarea, onfinish) {
 				createQuery();
 			}
 		},
-		onFailure: function () {
+		onFailure: () => {
 			textarea.ul.select('li[class!=request]').invoke('deleteElement');
-			const li = $E('li', { 'class': 'serverError' }, $T("Sorry, an error occurred while processing your request!"));
+			const li = $E('li', { class: 'serverError' }, $T("Sorry, an error occurred while processing your request!"));
 			textarea.ul.appendChild(li);
 			textarea.submitted = true;
 		},
-		onComplete: function () {
-			textarea.li.removeClassName('loading');
-			$('logo').removeClassName('working');
+		onComplete: () => {
+			textarea.li.classList.remove('loading');
+			document.getElementById('logo').classList.remove('working');
 			if (onfinish) {
 				onfinish();
 			}
@@ -481,90 +480,100 @@ function getSelection() {
 }
 
 function keyDown(event) {
-	var textarea = lastFocus;
-	if (!textarea)
+	const textArea = lastFocus;
+
+	if (!textArea) {
 		return;
-	refreshInputSize(textarea);
+	}
 
-	if (event.keyCode == Event.KEY_RETURN && (event.shiftKey || event.location == 3)) {
-		if (!Prototype.Browser.IE)
-			event.stop();
+	refreshInputSize(textArea);
 
-		var query = textarea.value.strip();
-		if (query) {
-			submitQuery(textarea);
+	if (event.key === 'Enter' && (event.shiftKey || event.location === 3)) {
+		event.stop();
+
+		if (textArea.value.strip()) {
+			submitQuery(textArea);
 		}
-	} else if (event.keyCode == Event.KEY_UP) {
-		if (textarea.selectionStart == 0 && textarea.selectionEnd == 0) {
-			if (isEmpty(textarea)) {
-				if (textarea.li.previousSibling)
-					textarea.li.previousSibling.textarea.focus();
-			} else
-				createQuery(textarea.li);
+	} else if (event.key === 'ArrowUp') {
+		if (textArea.selectionStart === 0 && textArea.selectionEnd === 0) {
+			if (isEmpty(textArea)) {
+				if (textArea.li.previousSibling) {
+					textArea.li.previousSibling.textarea.focus();
+				}
+			} else {
+				createQuery(textArea.li);
+			}
 		}
-	} else if (event.keyCode == Event.KEY_DOWN) {
-		if (textarea.selectionStart == textarea.value.length && textarea.selectionEnd == textarea.selectionStart) {
-			if (isEmpty(textarea)) {
-				if (textarea.li.nextSibling)
-					textarea.li.nextSibling.textarea.focus();
-			} else
-				createQuery(textarea.li.nextSibling);
+	} else if (event.key === 'ArrowDown') {
+		if (textArea.selectionStart === textArea.value.length && textArea.selectionEnd === textArea.selectionStart) {
+			if (isEmpty(textArea)) {
+				if (textArea.li.nextSibling) {
+					textArea.li.nextSibling.textarea.focus();
+				}
+			} else {
+				createQuery(textArea.li.nextSibling);
+			}
 		}
-	} else
-		if (isGlobalKey(event))
-			event.stop();
+	} else if (isGlobalKey(event)) {
+		event.stopPropagation();
+		event.preventDefault();
+	}
 }
 
 function deleteMouseDown(event) {
-	if (event.isLeftClick())
+	if (event.isLeftClick()) {
 		deleting = true;
+	}
 }
 
-function deleteClick(event) {
-	if (lastFocus == this.li.textarea)
+function deleteClick() {
+	if (lastFocus == this.li.textarea) {
 		lastFocus = null;
+	}
+
 	this.li.deleteElement();
 	deleting = false;
 	if (blurredElement) {
 		blurredElement.focus();
 		blurredElement = null;
 	}
-	if ($('queries').childElements().length == 0)
+	if (document.getElementById('queries').childElementCount === 0) {
 		createQuery();
+	}
 
 }
 
-function moveMouseDown(event) {
+function moveMouseDown() {
 	movedItem = this.li;
 	movedItem.addClassName('moving');
 }
 
-function moveMouseUp(event) {
+function moveMouseUp() {
 	if (movedItem) {
-		movedItem.removeClassName('moving');
+		movedItem.classList.remove('moving');
 		movedItem.textarea.focus();
 		movedItem = null;
 	}
 }
 
-function onFocus(event) {
+function onFocus() {
 	var textarea = this;
-	textarea.li.addClassName('focused');
+	textarea.li.classList.add('focused');
 	lastFocus = textarea;
 }
 
-function onBlur(event) {
+function onBlur() {
 	var textarea = this;
 	blurredElement = textarea;
-	if (!deleting && textarea.li != movedItem && isEmpty(textarea) && $('queries').childElements().length > 1) {
-		textarea.li.hide();
-		if (textarea == lastFocus)
+	if (!deleting && textarea.li != movedItem && isEmpty(textarea) && document.getElementById('queries').childElementCount > 1) {
+		textarea.li.display = 'none';
+		if (textarea == lastFocus) {
 			lastFocus = null;
-		window.setTimeout(function () {
-			textarea.li.deleteElement();
-		}, 10);
+		}
+
+		textarea.li.deleteElement();
 	}
-	textarea.li.removeClassName('focused');
+	textarea.li.classList.remove('focused');
 }
 
 function createSortable() {
@@ -572,7 +581,7 @@ function createSortable() {
 	Sortable.create('queries', {
 		handle: 'move',
 		scroll: 'document',
-		scrollSensitivity: 1	// otherwise strange flying-away of item at top
+		scrollSensitivity: 1 // otherwise strange flying-away of item at top
 	});
 }
 
@@ -580,7 +589,7 @@ var queryIndex = 0;
 
 function createQuery(before, noFocus, updatingAll) {
 	var ul, textarea, moveHandle, deleteHandle, submitButton;
-	// Items need id in order for Sortable.onUpdate to work.
+	// items need id in order for Sortable.onUpdate to work.
 	var li = $E('li', { 'id': 'query_' + queryIndex++, 'class': 'query' },
 		ul = $E('ul', { 'class': 'query' },
 			$E('li', { 'class': 'request' },
@@ -590,8 +599,8 @@ function createQuery(before, noFocus, updatingAll) {
 				)
 			)
 		),
-		moveHandle = $E('span', { 'class': 'move' }),
-		deleteHandle = $E('span', { 'class': 'delete', 'title': "Delete" }, $T(String.fromCharCode(215)))
+		moveHandle = $E('span', { class: 'move' }),
+		deleteHandle = $E('span', { class: 'delete', title: 'Delete' }, $T(String.fromCharCode(215)))
 	);
 	textarea.rows = 1;
 	textarea.ul = ul;
@@ -601,39 +610,42 @@ function createQuery(before, noFocus, updatingAll) {
 	deleteHandle.li = li;
 	li.textarea = textarea;
 	li.ul = ul;
-	if (before)
-		$('queries').insertBefore(li, before);
-	else
-		$('queries').appendChild(li);
-	if (!updatingAll)
+
+	const queries = document.getElementById('queries');
+
+	if (before) {
+		queries.insertBefore(li, before);
+	} else {
+		queries.appendChild(li);
+	}
+
+	if (!updatingAll) {
 		refreshInputSize(textarea);
-	new Form.Element.Observer(textarea, 0.2, inputChange.bindAsEventListener(textarea));
-	textarea.observe('focus', onFocus.bindAsEventListener(textarea));
-	textarea.observe('blur', onBlur.bindAsEventListener(textarea));
-	li.observe('mousedown', queryMouseDown.bindAsEventListener(li));
-	deleteHandle.observe('click', deleteClick.bindAsEventListener(deleteHandle));
-	deleteHandle.observe('mousedown', deleteMouseDown.bindAsEventListener(deleteHandle));
-	moveHandle.observe('mousedown', moveMouseDown.bindAsEventListener(moveHandle));
-	moveHandle.observe('mouseup', moveMouseUp.bindAsEventListener(moveHandle));
-	$(document).observe('mouseup', moveMouseUp.bindAsEventListener($(document)));
-	submitButton.observe('mousedown', function () {
-		if (textarea.value.strip())
+	}
+
+	textarea.addEventListener('keyup', inputChange);
+	textarea.addEventListener('focus', onFocus);
+	textarea.addEventListener('blur', onBlur);
+	li.addEventListener('mousedown', queryMouseDown);
+	deleteHandle.addEventListener('click', deleteClick);
+	deleteHandle.addEventListener('mousedown', deleteMouseDown);
+	moveHandle.addEventListener('mousedown', moveMouseDown);
+	moveHandle.addEventListener('mouseup', moveMouseUp);
+	document.addEventListener('mouseup', moveMouseUp);
+	submitButton.addEventListener('mousedown', () => {
+		if (textarea.value.strip()) {
 			submitQuery(textarea);
-		else
-			window.setTimeout(function () {
-				textarea.focus();
-			}, 10);
+		} else {
+			textarea.focus();
+		}
 	});
 	if (!updatingAll) {
 		createSortable();
-		// calling directly fails in Safari on document loading
-		//window.setTimeout(createSortable, 10);
 	}
-	// Immediately setting focus doesn't work in IE.
-	if (!noFocus)
-		window.setTimeout(function () {
-			textarea.focus();
-		}, 10);
+
+	if (!noFocus) {
+		textarea.focus();
+	}
 	return li;
 }
 
@@ -644,6 +656,7 @@ function documentMouseDown(event) {
 		if (clickedQuery) {
 			clickedQuery = null;
 			mouseDownEvent = null;
+
 			return;
 		}
 		event.stop(); // strangely, doesn't work otherwise
@@ -652,49 +665,59 @@ function documentMouseDown(event) {
 }
 
 function documentClick(event) {
-	// In Firefox, mousedown also fires when user clicks scrollbars.
+	const queries = document.getElementById('queries');
+
+	// in Firefox, mousedown also fires when user clicks scrollbars.
 	// -> listen to click
 	event = mouseDownEvent;
-	if (!event)
-		return;
-	if ($('queries').childElements().length == 1 && isEmpty($('queries').childElements()[0].textarea)) {
-		$('queries').childElements()[0].textarea.focus();
+
+	if (!event) {
 		return;
 	}
-	var offset = $('document').cumulativeOffset();
-	var y = event.pointerY() - offset.top + $('document').scrollTop;
+
+	if (queries.childElementCount === 1 && isEmpty(queries.firstElementChild.textarea)) {
+		queries.firstElementChild.textarea.focus();
+
+		return;
+	}
+
+	const documentElement = document.getElementById('document');
+	var offset = documentElement.cumulativeOffset();
+	var y = event.pointerY() - offset.top + documentElement.scrollTop;
 	var element = null;
-	$('queries').childElements().each(function (li) {
-		var offset = li.positionedOffset(); // margin-top: 10px
-		if (offset.top + 20 > y) {
+
+	queries.childElements.forEach((li) => {
+		// margin-top: 10px
+		if (li.positionedOffset().top + 20 > y) {
 			element = li;
 			throw $break;
 		}
 	});
+
 	createQuery(element);
 }
 
-function queryMouseDown(event) {
+function queryMouseDown() {
 	clickedQuery = this;
 }
 
 function focusLast() {
-	if (lastFocus)
+	if (lastFocus) {
 		lastFocus.focus();
-	else
+	} else {
 		createQuery();
+	}
 }
 
 function isGlobalKey(event) {
 	if (event.ctrlKey) {
-		switch (event.keyCode) {
-			case 68:
-			// case 67:
-			case 83:
-			case 79:
-				return true;
+		const key = event.key.toLowerCase();
+
+		if (key === 'd' || key === 's' || key === 'o') {
+			return true;
 		}
 	}
+
 	return false;
 }
 
@@ -703,7 +726,7 @@ function globalKeyUp(event) {
 		switch (event.keyCode) {
 			case 68: // D
 				showDoc();
-				$('search').select();
+				document.getElementById('search').select();
 				event.stop();
 				break;
 			// case 67: // C
@@ -727,10 +750,8 @@ function domLoaded() {
 			linebreaks: { automatic: true }
 		},
 		MMLorHTML: {
-			//
-			//  The output jax that is to be preferred when both are possible
-			//  (set to "MML" for native MathML, "HTML" for MathJax's HTML-CSS output jax).
-			//
+			// the output jax that is to be preferred when both are possible
+			// (set to "MML" for native MathML, "HTML" for MathJax's HTML-CSS output jax).
 			prefer: {
 				MSIE: "HTML",
 				Firefox: "HTML",
@@ -742,44 +763,27 @@ function domLoaded() {
 	MathJax.Hub.Configured();
 
 	if (localStorage.getItem('hideMathicsStartupMsg') === 'true') {
-		$('welcome').hide();
+		document.getElementById('welcome').style.display = 'none';
 	}
 
-	if ($('welcomeBrowser'))
-		if (!(Prototype.Browser.WebKit || Prototype.Browser.MobileSafari || Prototype.Browser.Gecko))
-			$('welcomeBrowser').show();
+	const queriesContainer = document.getElementById('queriesContainer');
 
-	$$('body')[0].observe('resize', refreshInputSizes);
+	if (queriesContainer) {
+		queriesContainer.appendChild($E('ul', { id: 'queries' }));
 
-	if ($('queriesContainer')) {
-		$('queriesContainer').appendChild($E('ul', { 'id': 'queries' }));
+		const documentElement = document.getElementById('document');
 
-		$('document').observe('mousedown', documentMouseDown.bindAsEventListener($('document')));
-		$('document').observe('click', documentClick.bindAsEventListener($('document')));
+		documentElement.addEventListener('mousedown', documentMouseDown);
+		documentElement.addEventListener('click', documentClick);
 
-		$(document).observe('keydown', keyDown.bindAsEventListener());
-		if (Prototype.Browser.IE) {
-			document.body.addEventListener('keydown', function (event) {
-				if (event.keyCode == Event.KEY_RETURN && event.shiftKey) {
-					event.stopPropagation();
-					event.preventDefault();
-					keyDown(event);
-				}
-			}, true);
-		}
-		if (Prototype.Browser.Opera || Prototype.Browser.IE) {
-			// Opera needs another hook so it doesn't insert newlines after Shift+Return
-			$(document).observe('keypress', function (event) {
-				if (event.keyCode == Event.KEY_RETURN && event.shiftKey)
-					event.stop();
-			}.bindAsEventListener());
-		}
+		document.addEventListener('keydown', keyDown);
+		document.addEventListener('keyup', globalKeyUp);
 
-		$(document).observe('keyup', globalKeyUp.bindAsEventListener($('document')));
-
-		if (!loadLink())
+		if (!loadLink()) {
 			createQuery();
+		}
 	}
 }
 
 window.addEventListener('DOMContentLoaded', domLoaded);
+window.addEventListener('resize', refreshInputSizes);
