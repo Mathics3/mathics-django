@@ -1,9 +1,11 @@
-var deleting,
+let deleting,
 	blurredElement,
 	movedItem,
 	clickedQuery,
 	lastFocus = null,
-	welcome = true;
+	welcome = true,
+	position = 0,
+	queryIndex = 0;
 
 function getLetterWidth(element) {
 	const letter = document.createElement('span');
@@ -398,8 +400,13 @@ function setResult(ul, results) {
 			resultUl.appendChild(li);
 		}
 
-		ul.appendChild($E(li, { 'class': 'out' }, resultUl));
+		const li = document.createElement('li');
+		li.className = 'out';
+		li.appendChild(resultUl);
+
+		ul.appendChild(li);
 	});
+
 	afterProcessResult(ul);
 }
 
@@ -478,11 +485,11 @@ function keyDown(event) {
 	if (event.key === 'Enter' && (event.shiftKey || event.location === 3)) {
 		event.stop();
 
-		if (textArea.value.strip()) {
+		if (textArea.innerText.strip()) {
 			submitQuery(textArea);
 		}
 	} else if (event.key === 'ArrowUp') {
-		if (textArea.selectionStart === 0 && textArea.selectionEnd === 0) {
+		if (position === 0) {
 			if (isEmpty(textArea)) {
 				if (textArea.li.previousSibling) {
 					textArea.li.previousSibling.textarea.focus();
@@ -492,7 +499,7 @@ function keyDown(event) {
 			}
 		}
 	} else if (event.key === 'ArrowDown') {
-		if (textArea.selectionStart === textArea.value.length && textArea.selectionEnd === textArea.selectionStart) {
+		if (position === textArea.innerText.length - 1 || position === 0) {
 			if (isEmpty(textArea)) {
 				if (textArea.li.nextSibling) {
 					textArea.li.nextSibling.textarea.focus();
@@ -500,6 +507,8 @@ function keyDown(event) {
 			} else {
 				createQuery(textArea.li.nextSibling);
 			}
+
+			position = 0;
 		}
 	} else if (isGlobalKey(event)) {
 		event.preventDefault();
@@ -571,8 +580,6 @@ function createSortable() {
 	});
 }
 
-var queryIndex = 0;
-
 function createQuery(before, noFocus, updatingAll) {
 	// items need id in order for Sortable.onUpdate to work
 	const li = document.createElement('li');
@@ -582,12 +589,12 @@ function createQuery(before, noFocus, updatingAll) {
 	const query = document.createElement('ul');
 	query.className = 'query';
 
-	li.appendChild(query)
+	li.appendChild(query);
 
 	const request = document.createElement('li');
 	request.className = 'request';
 
-	query.appendChild(request)
+	query.appendChild(request);
 
 	const textArea = document.createElement('span');
 	textArea.className = 'request';
@@ -595,26 +602,30 @@ function createQuery(before, noFocus, updatingAll) {
 	textArea.setAttribute('role', 'textbox');
 	textArea.contentEditable = true;
 
-	request.appendChild(textArea)
+	request.appendChild(textArea);
 
 	const submitButton = document.createElement('span');
 	submitButton.className = 'submitbutton';
 	submitButton.title = 'Evaluate [Shift+Return]';
-	submitButton.innerText = '=';
 
-	request.appendChild(submitButton)
+	request.appendChild(submitButton);
+
+	const submitButtonEqual = document.createElement('span');
+	submitButtonEqual.innerText = '=';
+
+	submitButton.appendChild(submitButtonEqual);
 
 	const moveHandle = document.createElement('span');
 	moveHandle.className = 'move';
 
-	li.appendChild(moveHandle)
+	li.appendChild(moveHandle);
 
 	const deleteHandle = document.createElement('span');
 	deleteHandle.className = 'delete';
 	deleteHandle.title = 'Delete';
 	deleteHandle.innerText = '×';
 
-	li.appendChild(deleteHandle)
+	li.appendChild(deleteHandle);
 
 	textArea.submitted = false;
 	textArea.li = li;
@@ -633,6 +644,19 @@ function createQuery(before, noFocus, updatingAll) {
 
 	textArea.addEventListener('focus', onFocus);
 	textArea.addEventListener('blur', onBlur);
+	textArea.addEventListener('keyup', (event) => {
+		if (
+			event.key === 'Backspace' ||
+			event.key === 'ArrowLeft' ||
+			event.key === 'ArrowUp'
+		) {
+			if (position > 0) {
+				position--;
+			}
+		} else if (position < textArea.innerText.length - 1) {
+			position++;
+		}
+	});
 	li.addEventListener('mousedown', queryMouseDown);
 	deleteHandle.addEventListener('click', deleteClick);
 	deleteHandle.addEventListener('mousedown', deleteMouseDown);
@@ -640,7 +664,7 @@ function createQuery(before, noFocus, updatingAll) {
 	moveHandle.addEventListener('mouseup', moveMouseUp);
 	document.addEventListener('mouseup', moveMouseUp);
 	submitButton.addEventListener('mousedown', () => {
-		if (textArea.value.strip()) {
+		if (textArea.innerText.strip()) {
 			submitQuery(textArea);
 		} else {
 			textArea.focus();

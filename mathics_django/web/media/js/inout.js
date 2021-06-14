@@ -6,11 +6,13 @@ function showSave() {
 
 function openWorksheet(name) {
 	hidePopup();
+
 	new Ajax.Request('/ajax/open/', {
 		method: 'post',
 		parameters: { name },
 		onSuccess: (transport) => {
-			var response = JSON.parse(transport.responseText);
+			const response = JSON.parse(transport.responseText);
+
 			if (document.getElementById('document').style.display !== 'none') {
 				setContent(response.content);
 			} else {
@@ -148,7 +150,7 @@ function setContent(content) {
 	JSON.parse(content).forEach((item) => {
 		const li = createQuery(null, true, true);
 
-		li.textarea.value = item.request;
+		li.textarea.innerText = item.request;
 
 		if (item.results != undefined) {
 			setResult(li.ul, item.results);
