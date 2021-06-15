@@ -424,15 +424,18 @@ function setResult(ul, results) {
 function submitQuery(textarea, onfinish) {
 	if (welcome) {
 		document.getElementById('welcomeContainer').fade({ duration: 0.2 });
+
 		if (document.getElementById('hideStartupMsg').checked) {
 			localStorage.setItem('hideMathicsStartupMsg', 'true');
 		}
+
 		welcome = false;
 		document.getElementById('logo').classList.remove('load');
 	}
 
 	textarea.li.classList.add('loading');
 	document.getElementById('logo').classList.add('working');
+	console.log(textarea.value);
 	new Ajax.Request('/ajax/query/', {
 		method: 'post',
 		parameters: { query: textarea.value },
@@ -445,6 +448,7 @@ function submitQuery(textarea, onfinish) {
 				transport.responseText = '{"results": [{"out": [{"prefix": "General::noserver", "message": true, "tag": "noserver", "symbol": "General", "text": "<math><mrow><mtext>No server running.</mtext></mrow></math>"}]}]}';
 			}
 			var response = JSON.parse(transport.responseText);
+			console.log(transport);
 			setResult(textarea.ul, response.results);
 			textarea.submitted = true;
 			textarea.results = response.results;
@@ -685,13 +689,13 @@ function documentClick(event) {
 	var y = event.pointerY() - offset.top + documentElement.scrollTop;
 	var element = null;
 
-	queries.childElements.forEach((li) => {
+	for (let i = 0; i < queries.childElementCount; i++) {
 		// margin-top: 10px
-		if (li.positionedOffset().top + 20 > y) {
-			element = li;
+		if (queries.children[i].positionedOffset().top + 20 > y) {
+			element = queries.children[i];
 			throw $break;
 		}
-	});
+	}
 
 	createQuery(element);
 }
@@ -782,7 +786,8 @@ function domLoaded() {
 		documentElement.addEventListener('click', documentClick);
 
 		document.addEventListener('keydown', keyDown);
-		document.addEventListener('keyup', globalKeyUp);
+		window.addEventListener('keydown', globalKeyUp);
+		window.addEventListener('keyup', globalKeyUp);
 
 		if (!loadLink()) {
 			createQuery();
