@@ -105,11 +105,6 @@ function hidePopup() {
 
 var dialogYesCallback;
 
-function dialogYes() {
-	hidePopup();
-	dialogYesCallback();
-}
-
 function showDialog(title, text, yesCaption, noCaption, yesCallback) {
 	const dialog = document.getElementById('dialog');
 
