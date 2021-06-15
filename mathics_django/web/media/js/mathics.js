@@ -662,7 +662,7 @@ function documentMouseDown(event) {
 
 			return;
 		}
-		event.stop(); // strangely, doesn't work otherwise
+
 		mouseDownEvent = event;
 	}
 }
