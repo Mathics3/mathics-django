@@ -435,7 +435,7 @@ function submitQuery(textarea, onfinish) {
 
 	textarea.li.classList.add('loading');
 	document.getElementById('logo').classList.add('working');
-	console.log(textarea.value);
+
 	new Ajax.Request('/ajax/query/', {
 		method: 'post',
 		parameters: { query: textarea.value },
@@ -448,7 +448,7 @@ function submitQuery(textarea, onfinish) {
 				transport.responseText = '{"results": [{"out": [{"prefix": "General::noserver", "message": true, "tag": "noserver", "symbol": "General", "text": "<math><mrow><mtext>No server running.</mtext></mrow></math>"}]}]}';
 			}
 			var response = JSON.parse(transport.responseText);
-			console.log(transport);
+
 			setResult(textarea.ul, response.results);
 			textarea.submitted = true;
 			textarea.results = response.results;
@@ -693,7 +693,7 @@ function documentClick(event) {
 		// margin-top: 10px
 		if (queries.children[i].positionedOffset().top + 20 > y) {
 			element = queries.children[i];
-			throw $break;
+			break;
 		}
 	}
 
