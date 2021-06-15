@@ -21,13 +21,13 @@ function openWorksheet(name) {
 	});
 }
 
-function showWorksheets(isOpen) {
+function showWorksheets() {
 	new Ajax.Request('/ajax/getworksheets/', {
 		method: 'get',
 		onSuccess: (transport) => {
 			var response = JSON.parse(transport.responseText);
 			var tbody = document.getElementById('openFilelist');
-			tbody.deleteChildNodes();
+			tbody.innerHTML = '';
 			response.worksheets.forEach((worksheet) => {
 				tbody.appendChild($E('tr',
 					$E('td',
@@ -43,10 +43,7 @@ function showWorksheets(isOpen) {
 				));
 			});
 
-			// if the popup isn't open, open it
-			if (!isOpen) {
-				showPopup(document.getElementById('open'));
-			}
+			showPopup(document.getElementById('open'));
 		}
 	});
 }
@@ -55,18 +52,21 @@ function deleteWorksheet(name) {
 	new Ajax.Request('/ajax/delete/', {
 		method: 'post',
 		parameters: { name },
-		onSuccess: () => showWorksheets(true)
+		onSuccess: showWorksheets
 	});
 }
 
 function showOpen() {
 	requireLogin(
 		'You must login to open online worksheets.',
-		() => showWorksheets(false)
+		showWorksheets
 	);
 }
 
 function save(overwrite) {
+	// if overwrite is false set it to ''
+	overwrite ||= '';
+
 	let content;
 
 	if (document.getElementById('document').style.display !== 'none') {
@@ -75,7 +75,8 @@ function save(overwrite) {
 		content = document.getElementById('codetext').value;
 	}
 
-	if (JSON.parse(content)[0].request === '') {
+	// can't save worksheet with empty name
+	if (!document.getElementById('id_name').value.strip()) {
 		return;
 	}
 
@@ -92,7 +93,7 @@ function save(overwrite) {
 			if (response.result === 'overwrite') {
 				showDialog(
 					'Overwrite worksheet',
-					`A worksheet with the name '${esponse.form.values.name}' already exists. Do you want to overwrite it?`,
+					`A worksheet with the name '${response.form.values.name}' already exists. Do you want to overwrite it?`,
 					'Yes, overwrite it',
 					'No, cancel',
 					() => save(true)
