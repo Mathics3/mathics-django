@@ -11,9 +11,10 @@ function openWorksheet(name) {
 		method: 'post',
 		parameters: { name },
 		onSuccess: (transport) => {
-			var response = JSON.parse(transport.responseText);
+			const response = JSON.parse(transport.responseText);
+
 			if (document.getElementById('document').style.display !== 'none') {
-				setContent(response.content);
+				setContent(JSON.parse(response.content));
 			} else {
 				document.getElementById('codetext').value = response.content;
 			}
@@ -148,13 +149,15 @@ function setContent(content) {
 
 	document.getElementById('welcome').style.display = 'none';
 
-	JSON.parse(content).forEach((item) => {
+	content.forEach((item) => {
+		// line below has an error
 		const li = createQuery(null, true, true);
 
 		li.textarea.value = item.request;
 
-		if (item.results != undefined) {
-			setResult(li.response, item.results);
+		if (item.results !== undefined) {
+			setResult(li.ul, item.results);
+
 			li.textarea.results = item.results;
 		}
 	});

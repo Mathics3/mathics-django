@@ -588,7 +588,7 @@ function createSortable() {
 
 var queryIndex = 0;
 
-function createQuery(before, noFocus, updatingAll) {
+function createQuery(beforeElement, noFocus, updatingAll) {
 	var ul, textarea, moveHandle, deleteHandle, submitButton;
 	// items need id in order for Sortable.onUpdate to work.
 	var li = $E('li', { id: 'query_' + queryIndex++, class: 'query' },
@@ -603,7 +603,11 @@ function createQuery(before, noFocus, updatingAll) {
 			)
 		),
 		moveHandle = $E('span', { class: 'move' }),
-		deleteHandle = $E('span', { class: 'delete', title: 'Delete' }, $T(String.fromCharCode(215)))
+		deleteHandle = $E(
+			'span',
+			{ class: 'delete', title: 'Delete' },
+			$T('×')
+		)
 	);
 	textarea.rows = 1;
 	textarea.ul = ul;
@@ -616,8 +620,8 @@ function createQuery(before, noFocus, updatingAll) {
 
 	const queries = document.getElementById('queries');
 
-	if (before) {
-		queries.insertBefore(li, before);
+	if (beforeElement) {
+		queries.insertBefore(li, beforeElement);
 	} else {
 		queries.appendChild(li);
 	}
@@ -649,6 +653,7 @@ function createQuery(before, noFocus, updatingAll) {
 	if (!noFocus) {
 		textarea.focus();
 	}
+
 	return li;
 }
 
