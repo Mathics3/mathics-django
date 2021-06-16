@@ -1,12 +1,8 @@
 function grayOut(visible, zindex) {
-	zindex = zindex || 50;
-
 	let dark = document.getElementById('dark');
 
 	if (!dark) {
-		// the dark layer doesn't exist, it's never been created. So we'll
-		// create it here and apply some basic styles.
-		// if you are getting errors in IE see: http://support.microsoft.com/default.aspx/kb/927917
+		// the dark layer  never been created, so we'll create it
 
 		const node = document.createElement('div');
 
@@ -104,11 +100,6 @@ function hidePopup() {
 }
 
 var dialogYesCallback;
-
-function dialogYes() {
-	hidePopup();
-	dialogYesCallback();
-}
 
 function showDialog(title, text, yesCaption, noCaption, yesCallback) {
 	const dialog = document.getElementById('dialog');

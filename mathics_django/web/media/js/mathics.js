@@ -424,15 +424,18 @@ function setResult(ul, results) {
 function submitQuery(textarea, onfinish) {
 	if (welcome) {
 		document.getElementById('welcomeContainer').fade({ duration: 0.2 });
+
 		if (document.getElementById('hideStartupMsg').checked) {
 			localStorage.setItem('hideMathicsStartupMsg', 'true');
 		}
+
 		welcome = false;
 		document.getElementById('logo').classList.remove('load');
 	}
 
 	textarea.li.classList.add('loading');
 	document.getElementById('logo').classList.add('working');
+
 	new Ajax.Request('/ajax/query/', {
 		method: 'post',
 		parameters: { query: textarea.value },
@@ -445,6 +448,7 @@ function submitQuery(textarea, onfinish) {
 				transport.responseText = '{"results": [{"out": [{"prefix": "General::noserver", "message": true, "tag": "noserver", "symbol": "General", "text": "<math><mrow><mtext>No server running.</mtext></mrow></math>"}]}]}';
 			}
 			var response = JSON.parse(transport.responseText);
+
 			setResult(textarea.ul, response.results);
 			textarea.submitted = true;
 			textarea.results = response.results;
@@ -511,6 +515,7 @@ function keyDown(event) {
 			}
 		}
 	} else if (isGlobalKey(event)) {
+		event.stop();
 		event.stopPropagation();
 		event.preventDefault();
 	}
@@ -583,7 +588,7 @@ function createSortable() {
 
 var queryIndex = 0;
 
-function createQuery(before, noFocus, updatingAll) {
+function createQuery(beforeElement, noFocus, updatingAll) {
 	var ul, textarea, moveHandle, deleteHandle, submitButton;
 	// items need id in order for Sortable.onUpdate to work.
 	var li = $E('li', { id: 'query_' + queryIndex++, class: 'query' },
@@ -598,7 +603,11 @@ function createQuery(before, noFocus, updatingAll) {
 			)
 		),
 		moveHandle = $E('span', { class: 'move' }),
-		deleteHandle = $E('span', { class: 'delete', title: 'Delete' }, $T(String.fromCharCode(215)))
+		deleteHandle = $E(
+			'span',
+			{ class: 'delete', title: 'Delete' },
+			$T('×')
+		)
 	);
 	textarea.rows = 1;
 	textarea.ul = ul;
@@ -611,8 +620,8 @@ function createQuery(before, noFocus, updatingAll) {
 
 	const queries = document.getElementById('queries');
 
-	if (before) {
-		queries.insertBefore(li, before);
+	if (beforeElement) {
+		queries.insertBefore(li, beforeElement);
 	} else {
 		queries.appendChild(li);
 	}
@@ -644,6 +653,7 @@ function createQuery(before, noFocus, updatingAll) {
 	if (!noFocus) {
 		textarea.focus();
 	}
+
 	return li;
 }
 
@@ -657,7 +667,7 @@ function documentMouseDown(event) {
 
 			return;
 		}
-		event.stop(); // strangely, doesn't work otherwise
+
 		mouseDownEvent = event;
 	}
 }
@@ -684,13 +694,13 @@ function documentClick(event) {
 	var y = event.pointerY() - offset.top + documentElement.scrollTop;
 	var element = null;
 
-	queries.childElements.forEach((li) => {
+	for (let i = 0; i < queries.childElementCount; i++) {
 		// margin-top: 10px
-		if (li.positionedOffset().top + 20 > y) {
-			element = li;
-			throw $break;
+		if (queries.children[i].positionedOffset().top + 20 > y) {
+			element = queries.children[i];
+			break;
 		}
-	});
+	}
 
 	createQuery(element);
 }
@@ -732,9 +742,15 @@ function globalKeyUp(event) {
 			// 	event.stop();
 			// 	break;
 			case 83: // S
+				event.stop();
+				event.stopPropagation();
+				event.preventDefault();
 				showSave();
 				break;
 			case 79: // O
+				event.stop();
+				event.stopPropagation();
+				event.preventDefault();
 				showOpen();
 				break;
 		}
@@ -775,7 +791,8 @@ function domLoaded() {
 		documentElement.addEventListener('click', documentClick);
 
 		document.addEventListener('keydown', keyDown);
-		document.addEventListener('keyup', globalKeyUp);
+		window.addEventListener('keydown', globalKeyUp);
+		window.addEventListener('keyup', globalKeyUp);
 
 		if (!loadLink()) {
 			createQuery();
