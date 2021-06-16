@@ -15,7 +15,6 @@ FORM_TO_FORMAT = {
     "System`OutputForm": "text",
 }
 
-
 def format_output(obj, expr, format=None):
     """
     Handle unformatted output using the *specific* capabilities of mathics-django.
@@ -79,9 +78,9 @@ def format_output(obj, expr, format=None):
             result = expr.format(obj, "System`OutputForm")
         elif head == "System`String":
             result = expr.format(obj, "System`InputForm")
-            # FIXME: In mathicsscript we have a setting --wl-strict-wl-ouput
-            # which controls whether to include quotes when the top-level
-            # output is a string.
+            # FIXME: use "use_quoted_strings" accordingly.
+            use_quoted_strings = Expression("Settings`$QuotedStrings").evaluate(obj).get_head().to_python()
+            print("quoted strings is", use_quoted_strings)
             return result.boxes_to_text(result)
         elif head == "System`Graphics3D":
             form_expr = Expression("StandardForm", expr)
