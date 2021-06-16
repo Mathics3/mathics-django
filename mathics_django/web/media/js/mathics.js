@@ -6,11 +6,10 @@ var deleting,
 	welcome = true;
 
 function getLetterWidth(element) {
-	const letter = $E('span', $T('m'));
-	letter.setStyle({
-		fontFamily: element.getStyle('font-family'),
-		fontSize: element.getStyle('font-size')
-	});
+	const letter = document.createElement('span');
+	letter.innerText = 'm';
+	letter.style.fontFamily = element.style.fontFamily;
+	letter.style.fontSize = element.style.fontSize;
 
 	document.body.appendChild(letter);
 
@@ -23,7 +22,7 @@ function getLetterWidth(element) {
 
 function refreshInputSize(textarea) {
 	const letterWidth = getLetterWidth(textarea);
-	const width = textarea.getWidth() - 15;
+	const width = textarea.clientWidth - 15;
 	const lines = textarea.value.split('\n');
 	let lineCount = 0;
 
@@ -37,10 +36,6 @@ function refreshInputSize(textarea) {
 function refreshInputSizes() {
 	document.querySelectorAll('textarea.request').forEach((textarea) => {
 		refreshInputSize(textarea);
-	});
-
-	document.querySelectorAll('#queries ul').forEach((ul) => {
-		afterProcessResult(ul, 'Rerender');
 	});
 }
 
@@ -347,15 +342,16 @@ function createLine(value) {
 	}
 }
 
-function afterProcessResult(ul, command) {
+function afterProcessResult(list, command) {
 	// command is either 'Typeset' (default) or 'Rerender'
 	if (!command) {
 		command = 'Typeset';
 	}
-	MathJax.Hub.Queue([command, MathJax.Hub, ul]);
-	MathJax.Hub.Queue(function () {
+
+	MathJax.Hub.Queue([command, MathJax.Hub, list]);
+	MathJax.Hub.Queue(() => {
 		// inject SVG and other non-MathML objects into corresponding <mspace>s
-		ul.querySelectorAll('.mspace').forEach((mspace) => {
+		list.querySelectorAll('.mspace').forEach((mspace) => {
 			var id = mspace.getAttribute('id').substr(objectsPrefix.length);
 			var object = objects[id];
 			mspace.appendChild(object);
@@ -364,10 +360,10 @@ function afterProcessResult(ul, command) {
 	if (!MathJax.Hub.Browser.isOpera) {
 		// Opera 11.01 Build 1190 on Mac OS X 10.5.8 crashes on this call for Plot[x,{x,0,1}]
 		// => leave inner MathML untouched
-		MathJax.Hub.Queue(['Typeset', MathJax.Hub, ul]);
+		MathJax.Hub.Queue(['Typeset', MathJax.Hub, list]);
 	}
 	MathJax.Hub.Queue(() => {
-		ul.querySelectorAll('foreignObject > span > nobr > span.math')
+		list.querySelectorAll('foreignObject > span > nobr > span.math')
 			.forEach((math) => {
 				var content = math.childNodes[0].childNodes[0].childNodes[0];
 				math.removeChild(math.childNodes[0]);
@@ -392,11 +388,11 @@ function afterProcessResult(ul, command) {
 	});
 }
 
-function setResult(ul, results) {
-	var resultUl = document.createElement('ul');
-	resultUl.className = 'out';
+function setResult(list, results) {
+	var resultList = document.createElement('ul');
+	resultList.className = 'out';
 	// we'll just show if it have children
-	resultUl.style.display = 'none';
+	resultList.style.display = 'none';
 
 	results.forEach((result) => {
 		result.out.forEach((out) => {
@@ -407,18 +403,22 @@ function setResult(ul, results) {
 			}
 
 			li.appendChild(createLine(out.text));
-			resultUl.appendChild(li);
+			resultList.appendChild(li);
 		});
 
-		if (result.result !== null) {
-			resultUl.appendChild($E('li', { class: 'result' }, createLine(result.result)));
-			resultUl.style.display = 'block';
+		if (result.result) {
+			resultList.appendChild($E('li', { class: 'result' }, createLine(result.result)));
+			resultList.style.display = 'block';
+		}
+
+		if (result.out.length) {
+			resultList.style.display = 'block';
 		}
 	});
 
-	ul.appendChild($E('li', { class: 'out' }, resultUl));
+	list.appendChild($E('li', { class: 'out' }, resultList));
 
-	afterProcessResult(ul);
+	afterProcessResult(list);
 }
 
 function submitQuery(textarea, onfinish) {

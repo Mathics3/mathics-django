@@ -145,7 +145,7 @@ function getContent() {
 }
 
 function setContent(content) {
-	document.getElementById('queries').deleteChildNodes();
+	document.getElementById('queries').innerHTML = '';
 
 	document.getElementById('welcome').style.display = 'none';
 
