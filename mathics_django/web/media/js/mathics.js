@@ -314,6 +314,7 @@ function createLine(value) {
 
 		drawGraphics3D(div, JSON.parse(container.firstElementChild.attributes.data.value));
 
+		div.style.overflow = 'hidden';
 		div.style.position = 'relative';
 		div.style.margin = 'auto';
 

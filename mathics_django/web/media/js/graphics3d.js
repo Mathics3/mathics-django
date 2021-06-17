@@ -42,7 +42,7 @@ const drawFunctions = {
 	polygon: (element) => {
 		let geometry;
 
-		if (element.coords.length === 3) { // triangle (also usued in cubes)
+		if (element.coords.length === 3) { // triangle
 			geometry = new THREE.Geometry();
 
 			geometry.vertices = element.coords.map(
@@ -50,27 +50,80 @@ const drawFunctions = {
 			);
 
 			geometry.faces.push(new THREE.Face3(0, 1, 2));
-			geometry.faces.push(new THREE.Face3(0, 2, 1));
 		} else {
-			const polygonShape = new THREE.Shape();
+			// boolean variables
+			let isXCoplanar = 1, isYCoplanar = 1, isZCoplanar = 1;
 
-			polygonShape.moveTo(...element.coords[0][0]);
-
-			for (let i = 1; i < element.coords.length; i++) {
-				polygonShape.lineTo(...element.coords[i][0]);
-			}
-
-			geometry = new THREE.ExtrudeGeometry(polygonShape, {
-				depth: 0,
-				steps: 0,
-				bevelEnabled: false
+			element.coords.forEach((coordinate) => {
+				if (coordinate[0][0] !== element.coords[0][0][0]) {
+					isXCoplanar = 0;
+				}
+				if (coordinate[0][1] !== element.coords[0][0][1]) {
+					isYCoplanar = 0;
+				}
+				if (coordinate[0][2] !== element.coords[0][0][2]) {
+					isZCoplanar = 0;
+				}
 			});
+
+			if (isXCoplanar || isYCoplanar || isZCoplanar) {
+				const normalVector = new THREE.Vector3(
+					isXCoplanar,
+					isYCoplanar,
+					isZCoplanar
+				);
+
+				const normalZVector = new THREE.Vector3(0, 0, 1);
+
+				const points = element.coords.map((coordinate) =>
+					new THREE.Vector3(...coordinate[0])
+						.applyQuaternion(
+							new THREE.Quaternion().setFromUnitVectors(
+								normalVector,
+								normalZVector
+							)
+						)
+				);
+
+				const polygonShape = new THREE.Shape(points);
+
+				geometry = new THREE.ShapeGeometry(polygonShape);
+
+				geometry.vertices = geometry.vertices.map(
+					(vertex) => vertex.applyQuaternion(
+						new THREE.Quaternion().setFromUnitVectors(
+							normalZVector,
+							normalVector
+						)
+					)
+				);
+			} else {
+				geometry = new THREE.Geometry();
+
+				const coordinates = [];
+
+				element.coords.forEach((coordinate) => {
+					coordinates.push(...coordinate[0]);
+					geometry.vertices.push(new THREE.Vector3(...coordinate[0]));
+				});
+
+				const triangles = earcut(coordinates, null, 3);
+
+				for (let i = 0; i < triangles.length; i += 3) {
+					geometry.faces.push(new THREE.Face3(
+						triangles[i],
+						triangles[i + 1],
+						triangles[i + 2]
+					));
+				}
+			}
 		};
 
 		geometry.computeFaceNormals();
 
 		return new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({
-			color: new THREE.Color(...element.faceColor).getHex()
+			color: new THREE.Color(...element.faceColor).getHex(),
+			side: THREE.DoubleSide
 		}));
 	},
 	sphere: (element) => {
@@ -124,7 +177,8 @@ function drawGraphics3D(container, data) {
 
 	let canvasSize = Math.min(400, window.innerWidth * 0.6);
 	container.style.width = canvasSize + 'px';
-	container.style.height = canvasSize + 'px';
+	// to avoid overflow when a tick numbers is out of the parent element
+	container.style.height = canvasSize + 10 + 'px';
 
 	let hasAxes, isMouseDown = false,
 		theta, onMouseDownTheta, phi, onMouseDownPhi;
@@ -751,7 +805,8 @@ function drawGraphics3D(container, data) {
 	window.addEventListener('resize', () => {
 		canvasSize = Math.min(400, window.innerWidth * 0.6);
 		container.style.width = canvasSize + 'px';
-		container.style.height = canvasSize + 'px';
+		// to avoid overflow when a tick numbers is out of the parent element
+		container.style.height = canvasSize + 10 + 'px';
 
 		renderer.setPixelRatio(window.devicePixelRatio);
 		renderer.setSize(canvasSize, canvasSize);
