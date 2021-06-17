@@ -15,7 +15,6 @@ FORM_TO_FORMAT = {
     "System`OutputForm": "text",
 }
 
-
 def format_output(obj, expr, format=None):
     """
     Handle unformatted output using the *specific* capabilities of mathics-django.
@@ -64,8 +63,17 @@ def format_output(obj, expr, format=None):
         result = Expression("StandardForm", expr).format(obj, "System`MathMLForm")
 
     # This part was derived from and the same as evaluation.py format_output.
+
+    use_quotes = Expression("Settings`$QuotedStrings").evaluate(obj).get_head().to_python()
+
     if format == "text":
         result = expr.format(obj, "System`OutputForm")
+        result = eval_boxes(result, result.boxes_to_text, obj)
+
+        if use_quotes:
+            result = '"' + result + '"'
+
+        return result
     elif format == "xml":
         result = Expression("StandardForm", expr).format(obj, "System`MathMLForm")
     elif format == "tex":
@@ -79,10 +87,13 @@ def format_output(obj, expr, format=None):
             result = expr.format(obj, "System`OutputForm")
         elif head == "System`String":
             result = expr.format(obj, "System`InputForm")
-            # FIXME: In mathicsscript we have a setting --wl-strict-wl-ouput
-            # which controls whether to include quotes when the top-level
-            # output is a string.
-            return result.boxes_to_text(result)
+            result = result.boxes_to_text(result)
+
+            if (not use_quotes):
+                # Substring without the quotes
+                result = result[1:-1]
+
+            return result
         elif head == "System`Graphics3D":
             form_expr = Expression("StandardForm", expr)
             result = form_expr.format(obj, "System`StandardForm")
