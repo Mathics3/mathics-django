@@ -284,9 +284,12 @@ function showGallery() {
 		'Plot[{Sin[x], Cos[x], Tan[x]}, {x, -3Pi, 3Pi}]',
 		'Graphics[Polygon[{{150,0},{121,90},{198,35},{102,35},{179,90}}]]',
 
+		'(* Charts: *)',
+		'BarChart[{{1, 2, 3}, {2, 3, 4}}]',
+		'PieChart[{30, 20, 10}, ChartLabels -> {Dogs, Cats, Fish}]',
+
 		'(* Bouncing Ping-Pong Ball at equal time intervals *)',
 		'Plot[Abs[Sin[t] / (t + 1)], {t, 0, 4 Pi}, Mesh->Full, PlotRange->{0, 1 / 2}]',
-		'BarChart[{{1, 2, 3}, {2, 3, 4}}]',
 
 		'Graphics[Table[Circle[{x,y}], {x, 0, 10, 2}, {y, 0, 10, 2}]]',
 
