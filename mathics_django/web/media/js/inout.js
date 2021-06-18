@@ -304,6 +304,9 @@ function showGallery() {
 		'Graphics[Point[points], ImageSize->Small]',
 
 		'Graphics[Table[{EdgeForm[{GrayLevel[0, 0.5]}], Hue[(-11+q+10r)/72, 1, 1, 0.6], Disk[(8-r){Cos[2Pi q/12], Sin [2Pi q/12]}, (8-r)/3]}, {r, 6}, {q, 12}]]',
+
+		'(* Embedding objects in a Table. *)',
+		'Table[RGBColor[1, g, 0], {g, 0, 1, 0.05}]',
 		'Table[Plot[x^i Sin[j Pi x], {x, 0, 2}],{i, 2},{j, 2}]//MatrixForm',
 
 		'(**** 3D graphics ****)',
