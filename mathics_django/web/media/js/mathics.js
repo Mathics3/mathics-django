@@ -22,13 +22,13 @@ function getLetterWidth(element) {
 
 function refreshInputSize(textarea) {
 	const letterWidth = getLetterWidth(textarea);
-	const width = textarea.clientWidth - 15;
+	const width = textarea.clientWidth;
 	const lines = textarea.value.split('\n');
 	let lineCount = 0;
 
-	for (let i = 0; i < lines.length; ++i) {
-		lineCount += Math.ceil((lines[i].length + 1) * letterWidth / width);
-	}
+	lines.forEach((line) => {
+		lineCount += Math.ceil((line.length) * letterWidth / width);
+	});
 
 	textarea.rows = lineCount;
 }
