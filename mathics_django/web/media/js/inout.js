@@ -176,15 +176,17 @@ function setContent(content) {
 }
 
 function createLink() {
+	const queriesElement = document.getElementById('queries');
+
 	const queries = [];
 
-	document.getElementById('queries').childElements().each((query) => {
+	for (let i = 0; i < queriesElement.childElementCount; i++) {
 		queries.push('queries=' + encodeURIComponent(
-			query.querySelector('textarea.request').getText()
+			queriesElement.children[i].querySelector('textarea.request').value
 		));
-	});
+	}
 
-	location.hash = '#' + btoa(queries.join('&')); // encodeURI(query);
+	location.href = '#' + btoa(queries.join('&')); // encodeURI(query);
 }
 
 function setQueries(queries) {
