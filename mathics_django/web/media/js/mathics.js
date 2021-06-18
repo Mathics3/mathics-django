@@ -22,13 +22,13 @@ function getLetterWidth(element) {
 
 function refreshInputSize(textarea) {
 	const letterWidth = getLetterWidth(textarea);
-	const width = textarea.clientWidth - 15;
+	const width = textarea.clientWidth;
 	const lines = textarea.value.split('\n');
 	let lineCount = 0;
 
-	for (let i = 0; i < lines.length; ++i) {
-		lineCount += Math.ceil((lines[i].length + 1) * letterWidth / width);
-	}
+	lines.forEach((line) => {
+		lineCount += Math.ceil((line.length + 1) * letterWidth / width);
+	});
 
 	textarea.rows = lineCount;
 }
@@ -122,32 +122,35 @@ function createMathNode(nodeName) {
 var objectsPrefix = 'math_object_', objectsCount = 0, objects = {};
 
 function translateDOMElement(element, svg) {
-	if (element.nodeType == 3) {
-		var text = element.nodeValue;
-		return $T(text);
+	if (element.nodeType === 3) {
+		return $T(element.nodeValue);
 	}
-	var dom = null;
-	var nodeName = element.nodeName;
-	if (nodeName != 'meshgradient' && nodeName != 'graphics3d') {
+
+	let dom = null;
+	const nodeName = element.nodeName;
+
+	if (nodeName !== 'meshgradient' && nodeName !== 'graphics3d') {
 		dom = createMathNode(element.nodeName);
-		for (var i = 0; i < element.attributes.length; ++i) {
-			var attr = element.attributes[i];
+
+		for (let i = 0; i < element.attributes.length; ++i) {
+			const attr = element.attributes[i];
+
 			if (attr.nodeName != 'ox' && attr.nodeName != 'oy') {
 				dom.setAttribute(attr.nodeName, attr.nodeValue);
 			}
 		}
 	}
-	if (nodeName == 'foreignObject') {
+	if (nodeName === 'foreignObject') {
 		dom.setAttribute('width', svg.getAttribute('width'));
 		dom.setAttribute('height', svg.getAttribute('height'));
 		dom.setAttribute('style', dom.getAttribute('style') + '; text-align: left; padding-left: 2px; padding-right: 2px;');
-		var ox = parseFloat(element.getAttribute('ox'));
-		var oy = parseFloat(element.getAttribute('oy'));
-		dom.setAttribute('ox', ox);
-		dom.setAttribute('oy', oy);
+
+		dom.setAttribute('ox', parseFloat(element.getAttribute('ox')));
+		dom.setAttribute('oy', parseFloat(element.getAttribute('oy')));
 	}
-	if (nodeName == 'mo') {
-		const op = element.childNodes[0].nodeValue;
+
+	if (nodeName === 'mo') {
+		const op = element.firstChild.nodeValue;
 
 		if (op === '[' ||
 			op === ']' ||
@@ -159,7 +162,7 @@ function translateDOMElement(element, svg) {
 			dom.setAttribute('maxsize', '3');
 		}
 	}
-	if (nodeName == 'meshgradient') {
+	if (nodeName === 'meshgradient') {
 		if (!MathJax.Hub.Browser.isOpera) {
 			var data = JSON.parse(element.getAttribute('data'));
 			var div = document.createElementNS('http://www.w3.org/1999/xhtml', 'div');
@@ -186,17 +189,22 @@ function translateDOMElement(element, svg) {
 		}
 	}
 	var object = null;
-	if (nodeName == 'graphics3d') {
+
+	if (nodeName === 'graphics3d') {
 		var data = JSON.parse(element.getAttribute('data'));
 		var div = document.createElement('div');
+
 		drawGraphics3D(div, data);
+
 		dom = div;
 	}
-	if (nodeName == 'svg' || nodeName == 'graphics3d' || nodeName.toLowerCase() == 'img') {
+	if (nodeName === 'svg' || nodeName === 'graphics3d' || nodeName.toLowerCase() === 'img') {
 		// create <mspace> that will contain the graphics
 		object = createMathNode('mspace');
-		var width, height;
-		if (nodeName == 'svg' || nodeName.toLowerCase() == 'img') {
+
+		let width, height;
+
+		if (nodeName === 'svg' || nodeName.toLowerCase() === 'img') {
 			width = dom.getAttribute('width');
 			height = dom.getAttribute('height');
 			if (!width.endsWith('px')) {
@@ -213,8 +221,11 @@ function translateDOMElement(element, svg) {
 		object.setAttribute('width', width);
 		object.setAttribute('height', height);
 	}
-	if (nodeName == 'svg')
+
+	if (nodeName === 'svg') {
 		svg = dom;
+	}
+
 	var rows = [[]];
 	$A(element.childNodes).each(function (child) {
 		if (child.nodeName == 'mspace' && child.getAttribute('linebreak') == 'newline') {
@@ -223,13 +234,16 @@ function translateDOMElement(element, svg) {
 			rows[rows.length - 1].push(child);
 		}
 	});
+
 	var childParent = dom;
-	if (nodeName == 'math') {
+
+	if (nodeName === 'math') {
 		var mstyle = createMathNode('mstyle');
 		mstyle.setAttribute('displaystyle', 'true');
 		dom.appendChild(mstyle);
 		childParent = mstyle;
 	}
+
 	if (rows.length > 1) {
 		var mtable = createMathNode('mtable');
 		mtable.setAttribute('rowspacing', '0');
@@ -254,22 +268,27 @@ function translateDOMElement(element, svg) {
 			mtr.appendChild(mtd);
 			mtable.appendChild(mtr);
 		});
-		if (nodeName == 'mtext') {
+		if (nodeName === 'mtext') {
 			// no mtable inside mtext, but mtable instead of mtext
 			dom = mtable;
 		} else {
 			childParent.appendChild(mtable);
 		}
-	} else
+	} else {
 		rows[0].each((element) => {
 			childParent.appendChild(translateDOMElement(element, svg));
 		});
+	}
+
 	if (object) {
-		var id = objectsCount++;
+		const id = objectsCount++;
+
 		object.setAttribute('id', objectsPrefix + id);
 		objects[id] = dom;
+
 		return object;
 	}
+
 	return dom;
 }
 
@@ -306,9 +325,7 @@ function createLine(value) {
 	container.innerHTML = value;
 
 	if (container?.firstElementChild?.tagName === 'math') {
-		convertMathGlyphs(container);
-
-		return translateDOMElement(container.childNodes[0]);
+		return translateDOMElement(container.firstChild);
 	} else if (container?.firstElementChild?.tagName === 'GRAPHICS3D') {
 		const div = document.createElement('div');
 
@@ -365,9 +382,9 @@ function afterProcessResult(list, command) {
 	MathJax.Hub.Queue(() => {
 		list.querySelectorAll('foreignObject > span > nobr > span.math')
 			.forEach((math) => {
-				var content = math.childNodes[0].childNodes[0].childNodes[0];
-				math.removeChild(math.childNodes[0]);
-				math.insertBefore(content, math.childNodes[0]);
+				var content = math.firstChild.firstChild.firstChild;
+				math.removeChild(math.firstChild);
+				math.insertBefore(content, math.firstChild);
 
 				if (command === 'Typeset') {
 					// recalculate positions of insets based on ox/oy properties
@@ -759,9 +776,12 @@ function globalKeyUp(event) {
 
 function domLoaded() {
 	MathJax.Hub.Config({
-		"HTML-CSS": {
+		'HTML-CSS': {
 			imageFont: null,
-			linebreaks: { automatic: true }
+			linebreaks: {
+				automatic: true,
+				width: '70% container'
+			}
 		},
 		MMLorHTML: {
 			// the output jax that is to be preferred when both are possible
@@ -802,3 +822,20 @@ function domLoaded() {
 
 window.addEventListener('DOMContentLoaded', domLoaded);
 window.addEventListener('resize', refreshInputSizes);
+
+let timeout = -1;
+
+window.addEventListener('resize', function () {
+	if (timeout >= 0) {
+		// the user is still resizing so postpone the action further
+		window.clearTimeout(timeout);
+	}
+
+	timeout = window.setTimeout(function () {
+		document.querySelectorAll('#queries ul').forEach((ul) => {
+			afterProcessResult(ul, 'Rerender');
+		});
+
+		timeout = -1; // reset the timeout
+	}, 500);
+});
