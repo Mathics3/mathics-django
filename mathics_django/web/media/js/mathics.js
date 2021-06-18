@@ -759,9 +759,12 @@ function globalKeyUp(event) {
 
 function domLoaded() {
 	MathJax.Hub.Config({
-		"HTML-CSS": {
+		'HTML-CSS': {
 			imageFont: null,
-			linebreaks: { automatic: true }
+			linebreaks: {
+				automatic: true,
+				width: '70% container'
+			}
 		},
 		MMLorHTML: {
 			// the output jax that is to be preferred when both are possible
@@ -802,3 +805,20 @@ function domLoaded() {
 
 window.addEventListener('DOMContentLoaded', domLoaded);
 window.addEventListener('resize', refreshInputSizes);
+
+let timeout = -1;
+
+window.addEventListener('resize', function () {
+	if (timeout >= 0) {
+		// the user is still resizing so postpone the action further
+		window.clearTimeout(timeout);
+	}
+
+	timeout = window.setTimeout(function () {
+		document.querySelectorAll('#queries ul').forEach((ul) => {
+			afterProcessResult(ul, 'Rerender');
+		});
+
+		timeout = -1; // reset the timeout
+	}, 500);
+});

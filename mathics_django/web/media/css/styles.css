@@ -27,7 +27,7 @@ body > header {
 #logotext {
   margin-top: 6px;
   margin-left: 6px;
-  margin-right: 0em;
+  margin-right: 0;
 }
 #logo.load,
 #logotext.load {
@@ -83,7 +83,7 @@ div.menu {
   background-color: #3f3f3f;
   color: #fff;
   border-radius: 5px;
-  box-shadow: 0px 1px 2px 0px #cccecb;
+  box-shadow: 0 1px 2px 0 #cccecb;
   border: #cccecb 1px solid;
 
   -webkit-animation: menu-anim 0.4s;
@@ -190,7 +190,7 @@ div.transparent {
   transform-origin: right;
   border: 0;
   border-bottom: 1px solid #cccecb;
-  box-shadow: 0px 1px 1px -1px #cccecb;
+  box-shadow: 0 1px 1px -1px #cccecb;
   /*border-radius: 4px;*/
   outline: 0;
   width: 100%;
@@ -304,7 +304,7 @@ a.pdf {
   top: 54px;
   padding-top: 12px;
   position: absolute;
-  bottom: 0px;
+  bottom: 0;
   width: 50%;
   right: 0;
   border: none;
@@ -375,7 +375,7 @@ a.pdf {
 #welcome,
 #welcomeBrowser {
   background-color: #3f3f3f;
-  box-shadow: 0px 1px 1px 0px #cccecb;
+  box-shadow: 0 1px 1px 0 #cccecb;
   border: #cccecb 1px solid;
   color: #fff;
   cursor: default;
@@ -567,7 +567,6 @@ ul.out {
   border: 1px solid #666;
   list-style-type: none;
   margin: 10px 40px 0 0;
-  overflow: auto;
   box-sizing: border-box;
   padding: 0;
   font-family: monospace;
