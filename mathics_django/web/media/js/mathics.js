@@ -140,6 +140,7 @@ function translateDOMElement(element, svg) {
 			}
 		}
 	}
+
 	if (nodeName === 'foreignObject') {
 		dom.setAttribute('width', svg.getAttribute('width'));
 		dom.setAttribute('height', svg.getAttribute('height'));
@@ -162,6 +163,7 @@ function translateDOMElement(element, svg) {
 			dom.setAttribute('maxsize', '3');
 		}
 	}
+
 	if (nodeName === 'meshgradient') {
 		if (!MathJax.Hub.Browser.isOpera) {
 			var data = JSON.parse(element.getAttribute('data'));
@@ -198,6 +200,7 @@ function translateDOMElement(element, svg) {
 
 		dom = div;
 	}
+
 	if (nodeName === 'svg' || nodeName === 'graphics3d' || nodeName.toLowerCase() === 'img') {
 		// create <mspace> that will contain the graphics
 		object = createMathNode('mspace');
@@ -290,34 +293,6 @@ function translateDOMElement(element, svg) {
 	}
 
 	return dom;
-}
-
-function convertMathGlyphs(dom) {
-	// convert mglyphs to their classic representation (<svg> or <img>), so the new mglyph logic does not make
-	// anything worse in the classic Mathics frontend for now. In the long run, this code should vanish.
-
-	const MML = "http://www.w3.org/1998/Math/MathML";
-	const glyphs = dom.getElementsByTagName("mglyph");
-	for (let i = 0; i < glyphs.length; i++) {
-		const glyph = glyphs[i];
-		const src = glyph.getAttribute('src');
-
-		if (src.startsWith('NUNCAMENENCONTRARASdata:image/svg+xml;base64,')) {
-			var svgText = atob(src.substring(src.indexOf(",") + 1));
-			var mtable = document.createElementNS(MML, "mtable");
-			mtable.innerHTML = '<mtr><mtd>' + svgText + '</mtd></mtr>';
-			var svg = mtable.getElementsByTagNameNS("*", "svg")[0];
-			svg.setAttribute('width', glyph.getAttribute('width'));
-			svg.setAttribute('height', glyph.getAttribute('height'));
-			glyph.parentNode.replaceChild(mtable, glyph);
-		} else if (src.startsWith('data:image/')) {
-			var img = document.createElement('img');
-			img.setAttribute('src', src);
-			img.setAttribute('width', glyph.getAttribute('width'));
-			img.setAttribute('height', glyph.getAttribute('height'));
-			glyph.parentNode.replaceChild(img, glyph);
-		}
-	}
 }
 
 function createLine(value) {
