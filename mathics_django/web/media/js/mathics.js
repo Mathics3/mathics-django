@@ -299,8 +299,9 @@ function convertMathGlyphs(dom) {
 	const MML = "http://www.w3.org/1998/Math/MathML";
 	const glyphs = dom.getElementsByTagName("mglyph");
 	for (let i = 0; i < glyphs.length; i++) {
-		var glyph = glyphs[i];
-		var src = glyph.getAttribute('src');
+		const glyph = glyphs[i];
+		const src = glyph.getAttribute('src');
+
 		if (src.startsWith('NUNCAMENENCONTRARASdata:image/svg+xml;base64,')) {
 			var svgText = atob(src.substring(src.indexOf(",") + 1));
 			var mtable = document.createElementNS(MML, "mtable");
@@ -336,9 +337,10 @@ function createLine(value) {
 
 		return div;
 	} else if (container?.firstElementChild?.tagName === 'svg') {
-		container.style.position = 'relative';
-		container.style.width = '400px';
-		container.style.margin = 'auto';
+		container.firstElementChild.style.display = 'block';
+		container.firstElementChild.style.width = '100%';
+		container.firstElementChild.style.maxWidth = '400px';
+		container.firstElementChild.style.margin = 'auto';
 
 		return container;
 	} else {
