@@ -34,6 +34,39 @@
 				</ul>
 			</p>
 
+			<h1>Settings</h1>
+			<p>
+				<ul>
+				{% for setting, value in user_settings.items %}
+					{% if value.is_boolean %}
+						<li>
+							<label for="{{setting}}">
+								{{setting}}:
+								<input
+									type="checkbox"
+									name="{{setting}}"
+									{% if value.boolean_value %}checked{% endif %}
+									onclick="submitQuery(this, undefined, `${this.name} = ${this.checked ? 'True' : 'False'}`)"
+								/>
+
+								<br />
+
+								{{value.usage}}
+							</label>
+						</li>
+					{% else %}
+						<li>
+							{{setting}}: {{value.value}}
+
+							<br />
+
+							<span>{{value.usage}}</span>
+						</li>
+					{% endif %}
+				{% endfor %}
+				</ul>
+			</p>
+
 			<h1>System information</h1>
 			<p>
 				<ul>
