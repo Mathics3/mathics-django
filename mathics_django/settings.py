@@ -18,6 +18,9 @@ DEBUG_PRINT = False
 
 LOG_QUERIES = False
 
+# add allowed hosts if DEBUG is False
+# ALLOWED_HOSTS = ['*']
+
 # Either None (no timeout) or a positive integer.
 # unix only
 TIMEOUT = None
