@@ -1,7 +1,7 @@
 {% extends "base_html.html" %}
 {% load static %}
 
-{% block title %}Mathics{% endblock %}
+{% block title %}Mathics in Django{% endblock %}
 
 {% block html_head %}
 	<script type="text/javascript" src="{% static 'js/scriptaculous/effects.js' %}"></script>
@@ -33,7 +33,7 @@
 					<a href="javascript:showLogin()" class="fa fa-lg fa-sign-in" title="Sign in"></a>
 				</div>
 			{% endif %}
-			
+
 			<div id="authenticated" class="login" style="display: none">
 				<span id="username"></span>
 				<a id="logout" href="javascript:logout()" class="fa fa-lg fa-sign-out" title="Sign out"></a>
