@@ -6,7 +6,7 @@ import unicodedata
 
 from django.utils.html import linebreaks
 
-from mathics.doc.doc import (
+from mathics.doc.common_doc import (
     ALLOWED_TAGS,
     ALLOWED_TAGS_RE,
     CONSOLE_RE,

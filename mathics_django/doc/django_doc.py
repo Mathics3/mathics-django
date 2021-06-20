@@ -20,7 +20,7 @@ from mathics.core.evaluation import Message, Print
 from mathics_django.doc.utils import escape_html, slugify
 from mathics_django.settings import DOC_XML_DATA_PATH
 
-from mathics.doc.doc import (
+from mathics.doc.common_doc import (
     CHAPTER_RE,
     DocElement,
     END_LINE_SENTINAL,
@@ -185,9 +185,16 @@ class MathicsMainDocumentation(Documentation):
 
             builtin_part = DjangoDocPart(self, title, is_reference=start)
             for module in modules:
+                # FIXME add an additional mechanism in the module
+                # to allow a docstring and indicate it is not to go in the
+                # user manual
+                if module.__doc__ is None:
+                    continue
                 title, text = get_module_doc(module)
                 chapter = DjangoDocChapter(builtin_part, title, DjangoDoc(text))
                 builtins = builtins_by_module[module.__name__]
+                # FIXME: some Box routines, like RowBox *are*
+                # documented
                 section_names = [
                     builtin
                     for builtin in builtins
@@ -201,6 +208,11 @@ class MathicsMainDocumentation(Documentation):
                         except ImportError:
                             installed = False
                             break
+                    # FIXME add an additional mechanism in the module
+                    # to allow a docstring and indicate it is not to go in the
+                    # user manual
+                    if instance.__doc__ is None:
+                        continue
                     section = DjangoDocSection(
                         chapter,
                         strip_system_prefix(instance.get_name()),
