@@ -416,11 +416,11 @@ function setResult(list, results) {
 	afterProcessResult(list);
 }
 
-function submitQuery(textarea, onfinish) {
+function submitQuery(element, onfinish, query) {
 	if (welcome) {
-		document.getElementById('welcomeContainer').fade({ duration: 0.2 });
+		document.getElementById('welcomeContainer')?.fade({ duration: 0.2 });
 
-		if (document.getElementById('hideStartupMsg').checked) {
+		if (document.getElementById('hideStartupMsg')?.checked) {
 			localStorage.setItem('hideMathicsStartupMsg', 'true');
 		}
 
@@ -428,41 +428,46 @@ function submitQuery(textarea, onfinish) {
 		document.getElementById('logo').classList.remove('load');
 	}
 
-	textarea.li.classList.add('loading');
-	document.getElementById('logo').classList.add('working');
+	element.li?.classList.add('loading');
+	document.getElementById('logo')?.classList.add('working');
 
 	new Ajax.Request('/ajax/query/', {
 		method: 'post',
-		parameters: { query: textarea.value },
+		parameters: { query: query || element.value },
 		onSuccess: (transport) => {
-			textarea.ul.select('li[class!=request][class!=submitbutton]').invoke('deleteElement');
-			if (!transport.responseText) {
-				// a fatal Python error has occurred, e.g. on 4.4329408320439^43214234345
-				// ("Fatal Python error: mp_reallocate failure")
-				// -> print overflow message
-				transport.responseText = '{"results": [{"out": [{"prefix": "General::noserver", "message": true, "tag": "noserver", "symbol": "General", "text": "<math><mrow><mtext>No server running.</mtext></mrow></math>"}]}]}';
-			}
-			var response = JSON.parse(transport.responseText);
+			if (element.ul) {
+				element.ul.select('li[class!=request][class!=submitbutton]').invoke('deleteElement');
 
-			setResult(textarea.ul, response.results);
-			textarea.submitted = true;
-			textarea.results = response.results;
-			var next = textarea.li.nextSibling;
-			if (next) {
-				next.textarea.focus();
-			} else {
-				createQuery();
+				if (!transport.responseText) {
+					// a fatal Python error has occurred, e.g. on 4.4329408320439^43214234345
+					// ("Fatal Python error: mp_reallocate failure")
+					// -> print overflow message
+					transport.responseText = '{"results": [{"out": [{"prefix": "General::noserver", "message": true, "tag": "noserver", "symbol": "General", "text": "<math><mrow><mtext>No server running.</mtext></mrow></math>"}]}]}';
+				}
+
+				const response = JSON.parse(transport.responseText);
+
+				setResult(element.ul, response.results);
+				element.submitted = true;
+				element.results = response.results;
+
+				const next = element.li.nextSibling;
+				if (next) {
+					next.textarea.focus();
+				} else {
+					createQuery();
+				}
 			}
 		},
 		onFailure: () => {
-			textarea.ul.select('li[class!=request]').invoke('deleteElement');
+			element?.ul.select('li[class!=request]').invoke('deleteElement');
 			const li = $E('li', { class: 'serverError' }, $T("Sorry, an error occurred while processing your request!"));
-			textarea.ul.appendChild(li);
-			textarea.submitted = true;
+			element?.ul.appendChild(li);
+			element.submitted = true;
 		},
 		onComplete: () => {
-			textarea.li.classList.remove('loading');
-			document.getElementById('logo').classList.remove('working');
+			element?.li.classList.remove('loading');
+			document.getElementById('logo')?.classList.remove('working');
 			if (onfinish) {
 				onfinish();
 			}

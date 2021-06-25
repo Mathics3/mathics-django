@@ -64,8 +64,6 @@ def is_authenticated(user):
 
 from mathics.settings import default_pymathics_modules
 
-definitions = Definitions(add_builtin=True, extension_modules=default_pymathics_modules)
-
 import re
 import os.path as osp
 from builtins import open as builtin_open
@@ -108,13 +106,36 @@ def get_MathJax_version():
     else:
         return "?.?.?"
 
+def get_user_settings(evaluation):
+    definitions = evaluation.definitions
+    setting_names = sorted(definitions.get_matching_names("Settings`*"))
+    user_settings = {}
+
+    evaluation.stopped = False
+
+    for setting_name in setting_names:
+        rule = evaluation.parse(setting_name)
+        value = rule.evaluate(evaluation).to_python()
+
+        setting_usage_expr = evaluation.parse(setting_name + "::usage")
+        setting_usage = setting_usage_expr.evaluate(evaluation).to_python(string_quotes=False)
+
+        user_settings[setting_name] = {
+            "value": value,
+            "usage": setting_usage,
+            "is_boolean": type(value) is bool,
+            "boolean_value": value,
+        }
+
+    return user_settings
 
 def about_view(request):
     """
     This view gives information about the version and software we have loaded.
     """
     evaluation = get_session_evaluation(request.session)
-    system_info = mathics_system_info(evaluation.definitions)
+    definitions = evaluation.definitions
+    system_info = mathics_system_info(definitions)
 
     return render(
         request,
@@ -155,6 +176,8 @@ def about_view(request):
             "MachineName": system_info["$MachineName"],
             "ProcessID": system_info["$ProcessID"],
             "ProcessorType": system_info["$ProcessorType"],
+
+            "user_settings": get_user_settings(evaluation),
 
 
         },
