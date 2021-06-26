@@ -1,6 +1,46 @@
 CHANGES
 =======
 
+3.0.0
+-----
+
+This release contains been a major overhaul and upgrade of the code.
+
+It can't be stressed enough, but this was made only possible due to
+the tireless work of Tiago Cavalcante Trindade.
+
+There is still a lot of work still to do. However where we are at
+right now, there have been massive changes and improvements:
+
+* three.js has been upgraded to r124 (from r52) which brings us from
+  up seven years from circa 2013 to late 2020!
+* Plots and Graphs no longer appear inside MathML when there is no reason for them to be in MathML.
+* The "About" page now shows all of the the Mathics ``Settings`` that
+  are in effect. You can change Boolean setting inside the About page.
+* 3D Polygon rendering has been greatly improved. However we currently
+  do not handle even/odd space filling.
+* We support TickStyle coloring in 3D Graphics.
+* Tick positions in most 2D Plots and Graphs as been fixed.
+* We tolerate smaller screens in SVG rendering.
+* Styling of Cells has been improved. A somewhat Jupyter-style frame box is used.
+* Output which are strings now have surrounding quotes. (This can be
+  turned off via ``Settings`$QuotedStrings``.)
+* In headings, we make it more clear that the code is Django
+  based. This is to make clear the distinction should there be a
+  Flask-based front-end or the long sought for Jupyter front end.
+* In the online document, sections which are empty are omitted from
+  the online view.
+* A stray in the space between logo and Mathics at the top was removed.
+* Gallery examples have been improved.
+* A major rewrite of the JavaScript code according to more modern
+  Javascript style has been started. More work will probably continue
+  in future releases.
+* Respecting ``PointSize`` in the rendering of 3D plots as been
+  fixed. The default point size now more closely matches the intended specification.
+* The use of Prototype and Scriptaculous are being phased out.
+
+
+
 2.2.0
 -----
 

@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('web', '0003_auto_20200921_1835'),
+        ("web", "0003_auto_20200921_1835"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='query',
-            name='id',
+            model_name="query",
+            name="id",
             field=models.AutoField(primary_key=True, serialize=False),
         ),
         migrations.AlterField(
-            model_name='worksheet',
-            name='id',
+            model_name="worksheet",
+            name="id",
             field=models.AutoField(primary_key=True, serialize=False),
         ),
     ]

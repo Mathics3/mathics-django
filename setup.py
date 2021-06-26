@@ -31,6 +31,7 @@ import re
 from setuptools import setup, Command
 import sys
 
+
 def get_srcdir():
     filename = osp.normcase(osp.dirname(osp.abspath(__file__)))
     return osp.realpath(filename)
@@ -41,7 +42,11 @@ def read(*rnames):
 
 
 # stores __version__ in the current namespace
-exec(compile(open("mathics_django/version.py").read(), "mathics_django/version.py", "exec"))
+exec(
+    compile(
+        open("mathics_django/version.py").read(), "mathics_django/version.py", "exec"
+    )
+)
 
 # Get/set VERSION and long_description from files
 long_description = read("README.rst") + "\n"
@@ -49,32 +54,22 @@ long_description = read("README.rst") + "\n"
 
 is_PyPy = platform.python_implementation() == "PyPy"
 
-INSTALL_REQUIRES = []
 DEPENDENCY_LINKS = []
+INSTALL_REQUIRES = []
 
 if sys.platform == "darwin":
     INSTALL_REQUIRES += ["scikit-image"]
+
 # General Requirements
 INSTALL_REQUIRES += [
-    "Mathics-Scanner >= 1.2.0,<1.3.0",
-    # We want TicksStyle from Mathics3
-    "Mathics3 @ http://github.com/mathics/Mathics/archive/master.zip",
-    # "Mathics3 >= 2.2.1",
+    "Mathics-Scanner >= 1.2.2,<1.3.0",
+    # "Mathics3 @ http://github.com/mathics/Mathics/archive/master.zip",
+    "Mathics3 >= 3.0.0",
     "django >= 3.2",
-    "networkx >= 2.5", # Used in format, should disappear though
+    "networkx >= 2.5",  # Used in format, should disappear though
     "requests",
 ]
 
-
-extra_requires = []
-for line in open("requirements-extra.txt").read().split("\n"):
-    if line and not line.startswith("#"):
-        requires = re.sub(r"([^#]+)(\s*#.*$)?", r"\1", line)
-        extra_requires.append(requires)
-
-EXTRA_REQUIRES = {
-    "full": extra_requires
-}
 
 def subdirs(root, file="*.*", depth=10):
     for k in range(depth):
@@ -105,7 +100,11 @@ class initialize(Command):
 
         settings = {}
         exec(
-            compile(open("mathics_django/settings.py").read(), "mathics-django/settings.py", "exec"),
+            compile(
+                open("mathics_django/settings.py").read(),
+                "mathics-django/settings.py",
+                "exec",
+            ),
             settings,
         )
 
@@ -124,17 +123,16 @@ class initialize(Command):
             print("Error: failed to create database")
             sys.exit(1)
 
+
 mathjax_files = list(subdirs("media/js/mathjax/"))
 
 extra_requires = []
-for line in open("requirements-extra.txt").read().split("\n"):
+for line in open("requirements-full.txt").read().split("\n"):
     if line and not line.startswith("#"):
         requires = re.sub(r"([^#]+)(\s*#.*$)?", r"\1", line)
         extra_requires.append(requires)
 
-EXTRA_REQUIRES = {
-    "full": extra_requires
-}
+EXTRA_REQUIRES = {"full": extra_requires}
 
 setup(
     name="Mathics-Django",
@@ -147,7 +145,7 @@ setup(
         "mathics_django.web.migrations",
     ],
     install_requires=INSTALL_REQUIRES,
-    extra_requires=EXTRA_REQUIRES,
+    extras_require=EXTRA_REQUIRES,
     dependency_links=DEPENDENCY_LINKS,
     package_data={
         "mathics_django.autoload": ["autoload/*.m"],
@@ -161,7 +159,7 @@ setup(
             "media/js/prototype/*.js",
             "media/js/scriptaculous/*.js",
             "media/js/three/three.js",  # unimiminized three.js
-            "media/js/three/three.min.js", # imiminized three.js
+            "media/js/three/three.min.js",  # imiminized three.js
             "media/js/*.js",
             "templates/*.html",
             "templates/doc/*.html",

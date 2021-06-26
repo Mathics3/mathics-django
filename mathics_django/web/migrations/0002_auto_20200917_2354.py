@@ -8,13 +8,18 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('web', '0001_initial'),
+        ("web", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='worksheet',
-            name='user',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='worksheets', to=settings.AUTH_USER_MODEL),
+            model_name="worksheet",
+            name="user",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="worksheets",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]

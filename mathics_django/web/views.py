@@ -106,6 +106,7 @@ def get_MathJax_version():
     else:
         return "?.?.?"
 
+
 def get_user_settings(evaluation):
     definitions = evaluation.definitions
     setting_names = sorted(definitions.get_matching_names("Settings`*"))
@@ -118,7 +119,9 @@ def get_user_settings(evaluation):
         value = rule.evaluate(evaluation).to_python()
 
         setting_usage_expr = evaluation.parse(setting_name + "::usage")
-        setting_usage = setting_usage_expr.evaluate(evaluation).to_python(string_quotes=False)
+        setting_usage = setting_usage_expr.evaluate(evaluation).to_python(
+            string_quotes=False
+        )
 
         user_settings[setting_name] = {
             "value": value,
@@ -128,6 +131,7 @@ def get_user_settings(evaluation):
         }
 
     return user_settings
+
 
 def about_view(request):
     """
@@ -150,11 +154,9 @@ def about_view(request):
             "numpy_version": mathics_version_info["mathics"],
             "python_version": mathics_version_info["python"],
             "sympy_version": mathics_version_info["sympy"],
-
             "SystemID": system_info["$SystemID"],
             "SystemTimeZone": system_info["$SystemTimeZone"],
             "UserName": system_info["$UserName"],
-
             "BaseDirectory": system_info["$BaseDirectory"],
             "HomeDirectory": system_info["$HomeDirectory"],
             "InstallationDirectory": system_info["$InstallationDirectory"],
@@ -162,24 +164,18 @@ def about_view(request):
             "TemporaryDirectory": system_info["$TemporaryDirectory"],
             "DB_PATH": MATHICS_DJANGO_DB_PATH,
             "DOC_XML_DATA_PATH": DOC_XML_DATA_PATH,
-
             "HTTP_USER_AGENT": request.META.get("HTTP_USER_AGENT", ""),
             "REMOTE_USER": request.META.get("REMOTE_USER", ""),
             "REMOTE_ADDR": request.META.get("REMOTE_ADDR", ""),
             "REMOTE_HOST": request.META.get("REMOTE_HOST", ""),
-
             "MachinePrecision": system_info["MachinePrecision"],
             "MemoryAvailable": system_info["MemoryAvailable[]"],
             "SystemMemory": system_info["$SystemMemory"],
-
             "Machine": system_info["$Machine"],
             "MachineName": system_info["$MachineName"],
             "ProcessID": system_info["$ProcessID"],
             "ProcessorType": system_info["$ProcessorType"],
-
             "user_settings": get_user_settings(evaluation),
-
-
         },
     )
 

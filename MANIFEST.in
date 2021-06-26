@@ -1,10 +1,10 @@
-include README.rst
 include CHANGES.rst
-include ChangeLog
 include COPYING.txt
+include ChangeLog
 include FUTURE.rst
 include Makefile
+include README.rst
 include mathics/Makefile
-include mathics/Makefile
+include requirements-full.txt
 recursive-include mathics *.py
 recursive-include test *.py

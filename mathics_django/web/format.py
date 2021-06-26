@@ -15,6 +15,7 @@ FORM_TO_FORMAT = {
     "System`OutputForm": "text",
 }
 
+
 def format_output(obj, expr, format=None):
     """
     Handle unformatted output using the *specific* capabilities of mathics-django.
@@ -64,7 +65,9 @@ def format_output(obj, expr, format=None):
 
     # This part was derived from and the same as evaluation.py format_output.
 
-    use_quotes = Expression("Settings`$QuotedStrings").evaluate(obj).get_head().to_python()
+    use_quotes = (
+        Expression("Settings`$QuotedStrings").evaluate(obj).get_head().to_python()
+    )
 
     if format == "text":
         result = expr.format(obj, "System`OutputForm")
@@ -89,7 +92,7 @@ def format_output(obj, expr, format=None):
             result = expr.format(obj, "System`InputForm")
             result = result.boxes_to_text(result)
 
-            if (not use_quotes):
+            if not use_quotes:
                 # Substring without the quotes
                 result = result[1:-1]
 

@@ -16,6 +16,7 @@ from mathics_django.settings import ROOT_DIR
 class WebOutput(Output):
     pass
 
+
 _evaluations = {}
 
 
@@ -27,17 +28,19 @@ def get_session_evaluation(session):
         # our own custom formatter that understand better how to format
         # in the context of mathics-django.
         # Previously, one specific format, like "xml" had to fit all.
-        evaluation = Evaluation(
-            definitions, format='unformatted', output=WebOutput())
+        evaluation = Evaluation(definitions, format="unformatted", output=WebOutput())
         _evaluations[session.session_key] = evaluation
-        evaluation.format_output = lambda expr, format: format_output(evaluation, expr, format)
+        evaluation.format_output = lambda expr, format: format_output(
+            evaluation, expr, format
+        )
         autoload_files(definitions, ROOT_DIR, "autoload")
     return evaluation
 
 
 def end_session_evaluation(sender, **kwargs):
-    session_key = kwargs.get('instance').session_key
+    session_key = kwargs.get("instance").session_key
     del _evaluations[session_key]
+
 
 pre_delete.connect(end_session_evaluation, sender=Session)
 
@@ -62,12 +65,12 @@ class Query(models.Model):
 
 class Worksheet(models.Model):
     id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User,
-                             related_name='worksheets',
-                             null=True, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        User, related_name="worksheets", null=True, on_delete=models.CASCADE
+    )
 
     name = models.CharField(max_length=30)
     content = models.TextField()
 
     class Meta:
-        unique_together = (('user', 'name'),)
+        unique_together = (("user", "name"),)

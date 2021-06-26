@@ -39,9 +39,12 @@ def slugify(value):
 
     Based on the Django version, but modified to preserve '$'.
     """
-    value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore').decode('ascii')
-    value = re.sub('[^$`\w\s-]', '', value).strip().lower()
-    return re.sub('[-\s`]+', '-', value)
+    value = (
+        unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii")
+    )
+    value = re.sub("[^$`\w\s-]", "", value).strip().lower()
+    return re.sub("[-\s`]+", "-", value)
+
 
 # FIXME: can we replace this with Python 3's html.escape ?
 def escape_html(text, verbatim_mode=False, counters=None, single_line=False):
