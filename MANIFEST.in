@@ -4,7 +4,8 @@ include ChangeLog
 include FUTURE.rst
 include Makefile
 include README.rst
-include mathics/Makefile
+include mathics_django/Makefile
 include requirements-full.txt
-recursive-include mathics *.py
+recursive-include mathics_django *.py
+recursive-include mathics_django/autoload *.m
 recursive-include test *.py
