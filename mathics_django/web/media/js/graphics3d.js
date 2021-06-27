@@ -154,6 +154,41 @@ const drawFunctions = {
 		cube.position.set(...element.position[0]);
 
 		return cube;
+	},
+	cylinder: (element) => {
+		const group = new THREE.Group();
+
+		for (let i = 0; i < element.coords.length / 2; i++) {
+			const startCoordinate = new THREE.Vector3(
+				...element.coords[i * 2][0]
+			);
+
+			const endCoordinate = new THREE.Vector3(
+				...element.coords[i * 2 + 1][0]
+			);
+
+			const cylinder = new THREE.Mesh(
+				new THREE.CylinderGeometry(
+					element.radius,
+					element.radius,
+					startCoordinate.distanceTo(endCoordinate), // the height of the cylinder
+					24
+				),
+				new THREE.MeshLambertMaterial({
+					color: new THREE.Color(...element.faceColor).getHex()
+				})
+			);
+
+			// mean of the start and end vectors, the center of the cylinder
+			cylinder.position.addVectors(startCoordinate, endCoordinate)
+				.multiplyScalar(0.5);
+
+			cylinder.lookAt(endCoordinate);
+
+			group.add(cylinder);
+		}
+
+		return group;
 	}
 };
 
