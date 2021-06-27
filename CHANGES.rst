@@ -1,6 +1,11 @@
 CHANGES
 =======
 
+3.0.1
+-----
+
+Fix packaging issues: ``settings.m`` wasn't getting included in package.
+
 3.0.0
 -----
 
