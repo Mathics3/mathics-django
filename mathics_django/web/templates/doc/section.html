@@ -10,4 +10,13 @@
 
 {% block content %}
 	{{ section.doc.html }}
+
+	{% if subsections %}
+	   <ul>
+		{% for subsection in subsections %}
+			<li>{{ subsection|link:ajax }}</li>
+		{% endfor %}
+	   </ul>
+	{% endif %}
+
 {% endblock content %}

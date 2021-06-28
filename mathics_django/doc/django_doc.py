@@ -9,6 +9,7 @@ This code should be replaced by sphinx and autodoc.
 """
 
 from os import getenv, listdir
+from types import ModuleType
 import importlib
 
 from django.utils.safestring import mark_safe
@@ -26,6 +27,7 @@ from mathics.doc.common_doc import (
     END_LINE_SENTINAL,
     PYTHON_RE,
     SECTION_RE,
+    SUBSECTION_RE,
     TESTCASE_OUT_RE,
     TESTCASE_RE,
     Tests,
@@ -43,6 +45,17 @@ try:
 except IOError:
     print(f"Trouble reading Doc XML file {DOC_XML_DATA_PATH}")
     xml_data = {}
+
+
+def get_doc_name_from_module(module):
+    name = "???"
+    if module.__doc__:
+        lines = module.__doc__.strip()
+        if not lines:
+            name = module.__name__
+        else:
+            name = lines.split("\n")[0]
+    return name
 
 
 class DjangoDocElement(DocElement):
@@ -63,7 +76,10 @@ class DjangoDocElement(DocElement):
 
     def get_prev_next(self):
         collection = self.get_collection()
-        index = collection.index(self)
+        try:
+            index = collection.index(self)
+        except:
+            index = 0
         prev = collection[index - 1] if index > 0 else None
         next = collection[index + 1] if index < len(collection) - 1 else None
         return prev, next
@@ -95,6 +111,17 @@ class Documentation(DjangoDocElement):
             chapter = part.chapters_by_slug.get(chapter_slug)
             if chapter:
                 return chapter.sections_by_slug.get(section_slug)
+        return None
+
+    def get_subsection(self, part_slug, chapter_slug, section_slug, subsection_slug):
+        part = self.parts_by_slug.get(part_slug)
+        if part:
+            chapter = part.chapters_by_slug.get(chapter_slug)
+            if chapter:
+                section = chapter.sections_by_slug.get(section_slug)
+                if section:
+                    return section.subsections_by_slug.get(subsection_slug)
+
         return None
 
     def get_tests(self):
@@ -130,6 +157,9 @@ class Documentation(DjangoDocElement):
                 for section in chapter.sections:
                     if matches(section.title):
                         result.append((section.title == query, section))
+                        for subsection in section.subsections:
+                            if matches(subsection.title):
+                                result.append((subsection.title == query, subsection))
                     elif query == section.operator:
                         result.append((True, section))
         return result
@@ -165,6 +195,18 @@ class MathicsMainDocumentation(Documentation):
                         if title:
                             section = DjangoDocSection(chapter, title, text)
                             chapter.sections.append(section)
+                            subsections = SUBSECTION_RE.findall(text)
+                            for subsection_title in subsections:
+                                subsection = DjangoDocSubsection(
+                                    chapter,
+                                    section,
+                                    subsection_title,
+                                    text,
+                                )
+                                section.subsections.append(subsection)
+                                pass
+                            pass
+                        pass
                     part.chapters.append(chapter)
                 if file[0].isdigit():
                     self.parts.append(part)
@@ -184,43 +226,76 @@ class MathicsMainDocumentation(Documentation):
             #  optional.optional_builtins_by_module, False)]:
 
             builtin_part = DjangoDocPart(self, title, is_reference=start)
+            modules_seen = set([])
             for module in modules:
                 # FIXME add an additional mechanism in the module
                 # to allow a docstring and indicate it is not to go in the
                 # user manual
                 if module.__doc__ is None:
                     continue
+                if module in modules_seen:
+                    continue
                 title, text = get_module_doc(module)
                 chapter = DjangoDocChapter(builtin_part, title, DjangoDoc(text))
                 builtins = builtins_by_module[module.__name__]
                 # FIXME: some Box routines, like RowBox *are*
                 # documented
-                section_names = [
+                sections = [
                     builtin
                     for builtin in builtins
                     if not builtin.__class__.__name__.endswith("Box")
                 ]
-                for instance in section_names:
-                    installed = True
-                    for package in getattr(instance, "requires", []):
-                        try:
-                            importlib.import_module(package)
-                        except ImportError:
-                            installed = False
-                            break
-                    # FIXME add an additional mechanism in the module
-                    # to allow a docstring and indicate it is not to go in the
-                    # user manual
-                    if instance.__doc__ is None:
-                        continue
-                    section = DjangoDocSection(
-                        chapter,
-                        strip_system_prefix(instance.get_name()),
-                        instance.__doc__ or "",
-                        operator=instance.get_operator(),
-                        installed=installed,
-                    )
-                    chapter.sections.append(section)
+
+                if module.__file__.endswith("__init__.py"):
+                    name = get_doc_name_from_module(module)
+                    section = self.add_section(chapter, name, module)
+                    submodules = [
+                        value
+                        for value in module.__dict__.values()
+                        if isinstance(value, ModuleType)
+                    ]
+                    for submodule in submodules:
+                        # FIXME add an additional mechanism in the module
+                        # to allow a docstring and indicate it is not to go in the
+                        # user manual
+                        if submodule.__doc__ is None:
+                            continue
+                        if submodule in modules_seen:
+                            continue
+
+                        replaced_section = self.add_section(
+                            chapter,
+                            get_doc_name_from_module(submodule),
+                            submodule,
+                            operator=None,
+                        )
+                        modules_seen.add(submodule)
+
+                        builtins = builtins_by_module[submodule.__name__]
+                        subsections = [
+                            builtin
+                            for builtin in builtins
+                            if not builtin.__class__.__name__.endswith("Box")
+                        ]
+                        for instance in subsections:
+                            modules_seen.add(instance)
+                            self.add_subsection(
+                                chapter,
+                                replaced_section,
+                                instance.get_name(short=True),
+                                instance,
+                                instance.get_operator(),
+                            )
+                else:
+                    for instance in sections:
+                        if instance not in modules_seen:
+                            self.add_section(
+                                chapter,
+                                instance.get_name(short=True),
+                                instance,
+                                instance.get_operator(),
+                            )
+                            modules_seen.add(instance)
                 builtin_part.chapters.append(chapter)
             self.parts.append(builtin_part)
 
@@ -231,6 +306,60 @@ class MathicsMainDocumentation(Documentation):
         for tests in self.get_tests():
             for test in tests.tests:
                 test.key = (tests.part, tests.chapter, tests.section, test.index)
+
+    def add_section(self, chapter, section_name: str, instance, operator=None):
+        """
+        Adds a DjangoDocSection object to the chapter, a DjangoDocChapter object.
+        "instance" is either a Python module or a Class object instance.
+        "operator" indicates whether the section, often a builtin-method is a operator.
+        """
+        installed = True
+        for package in getattr(instance, "requires", []):
+            try:
+                importlib.import_module(package)
+            except ImportError:
+                installed = False
+                break
+        # FIXME add an additional mechanism in the module
+        # to allow a docstring and indicate it is not to go in the
+        # user manual
+        if not instance.__doc__:
+            return
+        section = DjangoDocSection(
+            chapter,
+            section_name,
+            instance.__doc__,
+            operator=operator,
+            installed=installed,
+        )
+        chapter.sections.append(section)
+        return section
+
+    def add_subsection(
+        self, chapter, section, subsection_name: str, instance, operator=None
+    ):
+        installed = True
+        for package in getattr(instance, "requires", []):
+            try:
+                importlib.import_module(package)
+            except ImportError:
+                installed = False
+                break
+
+        # FIXME add an additional mechanism in the module
+        # to allow a docstring and indicate it is not to go in the
+        # user manual
+        if not instance.__doc__:
+            return
+        subsection = DjangoDocSubsection(
+            chapter,
+            section,
+            subsection_name,
+            instance.__doc__,
+            operator=operator,
+            installed=installed,
+        )
+        section.subsections.append(subsection)
 
     def load_pymathics_doc(self):
         if self.pymathics_doc_loaded:
@@ -357,29 +486,29 @@ class PyMathicsDocumentation(Documentation):
                     part.is_appendix = True
                     appendix.append(part)
 
-        # Builds the automatic documentation
-        builtin_part = DjangoDocPart(self, "Pymathics Modules", is_reference=True)
-        title, text = get_module_doc(self.pymathicsmodule)
-        chapter = DjangoDocChapter(builtin_part, title, DjangoDoc(text))
-        for name in self.symbols:
-            instance = self.symbols[name]
-            installed = True
-            for package in getattr(instance, "requires", []):
-                try:
-                    importlib.import_module(package)
-                except ImportError:
-                    installed = False
-                    break
-            section = DjangoDocSection(
-                chapter,
-                strip_system_prefix(name),
-                instance.__doc__ or "",
-                operator=instance.get_operator(),
-                installed=installed,
-            )
-            chapter.sections.append(section)
-        builtin_part.chapters.append(chapter)
-        self.parts.append(builtin_part)
+        # # Builds the automatic documentation
+        # builtin_part = DjangoDocPart(self, "Pymathics Modules", is_reference=True)
+        # title, text = get_module_doc(self.pymathicsmodule)
+        # chapter = DjangoDocChapter(builtin_part, title, DjangoDoc(text))
+        # for name in self.symbols:
+        #     instance = self.symbols[name]
+        #     installed = True
+        #     for package in getattr(instance, "requires", []):
+        #         try:
+        #             importlib.import_module(package)
+        #         except ImportError:
+        #             installed = False
+        #             break
+        #     section = DjangoDocSection(
+        #         chapter,
+        #         strip_system_prefix(name),
+        #         instance.__doc__ or "",
+        #         operator=instance.get_operator(),
+        #         installed=installed,
+        #     )
+        #     chapter.sections.append(section)
+        # builtin_part.chapters.append(chapter)
+        # self.parts.append(builtin_part)
         # Adds possible appendices
         for part in appendix:
             self.parts.append(part)
@@ -461,13 +590,13 @@ class DjangoDocChapter(DjangoDocElement):
     A Chapter is part of a Part and contains Sections.
     """
 
-    def __init__(self, part, title, doc=None):
-        self.part = part
-        self.title = title
-        self.slug = slugify(title)
+    def __init__(self, part: str, title: str, doc=None):
         self.doc = doc
+        self.part = part
         self.sections = []
         self.sections_by_slug = {}
+        self.slug = slugify(title)
+        self.title = title
         part.chapters_by_slug[self.slug] = self
 
     def __str__(self):
@@ -475,9 +604,11 @@ class DjangoDocChapter(DjangoDocElement):
         return f"= {self.title} =\n\n{sections}"
 
     def get_collection(self):
+        """Return a list of chapters in the part of this chapter."""
         return self.part.chapters
 
-    def get_url(self):
+    # FIXME: this should be called get_uri not get_url
+    def get_url(self) -> str:
         return f"/{self.part.slug}/{self.slug}/"
 
 
@@ -499,6 +630,7 @@ class DjangoDocPart(DjangoDocElement):
         )
 
     def get_collection(self):
+        """Return a list of parts in this doc"""
         return self.doc.parts
 
     def html(self, counters=None):
@@ -516,27 +648,33 @@ class DjangoDocPart(DjangoDocElement):
 
 class DjangoDocSection(DjangoDocElement):
     """An object for a Django Documented Section.
-    A Section is part of a Chapter. In the future it can contain subsections.
+    A Section is part of a Chapter. In can contain subsections.
     """
 
-    def __init__(self, chapter, title, text, operator=None, installed=True):
+    def __init__(
+        self, chapter: str, title: str, text: str, operator=None, installed=True
+    ):
         self.chapter = chapter
-        self.title = title
+        self.doc = DjangoDoc(text)
+        self.installed = installed
+        self.operator = operator
         self.slug = slugify(title)
+        self.subsections = []
+        self.subsections_by_slug = {}
+        self.title = title
         if text.count("<dl>") != text.count("</dl>"):
             raise ValueError(
                 "Missing opening or closing <dl> tag in "
                 "{} documentation".format(title)
             )
-        self.doc = DjangoDoc(text)
-        self.operator = operator
-        self.installed = installed
+        # print("YYY Adding section", title)
         chapter.sections_by_slug[self.slug] = self
 
     def __str__(self):
         return f"== {self.title} ==\n{self.doc}"
 
     def get_collection(self):
+        """Return a list of subsections for this sectione chapter this section belongs to."""
         return self.chapter.sections
 
     def html_data(self):
@@ -550,8 +688,104 @@ class DjangoDocSection(DjangoDocElement):
             )
         return result
 
+    # FIXME: this should be called get_uri not get_url
     def get_url(self):
+        """Return the URI of this section."""
+        if self.chapter.slug == self.slug:
+            # When this happens we have a Guide name like "Colors" or "Special Functions" where
+            # the chapter and self are elided because what we have underneath is a module (and __init__.py)
+            return f"/{self.chapter.part.slug}/{self.chapter.slug}"
         return f"/{self.chapter.part.slug}/{self.chapter.slug}/{self.slug}/"
+
+
+class DjangoDocSubsection(DjangoDocElement):
+    """An object for a Django Documented Subsection.
+    A Subsection is part of a Section.
+    """
+
+    def __init__(
+        self,
+        chapter,
+        section,
+        title,
+        text,
+        operator=None,
+        installed=True,
+    ):
+        """
+        Information that goes into a subsection object. This can be a written text, or
+        text extracted from the docstring of a builtin module or class.
+
+        About some of the parameters...
+
+        Some built-in classes are Operators. These are documented in a
+        slightly special way.
+
+        Some built-in require special libraries. When those libraries are not available,
+        parameter "installed" is False.
+
+        Some of the subsections are contained in a grouping module and need special work to
+        get the grouping module name correct.
+
+        For example the Chapter "Colors" is a module so the docstring text for it is in
+        mathics/builtin/colors/__init__.py . In mathics/builtin/colors/named-colors.py we have
+        the "section" name for the class Read (the subsection) inside it.
+        """
+
+        self.doc = DjangoDoc(text)
+        self.chapter = chapter
+        self.installed = installed
+        self.operator = operator
+
+        if chapter.title == section.title:
+            from trepan.api import debug; debug()
+            self.section = submodule
+        else:
+            self.section = section
+        self.slug = slugify(title)
+        self.title = title
+        if text.count("<dl>") != text.count("</dl>"):
+            raise ValueError(
+                "Missing opening or closing <dl> tag in "
+                "{} documentation".format(title)
+            )
+        ## print("XXX Adding subsection", title)
+        self.section.subsections_by_slug[self.slug] = self
+
+    def __str__(self):
+        return f"=== {self.title} ===\n{self.doc}"
+
+    def get_collection(self) -> str:
+        """Return a list of subsections of the section."""
+        return self.section.subsections
+
+    def html_data(self):
+        indices = set()
+        for test in self.doc.items:
+            indices.update(test.test_indices())
+        result = {}
+        for index in indices:
+            result[index] = xml_data.get(
+                (self.chapter.part.title, self.chapter.title, self.title, index)
+            )
+        return result
+
+    # FIXME: this should be called get_uri not get_url
+    def get_url(self) -> str:
+        """Return the URI of this subsection."""
+        if self.chapter.slug == self.section.slug:
+            print("XXX1 Subsection something is wrong", self.slug)
+            # Elide section.slug and section slug; add subsection
+            # print("XXX0 Subsection", f"/{self.chapter.part.slug}/{self.chapter.slug}/guide/{self.subsection_slug}/{self.slug}/")
+            return f"/{self.chapter.part.slug}/{self.chapter.slug}/guide/{self.subsection_slug}/{self.slug}/"
+        elif self.section.slug == self.slug:
+            print(
+                "XXX2 Subsection something is wrong",
+                "/{self.chapter.part.slug}/{self.chapter.slug}/guide/{self.slug}/",
+            )
+            return f"/{self.chapter.part.slug}/{self.chapter.slug}/guide/{self.slug}/"
+
+        return f"/{self.chapter.part.slug}/{self.chapter.slug}/{self.section.slug}/{self.slug}/"
 
 
 class DjangoDocTest(object):

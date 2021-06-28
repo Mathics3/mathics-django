@@ -25,7 +25,7 @@ from mathics.core.evaluation import Message, Result
 from mathics.system_info import mathics_system_info
 
 from mathics_django.doc import documentation
-from mathics_django.doc.django_doc import DjangoDocPart, DjangoDocChapter
+from mathics_django.doc.django_doc import DjangoDocPart, DjangoDocChapter, DjangoDocSection
 from mathics_django.settings import DOC_XML_DATA_PATH, MATHICS_DJANGO_DB_PATH
 from mathics_django.version import __version__
 from mathics_django.web.forms import LoginForm, SaveForm
@@ -495,7 +495,7 @@ def delete(request):
 # auxiliary function
 
 
-def render_doc(request, template_name, context, data=None, ajax=False):
+def render_doc(request, template_name, context, data=None, ajax: str=""):
     object = context.get("object")
     context.update(
         {
@@ -568,19 +568,41 @@ def doc_chapter(request, part, chapter, ajax=""):
     )
 
 
-def doc_section(request, part, chapter, section, ajax=""):
-    section = documentation.get_section(part, chapter, section)
-    if not section:
+def doc_section(request, part:str, chapter: str, section: str, ajax=False, subsections=[]):
+    section_obj = documentation.get_section(part, chapter, section)
+    if not section_obj:
         raise Http404
-    data = section.html_data()
+    data = section_obj.html_data()
     return render_doc(
         request,
         "section.html",
         {
-            "title": section.get_title_html(),
-            "title_operator": section.operator,
-            "section": section,
-            "object": section,
+            "title": section_obj.get_title_html(),
+            "title_operator": section_obj.operator,
+            "section": section_obj,
+            "subsections": subsections,
+            "object": section_obj,
+        },
+        data=data,
+        ajax=ajax,
+    )
+
+
+def doc_subsection(request, part:str, chapter: str, section: str, subsection: str, ajax=""):
+    print("Doc subsection called.")
+    from trepan.api import debug; debug()
+    subsection_obj = documentation.get_subsection(part, chapter, section, subsection)
+    if not subsection_obj:
+        raise Http404
+    data = subsection_obj.html_data()
+    return render_doc(
+        request,
+        "subsection.html",
+        {
+            "title": subsection_obj.get_title_html(),
+            "title_operator": subsection_obj.operator,
+            "section": subsection_obj,
+            "object": subsection_obj,
         },
         data=data,
         ajax=ajax,
@@ -597,14 +619,26 @@ def doc_search(request):
                     return doc_part(request, item.slug, ajax=True)
                 elif isinstance(item, DjangoDocChapter):
                     return doc_chapter(request, item.part.slug, item.slug, ajax=True)
-                else:
+                elif isinstance(item, DjangoDocSection):
                     return doc_section(
                         request,
                         item.chapter.part.slug,
                         item.chapter.slug,
                         item.slug,
                         ajax=True,
+                        subsections=item.subsections,
                     )
+                else:
+                    print("XXX2 subsection", item.slug)
+                    return doc_subsection(
+                        request,
+                        item.chapter.part.slug,
+                        item.chapter.slug,
+                        item.section.slug,
+                        item.slug,
+                        ajax=True,
+                    )
+
     result = [item for exact, item in result]
 
     return render_doc(

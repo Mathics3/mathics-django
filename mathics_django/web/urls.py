@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""This module handles the mapping of URI's to
+the functions that get called.
 
+All of the callback functions are located in mathics_django.web.views.
+"""
 
 from django.conf.urls import url
+
+# These ae the callback functions.
 from mathics_django.web.views import (
     about_view,
     delete,
@@ -11,6 +17,7 @@ from mathics_django.web.views import (
     doc_part,
     doc_search,
     doc_section,
+    doc_subsection,
     get_worksheets,
     login,
     logout,
@@ -20,6 +27,8 @@ from mathics_django.web.views import (
     save,
 )
 
+# These patterns map URI's a function to call to generate HTML output.
+# Note that although what we have here are URIs not URLs.
 urlpatterns = [
     # 'mathics.web.views',
     url("^$", main_view),
@@ -39,5 +48,15 @@ urlpatterns = [
         "^(?P<ajax>(?:ajax/)?)doc/(?P<part>[\w-]+)/(?P<chapter>[\w-]+)/"
         "(?P<section>[$\w-]+)/$",
         doc_section,
+    ),
+    url(
+        "^(?P<ajax>(?:ajax/)?)doc/(?P<part>[\w-]+)/(?P<chapter>[\w-]+)/guide/"
+        "(?P<section>[$\w-]+)/$",
+        doc_subsection,
+    ),
+    url(
+        "^(?P<ajax>(?:ajax/)?)doc/(?P<part>[\w-]+)/(?P<chapter>[\w-]+)/guide/"
+        "(?P<section>[$\w-]+)/(?P<subsection>[$\w-]+)/$",
+        doc_subsection,
     ),
 ]
