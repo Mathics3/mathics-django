@@ -3,11 +3,13 @@
 
 {% block head %}
 	<div id="breadcrumbs">
-		{{ section.chapter.part.doc|link:ajax }}&nbsp;/ {{ section.chapter.part|link:ajax }}&nbsp;/<br>
-		{{ section.chapter|link:ajax }}&nbsp;/ {{ section|link:ajax }}&nbsp;/
+		{{ subsection.chapter.part.doc|link:ajax }}&nbsp;/ {{ subsection.chapter.part|link:ajax }}&nbsp;/<br>
+		{{ subsection.chapter|link:ajax }}&nbsp;/ {{ subsection.section|link:ajax }}&nbsp;/
+		{{ subsection|link:ajax }}&nbsp;/
 	</div>
 {% endblock head %}
 
 {% block content %}
-	{{ section.doc.html }}
+	{{ subsection.doc.html }}
+
 {% endblock content %}

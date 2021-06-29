@@ -9,11 +9,10 @@
 {% endblock head %}
 
 {% block content %}
-	{{ section.doc.html }}
 
-	{% if subsections %}
+	{% if section.subsections %}
 	   <ul>
-		{% for subsection in subsections %}
+		{% for subsection in section.subsections %}
 			<li>{{ subsection|link:ajax }}</li>
 		{% endfor %}
 	   </ul>

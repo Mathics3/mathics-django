@@ -569,6 +569,36 @@ def doc_chapter(request, part, chapter, ajax=""):
 
 
 def doc_section(request, part:str, chapter: str, section: str, ajax=False, subsections=[]):
+    """
+    Produces HTML for a section which is either manual text or a section contiaining a number of
+    built-in functions. Compare with doc_guide_section below.
+    """
+    section_obj = documentation.get_section(part, chapter, section)
+    if not section_obj:
+        raise Http404
+    data = section_obj.html_data()
+    return render_doc(
+        request,
+        "section.html",
+        {
+            "title": section_obj.get_title_html(),
+            "title_operator": section_obj.operator,
+            "section": section_obj,
+            "subsections": subsections,
+            "object": section_obj,
+        },
+        data=data,
+        ajax=ajax,
+    )
+
+
+# FIXME and possibly DRY with the above
+def doc_guide_section(request, part:str, chapter: str, section: str, ajax=False, subsections=[]):
+    """
+    Produces HTML for a guide section. Guide sections like "Color" or "Special Functions" have subsections
+    which each function as a Section, e.g. have built-in function entities under them.
+    """
+    from trepan.api import debug; debug()
     section_obj = documentation.get_section(part, chapter, section)
     if not section_obj:
         raise Http404
@@ -590,7 +620,6 @@ def doc_section(request, part:str, chapter: str, section: str, ajax=False, subse
 
 def doc_subsection(request, part:str, chapter: str, section: str, subsection: str, ajax=""):
     print("Doc subsection called.")
-    from trepan.api import debug; debug()
     subsection_obj = documentation.get_subsection(part, chapter, section, subsection)
     if not subsection_obj:
         raise Http404
@@ -601,7 +630,8 @@ def doc_subsection(request, part:str, chapter: str, section: str, subsection: st
         {
             "title": subsection_obj.get_title_html(),
             "title_operator": subsection_obj.operator,
-            "section": subsection_obj,
+            "section": section,
+            "subsection": subsection_obj,
             "object": subsection_obj,
         },
         data=data,

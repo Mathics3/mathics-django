@@ -140,6 +140,8 @@ class Documentation(DjangoDocElement):
         return "/"
 
     def search(self, query):
+        """Handles interactive search in browser.
+        """
         query = query.strip()
         query_parts = [q.strip().lower() for q in query.split()]
 
@@ -156,7 +158,8 @@ class Documentation(DjangoDocElement):
                     result.append((False, chapter))
                 for section in chapter.sections:
                     if matches(section.title):
-                        result.append((section.title == query, section))
+                        if not isinstance(section, DjangoDocGuideSection):
+                            result.append((section.title == query, section))
                         for subsection in section.subsections:
                             if matches(subsection.title):
                                 result.append((subsection.title == query, subsection))
@@ -193,10 +196,13 @@ class MathicsMainDocumentation(Documentation):
                         if not chapter.doc:
                             chapter.doc = DjangoDoc(pre_text)
                         if title:
-                            section = DjangoDocSection(chapter, title, text)
+                            section = DjangoDocSection(
+                                chapter, title, text, operator=False, installed=True
+                            )
                             chapter.sections.append(section)
                             subsections = SUBSECTION_RE.findall(text)
                             for subsection_title in subsections:
+                                print("XXX", subsection_title)
                                 subsection = DjangoDocSubsection(
                                     chapter,
                                     section,
@@ -247,13 +253,18 @@ class MathicsMainDocumentation(Documentation):
                 ]
 
                 if module.__file__.endswith("__init__.py"):
+                    # We have a Guide Section.
                     name = get_doc_name_from_module(module)
-                    section = self.add_section(chapter, name, module)
+                    guide_section = self.add_section(
+                        chapter, name, module, operator=None, is_guide=True
+                    )
                     submodules = [
                         value
                         for value in module.__dict__.values()
                         if isinstance(value, ModuleType)
                     ]
+
+                    # Add sections in the guide section...
                     for submodule in submodules:
                         # FIXME add an additional mechanism in the module
                         # to allow a docstring and indicate it is not to go in the
@@ -263,11 +274,12 @@ class MathicsMainDocumentation(Documentation):
                         if submodule in modules_seen:
                             continue
 
-                        replaced_section = self.add_section(
+                        section = self.add_section(
                             chapter,
                             get_doc_name_from_module(submodule),
                             submodule,
                             operator=None,
+                            is_guide=False,
                         )
                         modules_seen.add(submodule)
 
@@ -279,9 +291,10 @@ class MathicsMainDocumentation(Documentation):
                         ]
                         for instance in subsections:
                             modules_seen.add(instance)
+                            name = instance.get_name(short=True)
                             self.add_subsection(
                                 chapter,
-                                replaced_section,
+                                section,
                                 instance.get_name(short=True),
                                 instance,
                                 instance.get_operator(),
@@ -289,11 +302,13 @@ class MathicsMainDocumentation(Documentation):
                 else:
                     for instance in sections:
                         if instance not in modules_seen:
+                            name = instance.get_name(short=True)
                             self.add_section(
                                 chapter,
                                 instance.get_name(short=True),
                                 instance,
                                 instance.get_operator(),
+                                is_guide=False,
                             )
                             modules_seen.add(instance)
                 builtin_part.chapters.append(chapter)
@@ -307,14 +322,21 @@ class MathicsMainDocumentation(Documentation):
             for test in tests.tests:
                 test.key = (tests.part, tests.chapter, tests.section, test.index)
 
-    def add_section(self, chapter, section_name: str, instance, operator=None):
+    def add_section(
+        self,
+        chapter,
+        section_name: str,
+        section_object,
+        operator,
+        is_guide: bool = False,
+    ):
         """
-        Adds a DjangoDocSection object to the chapter, a DjangoDocChapter object.
-        "instance" is either a Python module or a Class object instance.
-        "operator" indicates whether the section, often a builtin-method is a operator.
+        Adds a DjangoDocSection or DangoDocGuideSection
+        object to the chapter, a DjangoDocChapter object.
+        "section_object" is either a Python module or a Class object instance.
         """
         installed = True
-        for package in getattr(instance, "requires", []):
+        for package in getattr(section_object, "requires", []):
             try:
                 importlib.import_module(package)
             except ImportError:
@@ -323,16 +345,29 @@ class MathicsMainDocumentation(Documentation):
         # FIXME add an additional mechanism in the module
         # to allow a docstring and indicate it is not to go in the
         # user manual
-        if not instance.__doc__:
+        if not section_object.__doc__:
             return
-        section = DjangoDocSection(
-            chapter,
-            section_name,
-            instance.__doc__,
-            operator=operator,
-            installed=installed,
-        )
-        chapter.sections.append(section)
+        if is_guide:
+            section = DjangoDocGuideSection(
+                chapter,
+                section_name,
+                section_object.__doc__,
+                section_object,
+                installed=installed,
+            )
+            chapter.guide_sections.append(section)
+            chapter.guide_section_map[section.slug] = section
+        else:
+            section = DjangoDocSection(
+                chapter,
+                section_name,
+                section_object.__doc__,
+                operator=operator,
+                installed=installed,
+            )
+            chapter.sections.append(section)
+            chapter.section_map[section.slug] = section
+
         return section
 
     def add_subsection(
@@ -592,7 +627,11 @@ class DjangoDocChapter(DjangoDocElement):
 
     def __init__(self, part: str, title: str, doc=None):
         self.doc = doc
+        self.guide_sections = []
         self.part = part
+        self.guide_section_map = {}
+        self.guide_sections = []
+        self.section_map = {}
         self.sections = []
         self.sections_by_slug = {}
         self.slug = slugify(title)
@@ -652,23 +691,34 @@ class DjangoDocSection(DjangoDocElement):
     """
 
     def __init__(
-        self, chapter: str, title: str, text: str, operator=None, installed=True
+        self, chapter, section_title: str, text: str, operator, installed=True
     ):
         self.chapter = chapter
         self.doc = DjangoDoc(text)
         self.installed = installed
         self.operator = operator
-        self.slug = slugify(title)
+        self.slug = slugify(section_title)
         self.subsections = []
         self.subsections_by_slug = {}
-        self.title = title
+        self.title = section_title
+
         if text.count("<dl>") != text.count("</dl>"):
             raise ValueError(
                 "Missing opening or closing <dl> tag in "
-                "{} documentation".format(title)
+                "{} documentation".format(section_title)
             )
         # print("YYY Adding section", title)
         chapter.sections_by_slug[self.slug] = self
+
+    @property
+    def my_subsections():
+        if self.subsections:
+            return self.subsections
+
+        guide_section = self.chapter.guide_section_map.get(self.slug)
+        if guide_section:
+            return guide_section.subsections
+        return []
 
     def __str__(self):
         return f"== {self.title} ==\n{self.doc}"
@@ -691,11 +741,45 @@ class DjangoDocSection(DjangoDocElement):
     # FIXME: this should be called get_uri not get_url
     def get_url(self):
         """Return the URI of this section."""
-        if self.chapter.slug == self.slug:
-            # When this happens we have a Guide name like "Colors" or "Special Functions" where
-            # the chapter and self are elided because what we have underneath is a module (and __init__.py)
-            return f"/{self.chapter.part.slug}/{self.chapter.slug}"
         return f"/{self.chapter.part.slug}/{self.chapter.slug}/{self.slug}/"
+
+
+class DjangoDocGuideSection(DjangoDocSection):
+    """An object for a Django Documented Guide Section.
+    A Guide Section is part of a Chapter. "Colors" or "Special Functions"
+    are examples of Guide Sections, and each contains a number of Sections.
+    like NamedColors or Orthogonal Polynomials.
+    """
+
+    def __init__(
+        self, chapter: str, title: str, text: str, submodule, installed: bool = True
+    ):
+        self.chapter = chapter
+        self.doc = DjangoDoc(text)
+        self.installed = installed
+        self.slug = slugify(title)
+        self.section = submodule
+        self.subsections = []
+        self.subsections_by_slug = {}
+        self.title = title
+
+        # FIXME: Sections never are operators. Subscetions can have
+        # operators though.  Fix up the view and searching code not to
+        # look for the operator field of a section.
+        self.operator = False
+
+        if text.count("<dl>") != text.count("</dl>"):
+            raise ValueError(
+                "Missing opening or closing <dl> tag in "
+                "{} documentation".format(title)
+            )
+        # print("YYY Adding section", title)
+        chapter.sections_by_slug[self.slug] = self
+
+    # FIXME: this should be called get_uri not get_url
+    def get_url(self):
+        """Return the URI of this section."""
+        return f"/{self.chapter.part.slug}/{self.chapter.slug}/guide/"
 
 
 class DjangoDocSubsection(DjangoDocElement):
@@ -737,11 +821,7 @@ class DjangoDocSubsection(DjangoDocElement):
         self.installed = installed
         self.operator = operator
 
-        if chapter.title == section.title:
-            from trepan.api import debug; debug()
-            self.section = submodule
-        else:
-            self.section = section
+        self.section = section
         self.slug = slugify(title)
         self.title = title
         if text.count("<dl>") != text.count("</dl>"):
@@ -749,7 +829,6 @@ class DjangoDocSubsection(DjangoDocElement):
                 "Missing opening or closing <dl> tag in "
                 "{} documentation".format(title)
             )
-        ## print("XXX Adding subsection", title)
         self.section.subsections_by_slug[self.slug] = self
 
     def __str__(self):
@@ -773,18 +852,6 @@ class DjangoDocSubsection(DjangoDocElement):
     # FIXME: this should be called get_uri not get_url
     def get_url(self) -> str:
         """Return the URI of this subsection."""
-        if self.chapter.slug == self.section.slug:
-            print("XXX1 Subsection something is wrong", self.slug)
-            # Elide section.slug and section slug; add subsection
-            # print("XXX0 Subsection", f"/{self.chapter.part.slug}/{self.chapter.slug}/guide/{self.subsection_slug}/{self.slug}/")
-            return f"/{self.chapter.part.slug}/{self.chapter.slug}/guide/{self.subsection_slug}/{self.slug}/"
-        elif self.section.slug == self.slug:
-            print(
-                "XXX2 Subsection something is wrong",
-                "/{self.chapter.part.slug}/{self.chapter.slug}/guide/{self.slug}/",
-            )
-            return f"/{self.chapter.part.slug}/{self.chapter.slug}/guide/{self.slug}/"
-
         return f"/{self.chapter.part.slug}/{self.chapter.slug}/{self.section.slug}/{self.slug}/"
 
 

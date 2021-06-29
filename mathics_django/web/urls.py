@@ -14,6 +14,7 @@ from mathics_django.web.views import (
     delete,
     doc,
     doc_chapter,
+    doc_guide_section,
     doc_part,
     doc_search,
     doc_section,
@@ -50,12 +51,7 @@ urlpatterns = [
         doc_section,
     ),
     url(
-        "^(?P<ajax>(?:ajax/)?)doc/(?P<part>[\w-]+)/(?P<chapter>[\w-]+)/guide/"
-        "(?P<section>[$\w-]+)/$",
-        doc_subsection,
-    ),
-    url(
-        "^(?P<ajax>(?:ajax/)?)doc/(?P<part>[\w-]+)/(?P<chapter>[\w-]+)/guide/"
+        "^(?P<ajax>(?:ajax/)?)doc/(?P<part>[\w-]+)/(?P<chapter>[\w-]+)/"
         "(?P<section>[$\w-]+)/(?P<subsection>[$\w-]+)/$",
         doc_subsection,
     ),
