@@ -456,7 +456,6 @@ class PyMathicsDocumentation(Documentation):
         self.symbols = {}
         from mathics.builtin import is_builtin, Builtin
 
-        print("loading symbols")
         for name in dir(self.pymathicsmodule):
             var = getattr(self.pymathicsmodule, name)
             if (
@@ -712,7 +711,7 @@ class DjangoDocGuideSection(DjangoDocSection):
         self.subsections_by_slug = {}
         self.title = title
 
-        # FIXME: Sections never are operators. Subscetions can have
+        # FIXME: Sections never are operators. Subsections can have
         # operators though.  Fix up the view and searching code not to
         # look for the operator field of a section.
         self.operator = False

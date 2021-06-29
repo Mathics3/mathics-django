@@ -612,8 +612,11 @@ def doc_section(
 def doc_subsection(
     request, part: str, chapter: str, section: str, subsection: str, ajax=""
 ):
-    """
-    Proceses a docuemnt subsection. This is often the bottom-most
+    """Proceses a document subsection. This is often the bottom-most
+    entity right now.  In particular it contains built-in functions
+    which are part of a guide section.  (Those builtings that are not
+    organized in a guide section are tagged as a section rather than a
+    subsection.)
     """
     subsection_obj = documentation.get_subsection(part, chapter, section, subsection)
     if not subsection_obj:
