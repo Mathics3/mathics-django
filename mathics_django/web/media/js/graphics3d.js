@@ -173,6 +173,9 @@ const drawFunctions = {
 					element.radius,
 					startCoordinate.distanceTo(endCoordinate), // the height of the cylinder
 					24
+				).applyMatrix4(
+					// rotate the cylinder to lookAt work;
+					new THREE.Matrix4().makeRotationX(THREE.Math.degToRad(90))
 				),
 				new THREE.MeshLambertMaterial({
 					color: new THREE.Color(...element.faceColor).getHex()
