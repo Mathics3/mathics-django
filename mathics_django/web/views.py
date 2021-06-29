@@ -537,6 +537,12 @@ def doc(request, ajax=""):
 
 
 def doc_part(request, part, ajax=""):
+    """
+    Produces HTML via jinja templating for a Part - the top-most
+    subdivision of the document. Some examples of Parts:
+    * Manual
+    * Reference of Built-in Symbols
+    """
     part = documentation.get_part(part)
     if not part:
         raise Http404
@@ -553,6 +559,11 @@ def doc_part(request, part, ajax=""):
 
 
 def doc_chapter(request, part, chapter, ajax=""):
+    """
+    Produces HTML via jinja templating for a chapter. Some examples of Chapters:
+    * Introduction (in part Manual)
+    * Procedural Programming (in part Reference of Built-in Symbols)
+    """
     chapter = documentation.get_chapter(part, chapter)
     if not chapter:
         raise Http404
@@ -570,35 +581,12 @@ def doc_chapter(request, part, chapter, ajax=""):
 
 def doc_section(request, part:str, chapter: str, section: str, ajax=False, subsections=[]):
     """
-    Produces HTML for a section which is either manual text or a section contiaining a number of
-    built-in functions. Compare with doc_guide_section below.
+    Produces HTML via jinja templating for a section which is either:
+    * A section of the static Manual. For example, "Why yet another CAS?"
+    * A Built-in function which is not part of a Section Guide. For example, Abort[]
+    * A list of builtin-functions under a Guide Section. For example: Color Directives.
+      The guide section here would be Colors.
     """
-    section_obj = documentation.get_section(part, chapter, section)
-    if not section_obj:
-        raise Http404
-    data = section_obj.html_data()
-    return render_doc(
-        request,
-        "section.html",
-        {
-            "title": section_obj.get_title_html(),
-            "title_operator": section_obj.operator,
-            "section": section_obj,
-            "subsections": subsections,
-            "object": section_obj,
-        },
-        data=data,
-        ajax=ajax,
-    )
-
-
-# FIXME and possibly DRY with the above
-def doc_guide_section(request, part:str, chapter: str, section: str, ajax=False, subsections=[]):
-    """
-    Produces HTML for a guide section. Guide sections like "Color" or "Special Functions" have subsections
-    which each function as a Section, e.g. have built-in function entities under them.
-    """
-    from trepan.api import debug; debug()
     section_obj = documentation.get_section(part, chapter, section)
     if not section_obj:
         raise Http404
@@ -619,7 +607,9 @@ def doc_guide_section(request, part:str, chapter: str, section: str, ajax=False,
 
 
 def doc_subsection(request, part:str, chapter: str, section: str, subsection: str, ajax=""):
-    print("Doc subsection called.")
+    """
+    Proceses a docuemnt subsection. This is often the bottom-most
+    """
     subsection_obj = documentation.get_subsection(part, chapter, section, subsection)
     if not subsection_obj:
         raise Http404
@@ -659,7 +649,6 @@ def doc_search(request):
                         subsections=item.subsections,
                     )
                 else:
-                    print("XXX2 subsection", item.slug)
                     return doc_subsection(
                         request,
                         item.chapter.part.slug,

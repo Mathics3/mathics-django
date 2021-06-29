@@ -76,10 +76,7 @@ class DjangoDocElement(DocElement):
 
     def get_prev_next(self):
         collection = self.get_collection()
-        try:
-            index = collection.index(self)
-        except:
-            index = 0
+        index = collection.index(self)
         prev = collection[index - 1] if index > 0 else None
         next = collection[index + 1] if index < len(collection) - 1 else None
         return prev, next
@@ -100,10 +97,6 @@ class Documentation(DjangoDocElement):
         if part:
             return part.chapters_by_slug.get(chapter_slug)
         return None
-        """for part in self.parts:
-            if part.slug == part_slug:
-                for chapter in self:
-                    pass"""
 
     def get_section(self, part_slug, chapter_slug, section_slug):
         part = self.parts_by_slug.get(part_slug)
@@ -202,7 +195,6 @@ class MathicsMainDocumentation(Documentation):
                             chapter.sections.append(section)
                             subsections = SUBSECTION_RE.findall(text)
                             for subsection_title in subsections:
-                                print("XXX", subsection_title)
                                 subsection = DjangoDocSubsection(
                                     chapter,
                                     section,
@@ -356,7 +348,6 @@ class MathicsMainDocumentation(Documentation):
                 installed=installed,
             )
             chapter.guide_sections.append(section)
-            chapter.guide_section_map[section.slug] = section
         else:
             section = DjangoDocSection(
                 chapter,
@@ -366,7 +357,6 @@ class MathicsMainDocumentation(Documentation):
                 installed=installed,
             )
             chapter.sections.append(section)
-            chapter.section_map[section.slug] = section
 
         return section
 
@@ -463,7 +453,6 @@ class PyMathicsDocumentation(Documentation):
         # Paths
         self.doc_dir = self.pymathicsmodule.__path__[0] + "/doc/"
         self.xml_data_file = self.doc_dir + "xml/data"
-        self.tex_data_file = self.doc_dir + "tex/data"
 
         # Load the dictionary of mathics symbols defined in the module
         self.symbols = {}
@@ -493,7 +482,6 @@ class PyMathicsDocumentation(Documentation):
         except FileNotFoundError:
             self.doc_dir = ""
             self.xml_data_file = ""
-            self.tex_data_file = ""
             files = []
         appendix = []
         for file in files:
@@ -521,29 +509,6 @@ class PyMathicsDocumentation(Documentation):
                     part.is_appendix = True
                     appendix.append(part)
 
-        # # Builds the automatic documentation
-        # builtin_part = DjangoDocPart(self, "Pymathics Modules", is_reference=True)
-        # title, text = get_module_doc(self.pymathicsmodule)
-        # chapter = DjangoDocChapter(builtin_part, title, DjangoDoc(text))
-        # for name in self.symbols:
-        #     instance = self.symbols[name]
-        #     installed = True
-        #     for package in getattr(instance, "requires", []):
-        #         try:
-        #             importlib.import_module(package)
-        #         except ImportError:
-        #             installed = False
-        #             break
-        #     section = DjangoDocSection(
-        #         chapter,
-        #         strip_system_prefix(name),
-        #         instance.__doc__ or "",
-        #         operator=instance.get_operator(),
-        #         installed=installed,
-        #     )
-        #     chapter.sections.append(section)
-        # builtin_part.chapters.append(chapter)
-        # self.parts.append(builtin_part)
         # Adds possible appendices
         for part in appendix:
             self.parts.append(part)
@@ -629,9 +594,7 @@ class DjangoDocChapter(DjangoDocElement):
         self.doc = doc
         self.guide_sections = []
         self.part = part
-        self.guide_section_map = {}
         self.guide_sections = []
-        self.section_map = {}
         self.sections = []
         self.sections_by_slug = {}
         self.slug = slugify(title)
@@ -707,18 +670,7 @@ class DjangoDocSection(DjangoDocElement):
                 "Missing opening or closing <dl> tag in "
                 "{} documentation".format(section_title)
             )
-        # print("YYY Adding section", title)
         chapter.sections_by_slug[self.slug] = self
-
-    @property
-    def my_subsections():
-        if self.subsections:
-            return self.subsections
-
-        guide_section = self.chapter.guide_section_map.get(self.slug)
-        if guide_section:
-            return guide_section.subsections
-        return []
 
     def __str__(self):
         return f"== {self.title} ==\n{self.doc}"

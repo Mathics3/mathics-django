@@ -8,13 +8,12 @@ All of the callback functions are located in mathics_django.web.views.
 
 from django.conf.urls import url
 
-# These ae the callback functions.
+# These are the callback functions.
 from mathics_django.web.views import (
     about_view,
     delete,
     doc,
     doc_chapter,
-    doc_guide_section,
     doc_part,
     doc_search,
     doc_section,

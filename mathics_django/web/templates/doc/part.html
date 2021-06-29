@@ -7,10 +7,11 @@
 	</div>
 {% endblock head %}
 
-{% block content %}	
+{% block content %}
 	<ul>
 		{% for chapter in part.chapters %}
 			<li>{{ chapter|link:ajax }}</li>
 		{% endfor %}
 	</ul>
+
 {% endblock content %}
