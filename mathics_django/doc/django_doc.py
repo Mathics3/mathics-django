@@ -34,7 +34,6 @@ from mathics.doc.common_doc import (
     filter_comments,
     post_sub,
     pre_sub,
-    strip_system_prefix,
 )
 
 import pickle
@@ -133,8 +132,7 @@ class Documentation(DjangoDocElement):
         return "/"
 
     def search(self, query):
-        """Handles interactive search in browser.
-        """
+        """Handles interactive search in browser."""
         query = query.strip()
         query_parts = [q.strip().lower() for q in query.split()]
 
@@ -247,7 +245,7 @@ class MathicsMainDocumentation(Documentation):
                 if module.__file__.endswith("__init__.py"):
                     # We have a Guide Section.
                     name = get_doc_name_from_module(module)
-                    guide_section = self.add_section(
+                    self.add_section(
                         chapter, name, module, operator=None, is_guide=True
                     )
                     submodules = [
@@ -594,7 +592,6 @@ class DjangoDocChapter(DjangoDocElement):
         self.doc = doc
         self.guide_sections = []
         self.part = part
-        self.guide_sections = []
         self.sections = []
         self.sections_by_slug = {}
         self.slug = slugify(title)

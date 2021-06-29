@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 
+import os.path as osp
+import re
 import sys
 import traceback
 
+from builtins import open as builtin_open
 from django import __version__ as django_version
 from django.shortcuts import render
 from django.template import RequestContext, loader
@@ -25,15 +28,20 @@ from mathics.core.evaluation import Message, Result
 from mathics.system_info import mathics_system_info
 
 from mathics_django.doc import documentation
-from mathics_django.doc.django_doc import DjangoDocPart, DjangoDocChapter, DjangoDocSection
+from mathics_django.doc.django_doc import (
+    DjangoDocPart,
+    DjangoDocChapter,
+    DjangoDocSection,
+)
 from mathics_django.settings import DOC_XML_DATA_PATH, MATHICS_DJANGO_DB_PATH
 from mathics_django.version import __version__
 from mathics_django.web.forms import LoginForm, SaveForm
 from mathics_django.web.models import Query, Worksheet, get_session_evaluation
 
-documentation.load_pymathics_doc()
-
 from mathics_scanner import replace_wl_with_plain_text
+from mathics.settings import default_pymathics_modules
+
+documentation.load_pymathics_doc()
 
 if settings.DEBUG:
     JSON_CONTENT_TYPE = "text/html"
@@ -62,13 +70,6 @@ def is_authenticated(user):
 #     return new_func
 
 
-from mathics.settings import default_pymathics_modules
-
-import re
-import os.path as osp
-from builtins import open as builtin_open
-
-
 def get_three_version():
     """
     Get the three.js version the static and hacky way not involving javascript.
@@ -80,7 +81,7 @@ def get_three_version():
         "three",
         "three.js",
     )
-    pattern = """var REVISION = '(\d+)'"""
+    pattern = r"""var REVISION = '(\d+)'"""
     match = re.search(pattern, builtin_open(three_file).read())
     if match:
         return "r" + match.group(1)
@@ -99,7 +100,7 @@ def get_MathJax_version():
         "mathjax",
         "MathJax.js",
     )
-    pattern = 'MathJax.version="(\d\.\d\.\d)"'
+    pattern = r'MathJax.version="(\d\.\d\.\d)"'
     match = re.search(pattern, builtin_open(three_file).read())
     if match:
         return match.group(1)
@@ -495,7 +496,7 @@ def delete(request):
 # auxiliary function
 
 
-def render_doc(request, template_name, context, data=None, ajax: str=""):
+def render_doc(request, template_name, context, data=None, ajax: str = ""):
     object = context.get("object")
     context.update(
         {
@@ -579,7 +580,9 @@ def doc_chapter(request, part, chapter, ajax=""):
     )
 
 
-def doc_section(request, part:str, chapter: str, section: str, ajax=False, subsections=[]):
+def doc_section(
+    request, part: str, chapter: str, section: str, ajax=False, subsections=[]
+):
     """
     Produces HTML via jinja templating for a section which is either:
     * A section of the static Manual. For example, "Why yet another CAS?"
@@ -606,7 +609,9 @@ def doc_section(request, part:str, chapter: str, section: str, ajax=False, subse
     )
 
 
-def doc_subsection(request, part:str, chapter: str, section: str, subsection: str, ajax=""):
+def doc_subsection(
+    request, part: str, chapter: str, section: str, subsection: str, ajax=""
+):
     """
     Proceses a docuemnt subsection. This is often the bottom-most
     """
