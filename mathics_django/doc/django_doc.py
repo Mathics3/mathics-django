@@ -60,9 +60,9 @@ def get_doc_name_from_module(module):
 class DjangoDocElement(DocElement):
     def href(self, ajax=False):
         if ajax:
-            return "javascript:loadDoc('%s')" % self.get_url()
+            return "javascript:loadDoc('%s')" % self.get_uri()
         else:
-            return "/doc%s" % self.get_url()
+            return "/doc%s" % self.get_uri()
 
     def get_prev(self):
         return self.get_prev_next()[0]
@@ -128,7 +128,7 @@ class Documentation(DjangoDocElement):
                         if tests:
                             yield Tests(part.title, chapter.title, section.title, tests)
 
-    def get_url(self):
+    def get_uri(self) -> str:
         return "/"
 
     def search(self, query):
@@ -605,8 +605,7 @@ class DjangoDocChapter(DjangoDocElement):
         """Return a list of chapters in the part of this chapter."""
         return self.part.chapters
 
-    # FIXME: this should be called get_uri not get_url
-    def get_url(self) -> str:
+    def get_uri(self) -> str:
         return f"/{self.part.slug}/{self.slug}/"
 
 
@@ -640,13 +639,13 @@ class DjangoDocPart(DjangoDocElement):
             )
         )
 
-    def get_url(self):
+    def get_uri(self) -> str:
         return f"/{self.slug}/"
 
 
 class DjangoDocSection(DjangoDocElement):
     """An object for a Django Documented Section.
-    A Section is part of a Chapter. In can contain subsections.
+    A Section is part of a Chapter. It can contain subsections.
     """
 
     def __init__(
@@ -686,8 +685,7 @@ class DjangoDocSection(DjangoDocElement):
             )
         return result
 
-    # FIXME: this should be called get_uri not get_url
-    def get_url(self):
+    def get_uri(self) -> str:
         """Return the URI of this section."""
         return f"/{self.chapter.part.slug}/{self.chapter.slug}/{self.slug}/"
 
@@ -724,8 +722,7 @@ class DjangoDocGuideSection(DjangoDocSection):
         # print("YYY Adding section", title)
         chapter.sections_by_slug[self.slug] = self
 
-    # FIXME: this should be called get_uri not get_url
-    def get_url(self):
+    def get_uri(self) -> str:
         """Return the URI of this section."""
         return f"/{self.chapter.part.slug}/{self.chapter.slug}/guide/"
 
@@ -797,8 +794,7 @@ class DjangoDocSubsection(DjangoDocElement):
             )
         return result
 
-    # FIXME: this should be called get_uri not get_url
-    def get_url(self) -> str:
+    def get_uri(self) -> str:
         """Return the URI of this subsection."""
         return f"/{self.chapter.part.slug}/{self.chapter.slug}/{self.section.slug}/{self.slug}/"
 
