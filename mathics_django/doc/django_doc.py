@@ -575,9 +575,10 @@ class DjangoDoc(object):
 
     def html(self):
         counters = {}
+        items = [item for item in self.items if not item.is_private()][:1]
         return mark_safe(
             "\n".join(
-                item.html(counters) for item in self.items if not item.is_private()
+                item.html(counters) for item in items if not item.is_private()
             )
         )
 
