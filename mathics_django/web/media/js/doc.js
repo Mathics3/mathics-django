@@ -8,17 +8,23 @@ function showPage(response) {
 	}
 
 	document.querySelectorAll('li.test p').forEach((test) => {
-		test.insert($E('span',
-			{ class: 'submitbutton', title: 'Run this example!' },
-			submitButton = $E('span', $T('='))
-		));
+		const submitButton = document.createElement('span');
+		submitButton.innerText = '=';
 
-		test.addEventListener('mouseover', () => {
-			test.classList.add('focused');
-		});
-		test.addEventListener('mouseout', () => {
-			test.classList.remove('focused');
-		});
+		const submitButtonBox = document.createElement('span');
+		submitButtonBox.className = 'submitbutton';
+		submitButtonBox.title = 'Run this example!';
+		submitButtonBox.appendChild(submitButton);
+
+		test.appendChild(submitButtonBox);
+
+		test.addEventListener('mouseover', () =>
+			test.classList.add('focused')
+		);
+
+		test.addEventListener('mouseout', () =>
+			test.classList.remove('focused')
+		);
 
 		test.children[1].addEventListener('click', () => {
 			var query = test.firstElementChild.innerHTML;
@@ -29,7 +35,7 @@ function showPage(response) {
 	});
 
 	document.querySelectorAll('ul.test').forEach((test) => {
-		var id = test.id.substr(5); // 'test_...'
+		const id = test.id.substr(5); // 'test_...'
 		var data = response.data[id];
 		setResult(test, data.results);
 	});

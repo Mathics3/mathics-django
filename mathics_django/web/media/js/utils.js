@@ -170,30 +170,6 @@ function log(message) {
 	return true;
 }
 
-function $E(tag, properties) {
-	var children;
-	if (Object.isDOMElement(properties)) {
-		children = $A(arguments).slice(1);
-		properties = {};
-	} else {
-		children = $A(arguments).slice(2);
-	}
-	if (tag == 'a' && properties.href == null) {
-		properties.href = 'javascript:;';
-	}
-	var element = new Element(tag, properties);
-	children.each(function (child) {
-		if (child) {
-			element.appendChild(child);
-		}
-	});
-	return element;
-}
-
-function $T(text) {
-	return document.createTextNode(text);
-}
-
 function submitForm(form, url, onSuccess, extraData) {
 	var params = {};
 
@@ -232,22 +208,34 @@ function submitForm(form, url, onSuccess, extraData) {
 			if (response.form.fieldErrors) {
 				$H(response.form.fieldErrors).forEach((pair) => {
 					errors = true;
-					var errorlist = $E('ul', { 'class': 'errorlist' });
+
+					const errorList = document.createElement('ul');
+					errorList.className = 'errorlist';
+
 					var input = form.select('[name="' + pair.key + '"]')[0];
-					pair.value.each(function (msg) {
-						errorlist.appendChild($E('li', $T(msg)));
+					pair.value.forEach((msg) => {
+						const li = document.createElement('li');
+						li.innerText = msg;
+						errorList.appendChild(li);
 					});
-					input.insert({ before: errorlist });
+					input.insert({ before: errorList });
 					if (!errorFocus)
 						errorFocus = input;
 				});
 			}
 			if (response.form.generalErrors) {
-				var errorlist = $E(ul, { class: 'errorlist' });
-				response.form.generalErrors.each((msg) => {
+				const errorlist = document.createElement('ul');
+				errorlist.className = 'errorlist';
+
+				response.form.generalErrors.forEach((msg) => {
 					errors = true;
-					errorlist.appendChild($E('li', $T(msg)));
+
+					const li = document.createElement('li');
+					li.innerText = msg;
+
+					errorlist.appendChild(li);
 				});
+
 				form.insert({ top: errorlist });
 				if (!errorFocus) {
 					var firstInput = form.querySelector('input');

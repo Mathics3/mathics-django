@@ -123,7 +123,7 @@ var objectsPrefix = 'math_object_', objectsCount = 0, objects = {};
 
 function translateDOMElement(element, svg) {
 	if (element.nodeType === 3) {
-		return $T(element.nodeValue);
+		return document.createTextNode(element.nodeValue);
 	}
 
 	let dom = null;
@@ -391,10 +391,11 @@ function setResult(list, results) {
 
 	results.forEach((result) => {
 		result.out.forEach((out) => {
-			var li = $E('li', { class: (out.message ? 'message' : 'print') });
+			const li = document.createElement('li');
+			li.className = out.message ? 'message' : 'print';
 
 			if (out.message) {
-				li.appendChild($T(out.prefix + ': '));
+				li.innerHTML += out.prefix + ': ';
 			}
 
 			li.appendChild(createLine(out.text));
@@ -402,7 +403,11 @@ function setResult(list, results) {
 		});
 
 		if (result.result) {
-			resultList.appendChild($E('li', { class: 'result' }, createLine(result.result)));
+			const li = document.createElement('li');
+			li.className = 'result';
+			li.appendChild(createLine(result.result));
+
+			resultList.appendChild(li);
 			resultList.style.display = 'block';
 		}
 
@@ -411,7 +416,10 @@ function setResult(list, results) {
 		}
 	});
 
-	list.appendChild($E('li', { class: 'out' }, resultList));
+	const li = document.createElement('li');
+	li.className = 'out';
+	li.appendChild(resultList);
+	list.appendChild(li);
 
 	afterProcessResult(list);
 }
@@ -461,7 +469,11 @@ function submitQuery(element, onfinish, query) {
 		},
 		onFailure: () => {
 			element?.ul.select('li[class!=request]').invoke('deleteElement');
-			const li = $E('li', { class: 'serverError' }, $T("Sorry, an error occurred while processing your request!"));
+
+			const li = document.createElement('li');
+			li.className = 'serverError';
+			li.innerText = 'Sorry, an error occurred while processing your request!';
+
 			element?.ul.appendChild(li);
 			element.submitted = true;
 		},
@@ -589,27 +601,44 @@ function createSortable() {
 var queryIndex = 0;
 
 function createQuery(beforeElement, noFocus, updatingAll) {
-	var ul, textarea, moveHandle, deleteHandle, submitButton;
-	// items need id in order for Sortable.onUpdate to work.
-	var li = $E('li', { id: 'query_' + queryIndex++, class: 'query' },
-		ul = $E('ul', { class: 'query' },
-			$E('li', { class: 'request' },
-				textarea = $E('textarea', { class: 'request', spellcheck: 'false' }),
-				$E(
-					'span',
-					{ class: 'submitbutton', title: 'Evaluate [Shift+Return]' },
-					submitButton = $E('span', $T('='))
-				)
-			)
-		),
-		moveHandle = $E('span', { class: 'move' }),
-		deleteHandle = $E(
-			'span',
-			{ class: 'delete', title: 'Delete' },
-			$T('×')
-		)
-	);
+	const textarea = document.createElement('textarea');
+	textarea.className = 'request';
+	textarea.spellcheck = false;
 	textarea.rows = 1;
+
+	const submitButton = document.createElement('span');
+	submitButton.innerText = '=';
+
+	const submitButtonBox = document.createElement('span');
+	submitButtonBox.className = 'submitbutton';
+	submitButtonBox.title = 'Evaluate [Shift+Return]';
+	submitButtonBox.appendChild(submitButton);
+
+	const request = document.createElement('li');
+	request.className = 'request';
+	request.appendChild(textarea);
+	request.appendChild(submitButtonBox);
+
+	const ul = document.createElement('ul');
+	ul.className = 'query';
+	ul.appendChild(request);
+
+	const moveHandle = document.createElement('span');
+	moveHandle.className = 'move';
+
+	const deleteHandle = document.createElement('span');
+	deleteHandle.className = 'delete';
+	deleteHandle.title = 'Delete';
+	deleteHandle.innerText = '×';
+
+	// items need id in order for Sortable.onUpdate to work.
+	const li = document.createElement('li');
+	li.id = 'query_' + queryIndex++;
+	li.className = 'query';
+	li.appendChild(ul);
+	li.appendChild(moveHandle);
+	li.appendChild(deleteHandle);
+
 	textarea.ul = ul;
 	textarea.li = li;
 	textarea.submitted = false;
@@ -637,7 +666,6 @@ function createQuery(beforeElement, noFocus, updatingAll) {
 	deleteHandle.addEventListener('click', deleteClick);
 	deleteHandle.addEventListener('mousedown', deleteMouseDown);
 	moveHandle.addEventListener('mousedown', moveMouseDown);
-	moveHandle.addEventListener('mouseup', moveMouseUp);
 	document.addEventListener('mouseup', moveMouseUp);
 	submitButton.addEventListener('mousedown', () => {
 		if (textarea.value.strip()) {
@@ -646,6 +674,7 @@ function createQuery(beforeElement, noFocus, updatingAll) {
 			textarea.focus();
 		}
 	});
+
 	if (!updatingAll) {
 		createSortable();
 	}
@@ -786,7 +815,10 @@ function domLoaded() {
 	const queriesContainer = document.getElementById('queriesContainer');
 
 	if (queriesContainer) {
-		queriesContainer.appendChild($E('ul', { id: 'queries' }));
+		const queries = document.createElement('ul');
+		queries.id = 'queries';
+
+		queriesContainer.appendChild(queries);
 
 		const documentElement = document.getElementById('document');
 
