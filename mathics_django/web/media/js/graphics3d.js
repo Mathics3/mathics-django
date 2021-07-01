@@ -1,4 +1,112 @@
 const drawFunctions = {
+	arrow: (element) => {
+		const group = new THREE.Group();
+
+		const color = new THREE.Color(...element.color).getHex();
+
+		const startCoordinate = new THREE.Vector3(
+			...element.coords[element.coords.length - 2][0]
+		);
+
+		const endCoordinate = new THREE.Vector3(
+			...element.coords[element.coords.length - 1][0]
+		);
+
+		group.add(
+			new THREE.ArrowHelper(
+				endCoordinate.clone().sub(startCoordinate).normalize(),
+				startCoordinate,
+				startCoordinate.distanceTo(endCoordinate),
+				color
+			)
+		);
+
+		const points = new Float32Array(element.coords.length * 3 - 3);
+
+		for (let i = 0; i < points.length / 3; i++) {
+			points[i * 3] = element.coords[i][0][0];
+			points[i * 3 + 1] = element.coords[i][0][1];
+			points[i * 3 + 2] = element.coords[i][0][2];
+		}
+
+		const linesGeometry = new THREE.BufferGeometry();
+
+		linesGeometry.setAttribute(
+			'position',
+			new THREE.BufferAttribute(points, 3)
+		);
+
+		group.add(
+			new THREE.Line(
+				linesGeometry,
+				new THREE.LineBasicMaterial({ color })
+			)
+		);
+
+		return group;
+	},
+	cube: (element) => {
+		const cube = new THREE.Mesh(
+			new THREE.BoxGeometry(...element.size[0]),
+			new THREE.MeshLambertMaterial({
+				color: new THREE.Color(...element.faceColor).getHex()
+			})
+		);
+
+		cube.position.set(...element.position[0]);
+
+		return cube;
+	},
+	cylinder: (element) => {
+		const group = new THREE.Group();
+
+		for (let i = 0; i < element.coords.length / 2; i++) {
+			const startCoordinate = new THREE.Vector3(
+				...element.coords[i * 2][0]
+			);
+
+			const endCoordinate = new THREE.Vector3(
+				...element.coords[i * 2 + 1][0]
+			);
+
+			const cylinder = new THREE.Mesh(
+				new THREE.CylinderGeometry(
+					element.radius,
+					element.radius,
+					startCoordinate.distanceTo(endCoordinate), // the height of the cylinder
+					24
+				).applyMatrix4(
+					// rotate the cylinder to lookAt work;
+					new THREE.Matrix4().makeRotationX(THREE.Math.degToRad(90))
+				),
+				new THREE.MeshLambertMaterial({
+					color: new THREE.Color(...element.faceColor).getHex()
+				})
+			);
+
+			// mean of the start and end vectors, the center of the cylinder
+			cylinder.position.addVectors(startCoordinate, endCoordinate)
+				.multiplyScalar(0.5);
+
+			cylinder.lookAt(endCoordinate);
+
+			group.add(cylinder);
+		}
+
+		return group;
+	},
+	line: (element) => {
+		return new THREE.Line(
+			new THREE.BufferGeometry().setFromPoints(
+				element.coords.map(
+					(coordinate) => new THREE.Vector3(...coordinate[0])
+				)
+			),
+			new THREE.LineBasicMaterial({
+				color: new THREE.Color(...element.color).getHex()
+			})
+		);
+	},
 	point: (element, canvasSize) => {
 		const geometry = new THREE.Geometry();
 
@@ -24,18 +132,6 @@ const drawFunctions = {
 						gl_FragColor = color;
 					}
 				`
-			})
-		);
-	},
-	line: (element) => {
-		return new THREE.Line(
-			new THREE.BufferGeometry().setFromPoints(
-				element.coords.map(
-					(coordinate) => new THREE.Vector3(...coordinate[0])
-				)
-			),
-			new THREE.LineBasicMaterial({
-				color: new THREE.Color(...element.color).getHex()
 			})
 		);
 	},
@@ -142,56 +238,6 @@ const drawFunctions = {
 		));
 
 		return spheres;
-	},
-	cube: (element) => {
-		const cube = new THREE.Mesh(
-			new THREE.BoxGeometry(...element.size[0]),
-			new THREE.MeshLambertMaterial({
-				color: new THREE.Color(...element.faceColor).getHex()
-			})
-		);
-
-		cube.position.set(...element.position[0]);
-
-		return cube;
-	},
-	cylinder: (element) => {
-		const group = new THREE.Group();
-
-		for (let i = 0; i < element.coords.length / 2; i++) {
-			const startCoordinate = new THREE.Vector3(
-				...element.coords[i * 2][0]
-			);
-
-			const endCoordinate = new THREE.Vector3(
-				...element.coords[i * 2 + 1][0]
-			);
-
-			const cylinder = new THREE.Mesh(
-				new THREE.CylinderGeometry(
-					element.radius,
-					element.radius,
-					startCoordinate.distanceTo(endCoordinate), // the height of the cylinder
-					24
-				).applyMatrix4(
-					// rotate the cylinder to lookAt work;
-					new THREE.Matrix4().makeRotationX(THREE.Math.degToRad(90))
-				),
-				new THREE.MeshLambertMaterial({
-					color: new THREE.Color(...element.faceColor).getHex()
-				})
-			);
-
-			// mean of the start and end vectors, the center of the cylinder
-			cylinder.position.addVectors(startCoordinate, endCoordinate)
-				.multiplyScalar(0.5);
-
-			cylinder.lookAt(endCoordinate);
-
-			group.add(cylinder);
-		}
-
-		return group;
 	}
 };
 
