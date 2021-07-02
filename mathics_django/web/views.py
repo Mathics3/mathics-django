@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 
+import os.path as osp
+import re
 import sys
 import traceback
 
+from builtins import open as builtin_open
 from django import __version__ as django_version
 from django.shortcuts import render
 from django.template import RequestContext, loader
@@ -25,15 +28,20 @@ from mathics.core.evaluation import Message, Result
 from mathics.system_info import mathics_system_info
 
 from mathics_django.doc import documentation
-from mathics_django.doc.django_doc import DjangoDocPart, DjangoDocChapter
+from mathics_django.doc.django_doc import (
+    DjangoDocPart,
+    DjangoDocChapter,
+    DjangoDocSection,
+)
 from mathics_django.settings import DOC_XML_DATA_PATH, MATHICS_DJANGO_DB_PATH
 from mathics_django.version import __version__
 from mathics_django.web.forms import LoginForm, SaveForm
 from mathics_django.web.models import Query, Worksheet, get_session_evaluation
 
-documentation.load_pymathics_doc()
-
 from mathics_scanner import replace_wl_with_plain_text
+from mathics.settings import default_pymathics_modules
+
+documentation.load_pymathics_doc()
 
 if settings.DEBUG:
     JSON_CONTENT_TYPE = "text/html"
@@ -62,13 +70,6 @@ def is_authenticated(user):
 #     return new_func
 
 
-from mathics.settings import default_pymathics_modules
-
-import re
-import os.path as osp
-from builtins import open as builtin_open
-
-
 def get_three_version():
     """
     Get the three.js version the static and hacky way not involving javascript.
@@ -80,7 +81,7 @@ def get_three_version():
         "three",
         "three.js",
     )
-    pattern = """var REVISION = '(\d+)'"""
+    pattern = r"""var REVISION = '(\d+)'"""
     match = re.search(pattern, builtin_open(three_file).read())
     if match:
         return "r" + match.group(1)
@@ -99,7 +100,7 @@ def get_MathJax_version():
         "mathjax",
         "MathJax.js",
     )
-    pattern = 'MathJax.version="(\d\.\d\.\d)"'
+    pattern = r'MathJax.version="(\d\.\d\.\d)"'
     match = re.search(pattern, builtin_open(three_file).read())
     if match:
         return match.group(1)
@@ -495,7 +496,7 @@ def delete(request):
 # auxiliary function
 
 
-def render_doc(request, template_name, context, data=None, ajax=False):
+def render_doc(request, template_name, context, data=None, ajax: str = ""):
     object = context.get("object")
     context.update(
         {
@@ -537,6 +538,12 @@ def doc(request, ajax=""):
 
 
 def doc_part(request, part, ajax=""):
+    """
+    Produces HTML via jinja templating for a Part - the top-most
+    subdivision of the document. Some examples of Parts:
+    * Manual
+    * Reference of Built-in Symbols
+    """
     part = documentation.get_part(part)
     if not part:
         raise Http404
@@ -553,6 +560,11 @@ def doc_part(request, part, ajax=""):
 
 
 def doc_chapter(request, part, chapter, ajax=""):
+    """
+    Produces HTML via jinja templating for a chapter. Some examples of Chapters:
+    * Introduction (in part Manual)
+    * Procedural Programming (in part Reference of Built-in Symbols)
+    """
     chapter = documentation.get_chapter(part, chapter)
     if not chapter:
         raise Http404
@@ -568,19 +580,57 @@ def doc_chapter(request, part, chapter, ajax=""):
     )
 
 
-def doc_section(request, part, chapter, section, ajax=""):
-    section = documentation.get_section(part, chapter, section)
-    if not section:
+def doc_section(
+    request, part: str, chapter: str, section: str, ajax=False, subsections=[]
+):
+    """
+    Produces HTML via jinja templating for a section which is either:
+    * A section of the static Manual. For example, "Why yet another CAS?"
+    * A Built-in function which is not part of a Section Guide. For example, Abort[]
+    * A list of builtin-functions under a Guide Section. For example: Color Directives.
+      The guide section here would be Colors.
+    """
+    section_obj = documentation.get_section(part, chapter, section)
+    if not section_obj:
         raise Http404
-    data = section.html_data()
+    data = section_obj.html_data()
     return render_doc(
         request,
         "section.html",
         {
-            "title": section.get_title_html(),
-            "title_operator": section.operator,
+            "title": section_obj.get_title_html(),
+            "title_operator": section_obj.operator,
+            "section": section_obj,
+            "subsections": subsections,
+            "object": section_obj,
+        },
+        data=data,
+        ajax=ajax,
+    )
+
+
+def doc_subsection(
+    request, part: str, chapter: str, section: str, subsection: str, ajax=""
+):
+    """Proceses a document subsection. This is often the bottom-most
+    entity right now.  In particular it contains built-in functions
+    which are part of a guide section.  (Those builtings that are not
+    organized in a guide section are tagged as a section rather than a
+    subsection.)
+    """
+    subsection_obj = documentation.get_subsection(part, chapter, section, subsection)
+    if not subsection_obj:
+        raise Http404
+    data = subsection_obj.html_data()
+    return render_doc(
+        request,
+        "subsection.html",
+        {
+            "title": subsection_obj.get_title_html(),
+            "title_operator": subsection_obj.operator,
             "section": section,
-            "object": section,
+            "subsection": subsection_obj,
+            "object": subsection_obj,
         },
         data=data,
         ajax=ajax,
@@ -592,19 +642,30 @@ def doc_search(request):
     result = documentation.search(query)
     if len([item for exact, item in result if exact]) <= 1:
         for exact, item in result:
-            if exact or len(result) == 1:
+            if exact and (len(item.slug) > 4) or len(result) == 1:
                 if isinstance(item, DjangoDocPart):
                     return doc_part(request, item.slug, ajax=True)
                 elif isinstance(item, DjangoDocChapter):
                     return doc_chapter(request, item.part.slug, item.slug, ajax=True)
-                else:
+                elif isinstance(item, DjangoDocSection):
                     return doc_section(
                         request,
                         item.chapter.part.slug,
                         item.chapter.slug,
                         item.slug,
                         ajax=True,
+                        subsections=item.subsections,
                     )
+                else:
+                    return doc_subsection(
+                        request,
+                        item.chapter.part.slug,
+                        item.chapter.slug,
+                        item.section.slug,
+                        item.slug,
+                        ajax=True,
+                    )
+
     result = [item for exact, item in result]
 
     return render_doc(
