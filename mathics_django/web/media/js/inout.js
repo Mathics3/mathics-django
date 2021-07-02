@@ -293,6 +293,10 @@ function showGallery() {
 		'(* Bouncing Ping-Pong Ball at equal time intervals *)',
 		'Plot[Abs[Sin[t] / (t + 1)], {t, 0, 4 Pi}, Mesh->Full, PlotRange->{0, 1 / 2}]',
 
+		'(* Here is a 5-blade propeller, or maybe a flower, using PolarPlot: *)',
+		'PolarPlot[Cos[5t], {t, 0, Pi}]',
+		'(* Also try surrounding the Cos in an Abs: PolarPlot[Abs[Cos[5t]], {t, 0, Pi}] *)',
+
 		'Graphics[Table[Circle[{x,y}], {x, 0, 10, 2}, {y, 0, 10, 2}]]',
 
 		'(* Target Practice. *)',
@@ -311,7 +315,9 @@ function showGallery() {
 
 		'(**** 3D graphics ****)',
 
+		'Graphics3D[Arrow[{{1, 1, -1}, {2, 2, 0}, {3, 3, -1}, {4, 4, 0}}]]',
 		'Graphics3D[{Darker[Yellow], Sphere[{{-1, 0, 0}, {1, 0, 0}, {0, 0, Sqrt[3.]}}, 1]}]',
+		'Graphics3D[{ Cylinder[{{1,1,1}, {10,10,10}}], Cylinder[{{-1,-1,-1}, {-10,-10,-10}}] }]',
 		'Plot3D[Sin[x y], {x, -2, 2}, {y, -2, 2}, Mesh->Full, PlotPoints->21, TicksStyle->{Darker[Magenta], Darker[Blue]}]',
 		'Plot3D[ Abs[Zeta[x + I y] ], {x, -1, 2}, {y, 2, 20}, PlotPoints->30]',
 		'Graphics3D[Polygon[Table[{Cos[2 Pi k/6], Sin[2 Pi k/6], 0}, {k, 0, 5}]]]',
