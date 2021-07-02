@@ -133,12 +133,37 @@ class Documentation(DjangoDocElement):
 
     def search(self, query):
         """Handles interactive search in browser."""
+
         query = query.strip()
         query_parts = [q.strip().lower() for q in query.split()]
 
         def matches(text):
             text = text.lower()
             return all(q in text for q in query_parts)
+
+        def name_compare_goodness(result_data):
+            exact, item = result_data
+            name = item.title
+            if exact:
+                return -4 if name == query else -3
+
+            if name.startswith(query):
+                return -2
+            if query in name:
+                return -1
+            lower_name = name.lower()
+            if lower_name.startswith(query):
+                return 0
+            if lower_name in query:
+                return 1
+            return 2
+
+        def search_sections(section, result):
+            for subsection in section.subsections:
+                if matches(subsection.title):
+                    result.append((subsection.title == query, subsection))
+                elif query == subsection.operator:
+                    result.append((True, subsection))
 
         result = []
         for part in self.parts:
@@ -151,12 +176,13 @@ class Documentation(DjangoDocElement):
                     if matches(section.title):
                         if not isinstance(section, DjangoDocGuideSection):
                             result.append((section.title == query, section))
-                        for subsection in section.subsections:
-                            if matches(subsection.title):
-                                result.append((subsection.title == query, subsection))
                     elif query == section.operator:
                         result.append((True, section))
-        return result
+                        continue
+                    search_sections(section, result)
+
+        sorted_results = sorted(result, key=name_compare_goodness)
+        return sorted_results
 
 
 class MathicsMainDocumentation(Documentation):

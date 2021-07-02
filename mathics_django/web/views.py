@@ -642,7 +642,7 @@ def doc_search(request):
     result = documentation.search(query)
     if len([item for exact, item in result if exact]) <= 1:
         for exact, item in result:
-            if exact or len(result) == 1:
+            if exact and (len(item.slug) > 4) or len(result) == 1:
                 if isinstance(item, DjangoDocPart):
                     return doc_part(request, item.slug, ajax=True)
                 elif isinstance(item, DjangoDocChapter):
