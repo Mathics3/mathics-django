@@ -211,7 +211,7 @@ class MathicsMainDocumentation(Documentation):
                     sections = SECTION_RE.findall(text)
                     for pre_text, title, text in sections:
                         if not chapter.doc:
-                            chapter.doc = DjangoDoc(pre_text)
+                            chapter.doc = DjangoDoc(pre_text, title)
                         if title:
                             section = DjangoDocSection(
                                 chapter, title, text, operator=False, installed=True
@@ -258,7 +258,7 @@ class MathicsMainDocumentation(Documentation):
                 if module in modules_seen:
                     continue
                 title, text = get_module_doc(module)
-                chapter = DjangoDocChapter(builtin_part, title, DjangoDoc(text))
+                chapter = DjangoDocChapter(builtin_part, title, DjangoDoc(text, title))
                 builtins = builtins_by_module[module.__name__]
                 # FIXME: some Box routines, like RowBox *are*
                 # documented
@@ -543,7 +543,7 @@ class PyMathicsDocumentation(Documentation):
 
 
 class DjangoDoc(object):
-    def __init__(self, doc):
+    def __init__(self, doc, title):
         self.items = []
         # remove commented lines
         doc = filter_comments(doc)
@@ -563,8 +563,17 @@ class DjangoDoc(object):
                 if tests is not None:
                     self.items.append(tests)
                     tests = None
+
+                if text.startswith(title +"\n"):
+                    # Guide sections and sections with subsections
+                    # lead with their name. Elsewhere we pick that
+                    # out and make it a title. So remove it here
+                    # in the body where it is redundant.
+                    text = text.replace(title, "")
+
                 text = post_sub(text, post_substitutions)
                 self.items.append(DjangoDocText(text))
+
                 tests = None
             if index < len(testcases) - 1:
                 test = DjangoDocTest(index, testcase)
@@ -681,7 +690,7 @@ class DjangoDocSection(DjangoDocElement):
         self, chapter, section_title: str, text: str, operator, installed=True
     ):
         self.chapter = chapter
-        self.doc = DjangoDoc(text)
+        self.doc = DjangoDoc(text, section_title)
         self.installed = installed
         self.operator = operator
         self.slug = slugify(section_title)
@@ -730,7 +739,7 @@ class DjangoDocGuideSection(DjangoDocSection):
         self, chapter: str, title: str, text: str, submodule, installed: bool = True
     ):
         self.chapter = chapter
-        self.doc = DjangoDoc(text)
+        self.doc = DjangoDoc(text, title)
         self.installed = installed
         self.slug = slugify(title)
         self.section = submodule
@@ -790,7 +799,7 @@ class DjangoDocSubsection(DjangoDocElement):
         the "section" name for the class Read (the subsection) inside it.
         """
 
-        self.doc = DjangoDoc(text)
+        self.doc = DjangoDoc(text, title)
         self.chapter = chapter
         self.installed = installed
         self.operator = operator
