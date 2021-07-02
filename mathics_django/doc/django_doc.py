@@ -545,6 +545,7 @@ class PyMathicsDocumentation(Documentation):
 class DjangoDoc(object):
     def __init__(self, doc, title):
         self.items = []
+        self.title = title
         # remove commented lines
         doc = filter_comments(doc)
         # pre-substitute Python code because it might contain tests
@@ -611,7 +612,10 @@ class DjangoDoc(object):
     def html(self):
         counters = {}
         items = [item for item in self.items if not item.is_private()]
-        if len(items) > 1:
+        if len(items) and items[0].text.startswith(self.title):
+            # In module-style docstring tagging, the first line of the docstring is the section title.
+            # since that is tagged and shown as a title, it is redundant here is the section body.
+            # Or that is the intent. This code is a bit hacky.
             items = items[1:]
         return mark_safe(
             "\n".join(
