@@ -1,6 +1,14 @@
 CHANGES
 =======
 
+3.1.0
+-----
+
+* Add ``Arrow`` and ``Cylinder`` (preliminary)
+* Improve sectioning and subsectioning. (A lot more could be done on both the data tagging and presentation side)
+* Improve gallery examples
+* Modernize Javascript code more and get closer to remvoving scriptaculous
+
 3.0.1
 -----
 
