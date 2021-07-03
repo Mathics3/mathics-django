@@ -565,7 +565,7 @@ class DjangoDoc(object):
                     self.items.append(tests)
                     tests = None
 
-                if text.startswith(title +"\n"):
+                if text.startswith(title + "\n"):
                     # Guide sections and sections with subsections
                     # lead with their name. Elsewhere we pick that
                     # out and make it a title. So remove it here
@@ -618,9 +618,7 @@ class DjangoDoc(object):
             # Or that is the intent. This code is a bit hacky.
             items = items[1:]
         return mark_safe(
-            "\n".join(
-                item.html(counters) for item in items if not item.is_private()
-            )
+            "\n".join(item.html(counters) for item in items if not item.is_private())
         )
 
 
@@ -936,6 +934,7 @@ class DjangoDocTest(object):
 class DjangoDocTests(object):
     def __init__(self):
         self.tests = []
+        self.text = ""
 
     def get_tests(self):
         return self.tests

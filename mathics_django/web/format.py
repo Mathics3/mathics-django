@@ -7,6 +7,9 @@ import random
 import math
 import networkx as nx
 
+from mathics.core.expression import Expression, BoxError
+from mathics.session import get_settings_value
+
 
 FORM_TO_FORMAT = {
     "System`MathMLForm": "xml",
@@ -43,8 +46,6 @@ def format_output(obj, expr, format=None):
     if isinstance(format, dict):
         return dict((k, obj.format_output(expr, f)) for k, f in format.items())
 
-    from mathics.core.expression import Expression, BoxError
-
     # For some expressions, we want formatting to be different.
     # In particular for FullForm output, we dont' want MathML, we want
     # plain-ol' text so we can cut and paste that.
@@ -65,9 +66,7 @@ def format_output(obj, expr, format=None):
 
     # This part was derived from and the same as evaluation.py format_output.
 
-    use_quotes = (
-        Expression("Settings`$QuotedStrings").evaluate(obj).get_head().to_python()
-    )
+    use_quotes = get_settings_value(obj.definitions, "Settings`$QuotedStrings")
 
     if format == "text":
         result = expr.format(obj, "System`OutputForm")
