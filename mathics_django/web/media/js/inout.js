@@ -26,22 +26,34 @@ function showWorksheets() {
 	new Ajax.Request('/ajax/getworksheets/', {
 		method: 'get',
 		onSuccess: (transport) => {
-			var response = JSON.parse(transport.responseText);
-			var tbody = document.getElementById('openFilelist');
+			const response = JSON.parse(transport.responseText);
+			const tbody = document.getElementById('openFilelist');
 			tbody.innerHTML = '';
+
 			response.worksheets.forEach((worksheet) => {
-				tbody.appendChild($E('tr',
-					$E('td',
-						$E('a', { href: 'javascript:openWorksheet("' + worksheet.name + '")' },
-							$T(worksheet.name)
-						)
-					),
-					$E('td',
-						$E('a', { href: 'javascript:deleteWorksheet("' + worksheet.name + '")' },
-							$T('Delete')
-						)
-					)
-				));
+				const openWorksheetButton = document.createElement('a');
+				openWorksheetButton.href = `javascript:openWorksheet("${worksheet.name}")`;
+				openWorksheetButton.innerText = worksheet.name;
+
+				const openWorksheetBox = document.createElement('td');
+				openWorksheetBox.appendChild(openWorksheetButton);
+
+				const deleteWorksheetButton = document.createElement('a');
+				deleteWorksheetButton.innerText = 'Delete';
+				deleteWorksheetButton.href = 'javascript:';
+
+				const deleteWorksheetBox = document.createElement('td');
+				deleteWorksheetBox.appendChild(deleteWorksheetButton);
+
+				const row = document.createElement('tr');
+				row.appendChild(openWorksheetBox);
+				row.appendChild(deleteWorksheetBox);
+
+				deleteWorksheetButton.addEventListener('click', () =>
+					deleteWorksheet(row, worksheet.name)
+				);
+
+				tbody.appendChild(row);
 			});
 
 			showPopup(document.getElementById('open'));
@@ -49,11 +61,12 @@ function showWorksheets() {
 	});
 }
 
-function deleteWorksheet(name) {
+function deleteWorksheet(element, name) {
+	element.parentElement.removeChild(element);
+
 	new Ajax.Request('/ajax/delete/', {
 		method: 'post',
-		parameters: { name },
-		onSuccess: showWorksheets
+		parameters: { name }
 	});
 }
 
