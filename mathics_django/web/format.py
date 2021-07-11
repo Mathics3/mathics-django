@@ -30,6 +30,7 @@ def format_output(obj, expr, format=None):
     def eval_boxes(result, fn, obj, **options):
         try:
             boxes = fn(evaluation=obj, **options)
+            # print("XXX\n", boxes)
         except BoxError:
             boxes = None
             if not hasattr(obj, "seen_box_error"):
