@@ -23,7 +23,6 @@ from mathics_django.settings import DOC_XML_DATA_PATH
 
 from mathics.doc.common_doc import (
     CHAPTER_RE,
-    DocElement,
     END_LINE_SENTINAL,
     PYTHON_RE,
     SECTION_RE,
@@ -57,7 +56,7 @@ def get_doc_name_from_module(module):
     return name
 
 
-class DjangoDocElement(DocElement):
+class DjangoDocElement(object):
     def href(self, ajax=False):
         if ajax:
             return "javascript:loadDoc('%s')" % self.get_uri()
