@@ -196,7 +196,7 @@ function translateDOMElement(element, svg) {
 		var data = JSON.parse(element.getAttribute('data'));
 		var div = document.createElement('div');
 
-		drawGraphics3D(div, data);
+		drawGraphics3d(div, data);
 
 		dom = div;
 	}
@@ -305,7 +305,7 @@ function createLine(value) {
 	} else if (container?.firstElementChild?.tagName === 'GRAPHICS3D') {
 		const div = document.createElement('div');
 
-		drawGraphics3D(div, JSON.parse(container.firstElementChild.attributes.data.value));
+		drawGraphics3d(div, JSON.parse(container.firstElementChild.attributes.data.value));
 
 		div.style.overflow = 'hidden';
 		div.style.position = 'relative';

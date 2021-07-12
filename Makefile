@@ -30,7 +30,7 @@ endif
 all: develop
 
 #: build everything needed to install
-build:
+build: build_mathics-threejs-backend
 	$(PYTHON) ./setup.py build
 
 check: djangotest doctest-workaround
@@ -85,3 +85,8 @@ testserver:
 #: Create a ChangeLog from git via git log and git2cl
 ChangeLog: rmChangeLog
 	git log --pretty --numstat --summary | $(GIT2CL) >$@
+
+#: Install mathics-threejs-backend with npm and move the necessary files to the right place
+build_mathics-threejs-backend:
+	npm i
+	cp node_modules/\@mathicsorg/mathics-threejs-backend/bundle/* mathics_django/web/media/js/mathics-threejs-backend
