@@ -149,7 +149,6 @@ setup(
     dependency_links=DEPENDENCY_LINKS,
     package_data={
         "mathics_django.autoload": ["autoload/*.m"],
-        "mathics_django.doc": ["documentation/*.mdoc", "xml/data"],
         "mathics_django.web": [
             "media/css/*.css",
             "media/img/*.*",
@@ -158,8 +157,7 @@ setup(
             "media/js/innerdom/*.js",
             "media/js/prototype/*.js",
             "media/js/scriptaculous/*.js",
-            "media/js/three/three.js",  # unimiminized three.js
-            "media/js/three/three.min.js",  # imiminized three.js
+            "media/js/mathics-threejs-backend/index.js",
             "media/js/*.js",
             "templates/*.html",
             "templates/doc/*.html",
