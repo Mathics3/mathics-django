@@ -85,9 +85,11 @@ testserver: $(THREEJS)
 ChangeLog: rmChangeLog
 	git log --pretty --numstat --summary | $(GIT2CL) >$@
 
+node_modules/\@mathicsorg/mathics-threejs-backend/package.json:
+	npm install
+
 #: Install mathics-threejs-backend with npm and copy the necessary files to the right place.
-build_mathics-threejs-backend: node_modules/\@mathicsorg/mathics-threejs-backend/bundle/*
-	npm i
+build_mathics-threejs-backend: node_modules/\@mathicsorg/mathics-threejs-backend/package.json
 	cp node_modules/\@mathicsorg/mathics-threejs-backend/bundle/* mathics_django/web/media/js/mathics-threejs-backend
 
 
