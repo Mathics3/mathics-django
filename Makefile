@@ -16,7 +16,6 @@ RM  ?= rm
 	rmChangeLog \
 	test
 
-THREEJS=mathics_django/web/media/js/mathics-threejs-backend/index.js
 SANDBOX	?=
 ifeq ($(OS),Windows_NT)
 	SANDBOX = t
@@ -27,29 +26,31 @@ else
 	endif
 endif
 
-#: Default target - same as "develop".
+#: Default target - same as "develop"
 all: develop
 
-#: Build everything needed to install.
-build: $(THREEJS)
+#: build everything needed to install
+build:
 	$(PYTHON) ./setup.py build
 
 check: djangotest doctest-workaround
 
-#: Remove derived files.
+#: Remove derived files
 clean:
-	@rm $(THREEJS) || true;
+	for dir in mathics-django/doc ; do \
+		($(MAKE) -C "$$dir" clean); \
+	done;
 
-#: Set up to run from the source tree.
-develop: $(THREEJS)
+#: Set up to run from the source tree
+develop:
 	$(PIP) install -e .
 
-#: Make distribution: wheels, eggs, tarball.
-dist: $(THREEJS)
+#: Make distribution: wheels, eggs, tarball
+dist:
 	./admin-tools/make-dist.sh
 
-#: Run Django tests.
-djangotest: $(THREEJS)
+#: Run Django tests
+djangotest:
 	cd mathics_django && $(PYTHON) manage.py test test_django
 
 #: Run tests that appear in docstring in the code.
@@ -58,19 +59,19 @@ doctest-workaround:
 	SANDBOX=$(SANDBOX) $(PYTHON) mathics_django/docpipeline.py --sections=NIntegrate,MaxRecursion
 
 #: Run tests that appear in docstring in the code.
-doctest: $(THREEJS)
+doctest:
 	SANDBOX=$(SANDBOX) $(PYTHON) mathics_django/docpipeline.py $o
 
-#: Make Python Pickle-format document data.
+#: Make XML doc data
 doc-data:
 	$(PYTHON) mathics_django/docpipeline.py -o
 
 #: Install Mathics-Django
-install: $(THREEJS)
+install:
 	$(PYTHON) setup.py install
 
 #: Run Django-based server in development mode. Use environment variable "o" for manage options
-runserver: $(THREEJS)
+runserver:
 	$(PYTHON) mathics_django/manage.py runserver $o
 
 #: Remove ChangeLog
@@ -78,20 +79,9 @@ rmChangeLog:
 	$(RM) ChangeLog || true
 
 #: Run Django-based server in testserver mode. Use environment variable "o" for manage options
-testserver: $(THREEJS)
+testserver:
 	$(PYTHON) mathics_django/manage.py testserver $o
 
 #: Create a ChangeLog from git via git log and git2cl
 ChangeLog: rmChangeLog
 	git log --pretty --numstat --summary | $(GIT2CL) >$@
-
-node_modules/\@mathicsorg/mathics-threejs-backend/package.json:
-	npm install
-
-#: Install mathics-threejs-backend with npm and copy the necessary files to the right place.
-build_mathics-threejs-backend: node_modules/\@mathicsorg/mathics-threejs-backend/package.json
-	cp node_modules/\@mathicsorg/mathics-threejs-backend/bundle/* mathics_django/web/media/js/mathics-threejs-backend
-
-
-$(THREEJS):
-	$(MAKE) build_mathics-threejs-backend

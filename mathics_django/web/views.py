@@ -74,8 +74,6 @@ def get_three_version():
     """
     Get the three.js version the static and hacky way not involving javascript.
     """
-    return "r??"
-    # FIXME: figure out how to reinstate
     three_file = osp.join(
         osp.normcase(osp.dirname(osp.abspath(__file__))),
         "media",
@@ -89,10 +87,6 @@ def get_three_version():
         return "r" + match.group(1)
     else:
         return "r??"
-
-def get_threejs_backend_version():
-    # To be filled out...
-    return "?"
 
 
 def get_MathJax_version():
@@ -154,7 +148,6 @@ def about_view(request):
         {
             "django_version": django_version,
             "three_js_version": get_three_version(),
-            "mathics_threejs_backend_version": get_threejs_backend_version(),
             "MathJax_version": get_MathJax_version(),
             "mathics_version": mathics_version_info["mathics"],
             "mathics_django_version": __version__,
