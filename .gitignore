@@ -33,5 +33,3 @@ mathics_django/web/media/pdf/
 tmp
 env/
 venv/
-package-lock.json
-node_modules
