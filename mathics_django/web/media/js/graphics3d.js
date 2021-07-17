@@ -241,7 +241,7 @@ const drawFunctions = {
 	}
 };
 
-function drawGraphics3D(container, data) {
+function drawGraphics3d(container, data) {
 	// data is decoded JSON data such as
 	// {'elements': [{'coords': [[[1, 0, 0], null], [[1, 1, 1], null], [[0, 0, 1], null]], 'type': 'polygon', 'faceColor': [0, 0, 0, 1]}], 'axes': {}, 'extent': {'zmax': 1, 'ymax': 1, 'zmin': 0, 'xmax': 1, 'xmin': 0, 'ymin': 0}, 'lighting': []}
 	// the nulls are the 'scaled' parts of coordinates that depend on the
