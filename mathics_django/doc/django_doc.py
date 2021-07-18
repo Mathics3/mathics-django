@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-A module which extracts XML documentation from documentation/*.mdoc and from Mathics modules.
+A module and library that assists in organizing document data
+previously obtained from static files and Python module/class doc
+strings. This data is stored in a way that facilitates viewing
+documentation.
 
-Viewing extracted XML docs is elswhere.
+As with reading in data, viewing extracted document information is
+documentation tests is done elsewhere.
 
 FIXME: Too much of this code is duplicated from Mathics Core.
-This code should be replaced by sphinx and autodoc.
+More importantly, this code should be replaced by Sphinx and autodoc.
 """
 
 from os import getenv, listdir
@@ -19,10 +23,11 @@ from mathics.builtin import get_module_doc
 from mathics.core.evaluation import Message, Print
 
 from mathics_django.doc.utils import escape_html, slugify
-from mathics_django.settings import DOC_XML_DATA_PATH
+from mathics_django.settings import DOC_DATA_PATH
 
 from mathics.doc.common_doc import (
     CHAPTER_RE,
+    DocGuideSection,
     END_LINE_SENTINAL,
     PYTHON_RE,
     SECTION_RE,
@@ -38,10 +43,10 @@ from mathics.doc.common_doc import (
 import pickle
 
 try:
-    with open(DOC_XML_DATA_PATH, "rb") as xml_data_file:
-        xml_data = pickle.load(xml_data_file)
+    with open(DOC_DATA_PATH, "rb") as doc_data_file:
+        doc_data = pickle.load(doc_data_file)
 except IOError:
-    print(f"Trouble reading Doc XML file {DOC_XML_DATA_PATH}")
+    print(f"Trouble reading Doc file {DOC_DATA_PATH}")
     doc_data = {}
 
 
@@ -123,9 +128,43 @@ class Documentation(DjangoDocElement):
                     yield Tests(part.title, chapter.title, "", tests)
                 for section in chapter.sections:
                     if section.installed:
-                        tests = section.doc.get_tests()
-                        if tests:
-                            yield Tests(part.title, chapter.title, section.title, tests)
+                        if isinstance(section, DocGuideSection):
+                            for docsection in section.subsections:
+                                for docsubsection in docsection.subsections:
+                                    # FIXME: Something is weird here where tests for subsection items
+                                    # appear not as a collection but individually and need to be
+                                    # iterated below. Probably some other code is faulty and
+                                    # when fixed the below loop and collection into doctest_list[]
+                                    # will be removed.
+                                    doctest_list = []
+                                    index = 1
+                                    for doctests in docsubsection.items:
+                                        doctest_list += list(doctests.get_tests())
+                                        for test in doctest_list:
+                                            test.index = index
+                                            index += 1
+
+                                    if doctest_list:
+                                        yield Tests(
+                                            section.chapter.part.title,
+                                            section.chapter.title,
+                                            docsubsection.title,
+                                            doctest_list,
+                                        )
+                        else:
+                            tests = section.doc.get_tests()
+                            if tests:
+                                yield Tests(
+                                    part.title, chapter.title, section.title, tests
+                                )
+                                pass
+                            pass
+                        pass
+                    pass
+                pass
+            pass
+        return
+
 
     def get_uri(self) -> str:
         return "/"
@@ -186,12 +225,12 @@ class Documentation(DjangoDocElement):
 
 class MathicsMainDocumentation(Documentation):
     def __init__(self):
-        self.title = "Overview"
+        self.doc_data_file = DOC_DATA_PATH
+        self.doc_dir = settings.DOC_DIR
         self.parts = []
         self.parts_by_slug = {}
         self.pymathics_doc_loaded = False
-        self.doc_data_file = DOC_XML_DATA_PATH
-        self.doc_dir = settings.DOC_DIR
+        self.title = "Overview"
         files = listdir(self.doc_dir)
         files.sort()
         appendix = []

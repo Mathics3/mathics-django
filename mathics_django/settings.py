@@ -53,7 +53,7 @@ MATHICS_DJANGO_DB_PATH = os.environ.get(
 DOC_DIR = os.path.join(MATHICS_ROOT_DIR, "doc/documentation/")
 
 # Location for XML document data
-DOC_XML_DATA_PATH = os.path.join(DATA_DIR, "doc_xml_data.pcl")
+DOC_DATA_PATH = os.path.join(DATA_DIR, "doc_xml_data.pcl")
 
 
 DATABASES = {
