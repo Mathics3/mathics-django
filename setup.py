@@ -156,10 +156,9 @@ setup(
             "media/fonts/*",
             "media/img/favicons/*",
             "media/js/innerdom/*.js",
+            "media/js/mathics-threejs-backend/*",
             "media/js/prototype/*.js",
             "media/js/scriptaculous/*.js",
-            "media/js/three/three.js",  # unimiminized three.js
-            "media/js/three/three.min.js",  # imiminized three.js
             "media/js/*.js",
             "templates/*.html",
             "templates/doc/*.html",
