@@ -25,8 +25,8 @@ jobs:
         python -m pip install --upgrade pip
         LLVM_CONFIG=/usr/local/Cellar/llvm@11/11.1.0/bin/llvm-config pip install llvmlite
         # Can comment out when next Mathics is released
-        python -m pip install -e git://github.com/mathics/Mathics#egg=Mathics3
-        pip install -e .
+        python -m pip install -e git://github.com/mathics/Mathics#egg=Mathics3[full]
+        pip install -e .[full]
     - name: Install Mathics Django
       run: |
         make develop
