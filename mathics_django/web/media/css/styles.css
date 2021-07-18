@@ -643,6 +643,11 @@ h1 {
   color: #3f3f3f;
 }
 
+h2 {
+  font-weight: normal;
+  color: #3f3f3f;
+}
+
 form {
   margin: 0;
 }
