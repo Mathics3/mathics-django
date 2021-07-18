@@ -42,7 +42,7 @@ try:
         xml_data = pickle.load(xml_data_file)
 except IOError:
     print(f"Trouble reading Doc XML file {DOC_XML_DATA_PATH}")
-    xml_data = {}
+    doc_data = {}
 
 
 def get_doc_name_from_module(module):
@@ -190,7 +190,7 @@ class MathicsMainDocumentation(Documentation):
         self.parts = []
         self.parts_by_slug = {}
         self.pymathics_doc_loaded = False
-        self.xml_data_file = DOC_XML_DATA_PATH
+        self.doc_data_file = DOC_XML_DATA_PATH
         self.doc_dir = settings.DOC_DIR
         files = listdir(self.doc_dir)
         files.sort()
@@ -442,7 +442,7 @@ class PyMathicsDocumentation(Documentation):
         self.parts = []
         self.parts_by_slug = {}
         self.doc_dir = None
-        self.xml_data_file = None
+        self.doc_data_file = None
         self.symbols = {}
         if module is None:
             return
@@ -475,7 +475,7 @@ class PyMathicsDocumentation(Documentation):
 
         # Paths
         self.doc_dir = self.pymathicsmodule.__path__[0] + "/doc/"
-        self.xml_data_file = self.doc_dir + "xml/data"
+        self.doc_data_file = self.doc_dir + "xml/data"
 
         # Load the dictionary of mathics symbols defined in the module
         self.symbols = {}
@@ -503,7 +503,7 @@ class PyMathicsDocumentation(Documentation):
             files.sort()
         except FileNotFoundError:
             self.doc_dir = ""
-            self.xml_data_file = ""
+            self.doc_data_file = ""
             files = []
         appendix = []
         for file in files:
@@ -719,7 +719,7 @@ class DjangoDocSection(DjangoDocElement):
             indices.update(test.test_indices())
         result = {}
         for index in indices:
-            result[index] = xml_data.get(
+            result[index] = doc_data.get(
                 (self.chapter.part.title, self.chapter.title, self.title, index)
             )
         return result
@@ -828,7 +828,7 @@ class DjangoDocSubsection(DjangoDocElement):
             indices.update(test.test_indices())
         result = {}
         for index in indices:
-            result[index] = xml_data.get(
+            result[index] = doc_data.get(
                 (self.chapter.part.title, self.chapter.title, self.title, index)
             )
         return result

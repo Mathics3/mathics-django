@@ -21,6 +21,7 @@ import mathics
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Output
 from mathics.core.parser import MathicsSingleLineFeeder
+from mathics.doc.common_doc import MathicsMainDocumentation
 from mathics.builtin import builtins_dict
 
 from mathics import version_string
@@ -40,7 +41,7 @@ sep = "-" * 70 + "\n"
 
 # Global variables
 definitions = None
-documentation = None
+documentation = MathicsMainDocumentation()
 check_partial_enlapsed_time = False
 logfile = None
 
@@ -293,7 +294,6 @@ def test_all(
     doc_even_if_error=False,
     excludes=[],
 ):
-    global documentation
     if not quiet:
         print(f"Testing {version_string}")
 
@@ -393,11 +393,9 @@ def main():
     from mathics.doc import documentation as main_mathics_documentation
 
     global definitions
-    global documentation
     global logfile
     global check_partial_enlapsed_time
     definitions = Definitions(add_builtin=True)
-    documentation = main_mathics_documentation
 
     parser = ArgumentParser(description="Mathics test suite.", add_help=False)
     parser.add_argument(
