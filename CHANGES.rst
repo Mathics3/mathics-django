@@ -1,6 +1,11 @@
 CHANGES
 =======
 
+3.2.0
+-----
+
+Use NPM package `mathics-threejs-backend <https://www.npmjs.com/package/@mathicsorg/mathics-threejs-backend>`_ to provide 3D Graphics rendering via `three.js <threejs.org>`_.
+
 3.1.0
 -----
 

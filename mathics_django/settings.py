@@ -45,6 +45,11 @@ else:
 # if not path.exists(DATA_DIR):
 #    os.makedirs(DATA_DIR)
 
+# Location of internal document data.
+MATHICS_BACKEND_THREEJS_JSON_PATH = os.path.join(
+    ROOT_DIR, "web", "media", "js", "mathics-threejs-backend", "package.json"
+)
+
 MATHICS_DJANGO_DB = os.environ.get("MATHICS_DJANGO_DB", "mathics.sqlite")
 MATHICS_DJANGO_DB_PATH = os.environ.get(
     "MATHICS_DJANGO_DB_PATH", DATA_DIR + MATHICS_DJANGO_DB
@@ -52,9 +57,8 @@ MATHICS_DJANGO_DB_PATH = os.environ.get(
 
 DOC_DIR = os.path.join(MATHICS_ROOT_DIR, "doc/documentation/")
 
-# Location for XML document data
-DOC_DATA_PATH = os.path.join(DATA_DIR, "doc_xml_data.pcl")
-
+# Location of internal document data.
+DOC_DATA_PATH = os.path.join(DATA_DIR, "doc_data.pcl")
 
 DATABASES = {
     "default": {
@@ -65,14 +69,12 @@ DATABASES = {
 
 REQUIRE_LOGIN = False
 
-
 # if REQUIRE_LOGIN is True be sure to set up an email sender:
 EMAIL_HOST = "smtp.sendgrid.net"
 EMAIL_HOST_USER = "mathics"
 EMAIL_HOST_PASSWORD = ""
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
