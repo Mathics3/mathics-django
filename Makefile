@@ -86,7 +86,7 @@ ChangeLog: rmChangeLog
 	git log --pretty --numstat --summary | $(GIT2CL) >$@
 
 node_modules/\@mathicsorg/mathics-threejs-backend/package.json:
-	npm install @mathicsorg/mathics-threejs-backend
+	npm install @mathicsorg/mathics-threejs-backend --loglevel=error
 
 #: Install mathics-threejs-backend with npm and copy the necessary files to the right place.
 build_mathics-threejs-backend: node_modules/\@mathicsorg/mathics-threejs-backend/package.json
