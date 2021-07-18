@@ -23,14 +23,16 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         python -m pip install wheel
-        choco install llvm
+        choco install llvm nodejs
         set LLVM_DIR="C:\Program Files\LLVM"
         # Can comment out when next Mathics is released
         python -m pip install -e git://github.com/mathics/Mathics#egg=Mathics3[full]
         pip install -e .[full]
     - name: Install Mathics Django
       run: |
-        make develop
+        npm install @mathicsorg/mathics-threejs-backend
+        cp node_modules/\@mathicsorg/mathics-threejs-backend/bundle/* mathics_django/web/media/js/mathics-threejs-backend/
+        cp node_modules/\@mathicsorg/mathics-threejs-backend/package.json mathics_d
     - name: Test mathics-django
       run: |
         pip install pytest pexpect
