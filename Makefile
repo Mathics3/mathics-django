@@ -16,7 +16,7 @@ RM  ?= rm
 	rmChangeLog \
 	test
 
-THREEJS=mathics_django/web/media/js/mathics-threejs-backend/index.js mathics_django/web/media/js/mathics-threejs-backend/package.json
+THREEJS=mathics_django/web/media/js/mathics-threejs-backend/index.js mathics_django/web/media/js/mathics-threejs-backend/version.json
 SANDBOX	?=
 ifeq ($(OS),Windows_NT)
 	SANDBOX = t
@@ -91,7 +91,7 @@ node_modules/\@mathicsorg/mathics-threejs-backend/package.json:
 #: Install mathics-threejs-backend with npm and copy the necessary files to the right place.
 build_mathics-threejs-backend: node_modules/\@mathicsorg/mathics-threejs-backend/package.json
 	cp node_modules/\@mathicsorg/mathics-threejs-backend/bundle/* mathics_django/web/media/js/mathics-threejs-backend/; \
-	cp node_modules/\@mathicsorg/mathics-threejs-backend/package.json mathics_django/web/media/js/mathics-threejs-backend/
+	cp node_modules/\@mathicsorg/mathics-threejs-backend/package.json mathics_django/web/media/js/mathics-threejs-backend/version.json
 
 $(THREEJS): node_modules/@mathicsorg/mathics-threejs-backend/package.json
 	$(MAKE) build_mathics-threejs-backend

@@ -345,8 +345,8 @@ def get_mathics_threejs_backend_data():
     global mathics_threejs_backend_data
     if not mathics_threejs_backend_data:
         try:
-            with builtin_open(settings.MATHICS_BACKEND_THREEJS_JSON_PATH, "rb") as package_json_fp:
-                mathics_threejs_backend_data = json.load(package_json_fp)
+            with builtin_open(settings.MATHICS_BACKEND_THREEJS_JSON_PATH, "rb") as version_json_fp:
+                mathics_threejs_backend_data = json.load(version_json_fp)
         except:
             pass
     return mathics_threejs_backend_data
@@ -358,7 +358,7 @@ def get_mathics_threejs_backend_version():
 
 def get_threejs_version():
     """
-    Get the three.js via information from mathics_threejs_backend's package.json.
+    Get the three.js via information from mathics_threejs_backend's package/version.json.
     """
     return get_mathics_threejs_backend_data().get("threejs_revision", "??")
 
