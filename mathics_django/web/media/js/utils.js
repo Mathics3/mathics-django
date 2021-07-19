@@ -1,4 +1,4 @@
-var HTML_ENTITIES = $H({
+var HTML_ENTITIES = new Hash({
 	'amp': 38,
 	'gt': 62,
 	'lt': 60,
@@ -117,7 +117,7 @@ Object.extend(Object, {
 
 var Publisher = Class.create({
 	initialize: function () {
-		this.events = $H();
+		this.events = new Hash();
 	},
 
 	fire: function (event) {
@@ -206,7 +206,7 @@ function submitForm(form, url, onSuccess, extraData) {
 			var errors = false;
 			var errorFocus = false;
 			if (response.form.fieldErrors) {
-				$H(response.form.fieldErrors).forEach((pair) => {
+				new Hash(response.form.fieldErrors).forEach((pair) => {
 					errors = true;
 
 					const errorList = document.createElement('ul');
