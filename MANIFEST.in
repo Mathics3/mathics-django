@@ -1,13 +1,11 @@
 include CHANGES.rst
 include COPYING.txt
 include ChangeLog
-include FUTURE.rst
 include Makefile
 include README.rst
 include mathics_django/Makefile
 include requirements-full.txt
-include mathics_django/web/media/js/mathics-threejs-backend/index.js
-include mathics_django/web/media/js/mathics-threejs-backend/package.json
+recursive-include mathics_django/web/media/js/mathics-threejs-backend/ *
 recursive-include mathics_django *.py
 recursive-include mathics_django/autoload *.m
 recursive-include test *.py

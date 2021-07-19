@@ -47,7 +47,7 @@ else:
 
 # Location of internal document data.
 MATHICS_BACKEND_THREEJS_JSON_PATH = os.path.join(
-    ROOT_DIR, "web", "media", "js", "mathics-threejs-backend", "package.json"
+    ROOT_DIR, "web", "media", "js", "mathics-threejs-backend", "version.json"
 )
 
 MATHICS_DJANGO_DB = os.environ.get("MATHICS_DJANGO_DB", "mathics.sqlite")
