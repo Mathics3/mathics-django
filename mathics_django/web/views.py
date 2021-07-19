@@ -344,8 +344,11 @@ def get_mathics_threejs_backend_data():
     """Load mathics-three-package.json. It contains version information."""
     global mathics_threejs_backend_data
     if not mathics_threejs_backend_data:
-        with builtin_open(settings.MATHICS_BACKEND_THREEJS_JSON_PATH, "rb") as package_json_fp:
-            mathics_threejs_backend_data = json.load(package_json_fp)
+        try:
+            with builtin_open(settings.MATHICS_BACKEND_THREEJS_JSON_PATH, "rb") as package_json_fp:
+                mathics_threejs_backend_data = json.load(package_json_fp)
+        except:
+            pass
     return mathics_threejs_backend_data
 
 
