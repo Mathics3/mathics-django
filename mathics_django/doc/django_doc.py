@@ -21,7 +21,7 @@ from django.utils.safestring import mark_safe
 from mathics import builtin, settings
 from mathics.builtin import get_module_doc
 
-from mathics_django.doc.utils import escape_html, slugify
+from mathics_django.doc.utils import escape_html
 from mathics_django.settings import DOC_DATA_PATH
 
 from mathics.doc.common_doc import (
@@ -36,8 +36,10 @@ from mathics.doc.common_doc import (
     XMLDoc,
     Tests,
     filter_comments,
+    get_results_by_test,
     post_sub,
     pre_sub,
+    slugify,
 )
 
 import pickle
@@ -165,7 +167,6 @@ class Documentation(DjangoDocElement):
                 pass
             pass
         return
-
 
     def get_uri(self) -> str:
         return "/"
@@ -300,7 +301,9 @@ class MathicsMainDocumentation(Documentation):
                 if module in modules_seen:
                     continue
                 title, text = get_module_doc(module)
-                chapter = DjangoDocChapter(builtin_part, title, DjangoDoc(text, title, None))
+                chapter = DjangoDocChapter(
+                    builtin_part, title, DjangoDoc(text, title, None)
+                )
                 builtins = builtins_by_module[module.__name__]
                 # FIXME: some Box routines, like RowBox *are*
                 # documented
@@ -356,6 +359,7 @@ class MathicsMainDocumentation(Documentation):
                                 instance.get_name(short=True),
                                 instance,
                                 instance.get_operator(),
+                                in_guide=False,
                             )
                 else:
                     for instance in sections:
@@ -367,6 +371,7 @@ class MathicsMainDocumentation(Documentation):
                                 instance,
                                 instance.get_operator(),
                                 is_guide=False,
+                                in_guide=False,
                             )
                             modules_seen.add(instance)
                 builtin_part.chapters.append(chapter)
@@ -387,6 +392,7 @@ class MathicsMainDocumentation(Documentation):
         section_object,
         operator,
         is_guide: bool = False,
+        in_guide: bool = False,
     ):
         """
         Adds a DjangoDocSection or DangoDocGuideSection
@@ -400,11 +406,13 @@ class MathicsMainDocumentation(Documentation):
             except ImportError:
                 installed = False
                 break
+
         # FIXME add an additional mechanism in the module
         # to allow a docstring and indicate it is not to go in the
         # user manual
         if not section_object.__doc__:
             return
+
         if is_guide:
             section = DjangoDocGuideSection(
                 chapter,
@@ -414,6 +422,7 @@ class MathicsMainDocumentation(Documentation):
                 installed=installed,
             )
             chapter.guide_sections.append(section)
+
         else:
             section = DjangoDocSection(
                 chapter,
@@ -421,13 +430,20 @@ class MathicsMainDocumentation(Documentation):
                 section_object.__doc__,
                 operator=operator,
                 installed=installed,
+                in_guide=in_guide,
             )
             chapter.sections.append(section)
 
         return section
 
     def add_subsection(
-        self, chapter, section, subsection_name: str, instance, operator=None
+        self,
+        chapter,
+        section,
+        subsection_name: str,
+        instance,
+        operator=None,
+        in_guide=False,
     ):
         installed = True
         for package in getattr(instance, "requires", []):
@@ -449,6 +465,7 @@ class MathicsMainDocumentation(Documentation):
             instance.__doc__,
             operator=operator,
             installed=installed,
+            in_guide=in_guide,
         )
         section.subsections.append(subsection)
 
@@ -726,25 +743,26 @@ class DjangoDocSection(DjangoDocElement):
     """
 
     def __init__(
-        self, chapter, section_title: str, text: str, operator, installed=True
+        self, chapter, title: str, text: str, operator, installed=True, in_guide=False
     ):
         self.chapter = chapter
+        self.in_guide = in_guide
         self.installed = installed
         self.operator = operator
-        self.slug = slugify(section_title)
+        self.slug = slugify(title)
         self.subsections = []
         self.subsections_by_slug = {}
-        self.title = section_title
+        self.title = title
 
         if text.count("<dl>") != text.count("</dl>"):
             raise ValueError(
                 "Missing opening or closing <dl> tag in "
-                "{} documentation".format(section_title)
+                "{} documentation".format(title)
             )
 
         # Needs to come after self.chapter is initialized since
         # XMLDoc uses self.chapter.
-        self.doc = DjangoDoc(text, section_title, self)
+        self.doc = DjangoDoc(text, title, self)
 
         chapter.sections_by_slug[self.slug] = self
 
@@ -823,6 +841,7 @@ class DjangoDocSubsection(DjangoDocElement):
         text,
         operator=None,
         installed=True,
+        in_guide=False,
     ):
         """
         Information that goes into a subsection object. This can be a written text, or
@@ -852,6 +871,14 @@ class DjangoDocSubsection(DjangoDocElement):
         self.section = section
         self.slug = slugify(title)
         self.title = title
+
+        if in_guide:
+            # Tests haven't been picked out yet from the doc string yet.
+            # Gather them here.
+            self.items = gather_tests(text)
+        else:
+            self.items = []
+
         if text.count("<dl>") != text.count("</dl>"):
             raise ValueError(
                 "Missing opening or closing <dl> tag in "
@@ -886,12 +913,36 @@ class DjangoDocTest(DocTest):
     """
     See DocTest for formatting rules.
     """
+
     def html(self) -> str:
         result = '<div class="test"><span class="move"></span>'
-        result += '<ul class="test" id="test_%d">' % self.index
-        result += '<li class="test">%s</li>' % escape_html(self.test, True)
+        result += f'<ul class="test" id="test_{self.index}>'
+
+        result += f'<li class="test">{escape_html(self.test, True)}</li>'
         result += "</ul>"
         result += "</div>"
+
+        if self.key is None:
+            return result
+
+        output_for_key = doc_data.get(self.key, None)
+        # HACK ALERT:
+        # output_for_key is not None, then the output appears
+        # mysteriously some other way.
+        # But if it is None then test number don't line up and that is a different
+        # bug that we address here.
+        if output_for_key is None:
+            output_for_key = get_results_by_test(self.test, self.key, doc_data)
+            results = output_for_key.get("results", [])
+            result += '<div class="out"><span class="move"></span>'
+            result += f'<ul class="out" id="test_{self.index}">'
+            for r in results:
+                for out in r["out"]:
+                    result += escape_html(out["text"])
+                if r["result"]:  # is not None and result['result'].strip():
+                    result += f'<li class="result">{r["result"]}</li>'
+            result += "</ul>"
+            result += "</div>"
         return result
 
 
@@ -917,16 +968,16 @@ class DjangoDocText(object):
     def __init__(self, text):
         self.text = text
 
-    def get_tests(self):
+    def get_tests(self) -> list:
         return []
 
-    def is_private(self):
+    def is_private(self) -> bool:
         return False
 
     def __str__(self):
         return self.text
 
-    def html(self, counters=None):
+    def html(self, counters=None) -> str:
         result = escape_html(self.text, counters=counters)
         return result
 
