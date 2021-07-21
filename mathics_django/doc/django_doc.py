@@ -12,7 +12,7 @@ FIXME: Too much of this code is duplicated from Mathics Core.
 More importantly, this code should be replaced by Sphinx and autodoc.
 """
 
-from os import getenv, listdir
+from os import listdir
 from types import ModuleType
 import importlib
 
@@ -20,7 +20,6 @@ from django.utils.safestring import mark_safe
 
 from mathics import builtin, settings
 from mathics.builtin import get_module_doc
-from mathics.core.evaluation import Message, Print
 
 from mathics_django.doc.utils import escape_html, slugify
 from mathics_django.settings import DOC_DATA_PATH
@@ -28,12 +27,13 @@ from mathics_django.settings import DOC_DATA_PATH
 from mathics.doc.common_doc import (
     CHAPTER_RE,
     DocGuideSection,
-    END_LINE_SENTINAL,
+    DocTest,
+    DocTests,
     PYTHON_RE,
     SECTION_RE,
     SUBSECTION_RE,
-    TESTCASE_OUT_RE,
     TESTCASE_RE,
+    XMLDoc,
     Tests,
     filter_comments,
     post_sub,
@@ -42,6 +42,7 @@ from mathics.doc.common_doc import (
 
 import pickle
 
+# FIXME: remove globalness
 try:
     with open(DOC_DATA_PATH, "rb") as doc_data_file:
         doc_data = pickle.load(doc_data_file)
@@ -248,11 +249,9 @@ class MathicsMainDocumentation(Documentation):
                     text += '<section title=""></section>'
                     sections = SECTION_RE.findall(text)
                     for pre_text, title, text in sections:
-                        if not chapter.doc:
-                            chapter.doc = DjangoDoc(pre_text, title)
                         if title:
                             section = DjangoDocSection(
-                                chapter, title, text, operator=False, installed=True
+                                chapter, title, text, operator=None, installed=True
                             )
                             chapter.sections.append(section)
                             subsections = SUBSECTION_RE.findall(text)
@@ -266,7 +265,12 @@ class MathicsMainDocumentation(Documentation):
                                 section.subsections.append(subsection)
                                 pass
                             pass
+                        else:
+                            section = None
+                        if not chapter.doc:
+                            chapter.doc = DjangoDoc(pre_text, title, section)
                         pass
+
                     part.chapters.append(chapter)
                 if file[0].isdigit():
                     self.parts.append(part)
@@ -296,7 +300,7 @@ class MathicsMainDocumentation(Documentation):
                 if module in modules_seen:
                     continue
                 title, text = get_module_doc(module)
-                chapter = DjangoDocChapter(builtin_part, title, DjangoDoc(text, title))
+                chapter = DjangoDocChapter(builtin_part, title, DjangoDoc(text, title, None))
                 builtins = builtins_by_module[module.__name__]
                 # FIXME: some Box routines, like RowBox *are*
                 # documented
@@ -580,66 +584,61 @@ class PyMathicsDocumentation(Documentation):
                 test.key = (tests.part, tests.chapter, tests.section, test.index)
 
 
-class DjangoDoc(object):
-    def __init__(self, doc, title):
-        self.items = []
-        self.title = title
-        # remove commented lines
-        doc = filter_comments(doc)
-        # pre-substitute Python code because it might contain tests
-        doc, post_substitutions = pre_sub(
-            PYTHON_RE, doc, lambda m: "<python>%s</python>" % m.group(1)
-        )
-        # HACK: Artificially construct a last testcase to get the "intertext"
-        # after the last (real) testcase. Ignore the test, of course.
-        doc += "\n>> test\n = test"
-        testcases = TESTCASE_RE.findall(doc)
-        tests = None
-        for index in range(len(testcases)):
-            testcase = list(testcases[index])
-            text = testcase.pop(0).strip()
-            if text:
-                if tests is not None:
-                    self.items.append(tests)
-                    tests = None
+def gather_tests(doc: str, key_part=None) -> list:
+    # Remove commented lines.
+    doc = filter_comments(doc).strip(r"\s")
 
-                if text.startswith(title + "\n"):
-                    # Guide sections and sections with subsections
-                    # lead with their name. Elsewhere we pick that
-                    # out and make it a title. So remove it here
-                    # in the body where it is redundant.
-                    text = text.replace(title, "")
+    # Remove leading <dl>...</dl>
+    # doc = DL_RE.sub("", doc)
 
-                text = post_sub(text, post_substitutions)
-                self.items.append(DjangoDocText(text))
+    # pre-substitute Python code because it might contain tests
+    doc, post_substitutions = pre_sub(
+        PYTHON_RE, doc, lambda m: "<python>%s</python>" % m.group(1)
+    )
 
-                tests = None
-            if index < len(testcases) - 1:
-                test = DjangoDocTest(index, testcase)
-                if tests is None:
-                    tests = DjangoDocTests()
-                tests.tests.append(test)
+    # HACK: Artificially construct a last testcase to get the "intertext"
+    # after the last (real) testcase. Ignore the test, of course.
+    doc += "\n>> test\n = test"
+    testcases = TESTCASE_RE.findall(doc)
+
+    tests = None
+    items = []
+    for index in range(len(testcases)):
+        testcase = list(testcases[index])
+        text = testcase.pop(0).strip()
+        if text:
             if tests is not None:
-                self.items.append(tests)
+                items.append(tests)
                 tests = None
+            text = post_sub(text, post_substitutions)
+            items.append(DjangoDocText(text))
+            tests = None
+        if index < len(testcases) - 1:
+            test = DjangoDocTest(index, testcase, key_part)
+            if tests is None:
+                tests = DjangoDocTests()
+            tests.tests.append(test)
+        if tests is not None:
+            items.append(tests)
+            tests = None
+    return items
+
+
+class DjangoDoc(XMLDoc):
+    def __init__(self, doc, title, section):
+        self.title = title
+        if section:
+            chapter = section.chapter
+            part = chapter.part
+            # Note: we elide section.title
+            key_prefix = (part.title, chapter.title, title)
+        else:
+            key_prefix = None
+
+        self.items = gather_tests(doc, key_prefix)
 
     def __str__(self):
         return "\n".join(str(item) for item in self.items)
-
-    def text(self, detail_level):
-        # used for introspection
-        # TODO parse XML and pretty print
-        # HACK
-        item = str(self.items[0])
-        item = "\n".join(line.strip() for line in item.split("\n"))
-        item = item.replace("<dl>", "")
-        item = item.replace("</dl>", "")
-        item = item.replace("<dt>", "  ")
-        item = item.replace("</dt>", "")
-        item = item.replace("<dd>", "    ")
-        item = item.replace("</dd>", "")
-        item = "\n".join(line for line in item.split("\n") if not line.isspace())
-        return item
 
     def get_tests(self):
         tests = []
@@ -730,7 +729,6 @@ class DjangoDocSection(DjangoDocElement):
         self, chapter, section_title: str, text: str, operator, installed=True
     ):
         self.chapter = chapter
-        self.doc = DjangoDoc(text, section_title)
         self.installed = installed
         self.operator = operator
         self.slug = slugify(section_title)
@@ -743,6 +741,11 @@ class DjangoDocSection(DjangoDocElement):
                 "Missing opening or closing <dl> tag in "
                 "{} documentation".format(section_title)
             )
+
+        # Needs to come after self.chapter is initialized since
+        # XMLDoc uses self.chapter.
+        self.doc = DjangoDoc(text, section_title, self)
+
         chapter.sections_by_slug[self.slug] = self
 
     def __str__(self):
@@ -779,10 +782,12 @@ class DjangoDocGuideSection(DjangoDocSection):
         self, chapter: str, title: str, text: str, submodule, installed: bool = True
     ):
         self.chapter = chapter
-        self.doc = DjangoDoc(text, title)
+        self.doc = DjangoDoc(text, title, None)
+        self.in_guide = False
         self.installed = installed
         self.slug = slugify(title)
         self.section = submodule
+        self.slug = slugify(title)
         self.subsections = []
         self.subsections_by_slug = {}
         self.title = title
@@ -839,7 +844,7 @@ class DjangoDocSubsection(DjangoDocElement):
         the "section" name for the class Read (the subsection) inside it.
         """
 
-        self.doc = DjangoDoc(text, title)
+        self.doc = DjangoDoc(text, title, section)
         self.chapter = chapter
         self.installed = installed
         self.operator = operator
@@ -877,90 +882,11 @@ class DjangoDocSubsection(DjangoDocElement):
         return f"/{self.chapter.part.slug}/{self.chapter.slug}/{self.section.slug}/{self.slug}/"
 
 
-class DjangoDocTest(object):
+class DjangoDocTest(DocTest):
     """
-    DocTest formatting rules:
-
-    * `>>` Marks test case; it will also appear as part of
-           the documentation.
-    * `#>` Marks test private or one that does not appear as part of
-           the documentation.
-    * `X>` Shows the example in the docs, but disables testing the example.
-    * `S>` Shows the example in the docs, but disables testing if environment
-           variable SANDBOX is set.
-    * `=`  Compares the result text.
-    * `:`  Compares an (error) message.
-      `|`  Prints output.
+    See DocTest for formatting rules.
     """
-
-    def __init__(self, index, testcase):
-        def strip_sentinal(line):
-            """Remove END_LINE_SENTINAL from the end of a line if it appears.
-
-            Some editors like to strip blanks at the end of a line.
-            Since the line ends in END_LINE_SENTINAL which isn't blank,
-            any blanks that appear before will be preserved.
-
-            Some tests require some lines to be blank or entry because
-            Mathics output can be that way
-            """
-            if line.endswith(END_LINE_SENTINAL):
-                line = line[: -len(END_LINE_SENTINAL)]
-
-            # Also remove any remaining trailing blanks since that
-            # seems *also* what we want to do.
-            return line.strip()
-
-        self.index = index
-        self.result = None
-        self.outs = []
-
-        # Private test cases are executed, but NOT shown as part of the docs
-        self.private = testcase[0] == "#"
-
-        # Ignored test cases are NOT executed, but shown as part of the docs
-        # Sandboxed test cases are NOT executed if environtment SANDBOX is set
-        if testcase[0] == "X" or (testcase[0] == "S" and getenv("SANDBOX", False)):
-            self.ignore = True
-            # substitute '>' again so we get the correct formatting
-            testcase[0] = ">"
-        else:
-            self.ignore = False
-
-        self.test = strip_sentinal(testcase[1])
-
-        self.key = None
-        outs = testcase[2].splitlines()
-        for line in outs:
-            line = strip_sentinal(line)
-            if line:
-                if line.startswith("."):
-                    text = line[1:]
-                    if text.startswith(" "):
-                        text = text[1:]
-                    text = "\n" + text
-                    if self.result is not None:
-                        self.result += text
-                    elif self.outs:
-                        self.outs[-1].text += text
-                    continue
-
-                match = TESTCASE_OUT_RE.match(line)
-                symbol, text = match.group(1), match.group(2)
-                text = text.strip()
-                if symbol == "=":
-                    self.result = text
-                elif symbol == ":":
-                    out = Message("", "", text)
-                    self.outs.append(out)
-                elif symbol == "|":
-                    out = Print(text)
-                    self.outs.append(out)
-
-    def __str__(self):
-        return self.test
-
-    def html(self):
+    def html(self) -> str:
         result = '<div class="test"><span class="move"></span>'
         result += '<ul class="test" id="test_%d">' % self.index
         result += '<li class="test">%s</li>' % escape_html(self.test, True)
@@ -969,19 +895,10 @@ class DjangoDocTest(object):
         return result
 
 
-class DjangoDocTests(object):
+class DjangoDocTests(DocTests):
     def __init__(self):
         self.tests = []
         self.text = ""
-
-    def get_tests(self):
-        return self.tests
-
-    def is_private(self):
-        return all(test.private for test in self.tests)
-
-    def __str__(self):
-        return "\n".join(str(test) for test in self.tests)
 
     def html(self, counters=None):
         if len(self.tests) == 0:
