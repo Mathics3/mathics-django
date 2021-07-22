@@ -652,7 +652,9 @@ class DjangoDoc(XMLDoc):
         else:
             key_prefix = None
 
-        self.items = gather_tests(doc, key_prefix)
+        self.rawdoc = doc
+        self.items = gather_tests(self.rawdoc, key_prefix)
+        return
 
     def __str__(self):
         return "\n".join(str(item) for item in self.items)
@@ -671,9 +673,12 @@ class DjangoDoc(XMLDoc):
             # since that is tagged and shown as a title, it is redundant here is the section body.
             # Or that is the intent. This code is a bit hacky.
             items = items[1:]
-        return mark_safe(
-            "\n".join(item.html(counters) for item in items if not item.is_private())
-        )
+
+        text = "\n".join(item.html(counters) for item in items if not item.is_private())
+        if text == "":
+            # HACK ALERT if text is "" we may have missed some test markup.
+            return self.rawdoc
+        return mark_safe(text)
 
 
 class DjangoDocChapter(DjangoDocElement):
@@ -916,33 +921,31 @@ class DjangoDocTest(DocTest):
 
     def html(self) -> str:
         result = '<div class="test"><span class="move"></span>'
-        result += f'<ul class="test" id="test_{self.index}>'
+        result += f'<ul class="test" id="test_{self.index}">'
 
         result += f'<li class="test">{escape_html(self.test, True)}</li>'
+
+        if self.key is not None:
+
+            output_for_key = doc_data.get(self.key, None)
+            # HACK ALERT:
+            # output_for_key is not None, then the output appears
+            # mysteriously some other way.
+            # But if it is None then test number don't line up and that is a different
+            # bug that we address here.
+            if output_for_key is None:
+                output_for_key = get_results_by_test(self.test, self.key, doc_data)
+                results = output_for_key.get("results", [])
+                result += '<ul class="out">'
+                for r in results:
+                    for out in r["out"]:
+                        result += f'<li class="out">{escape_html(out["text"])}</li>'
+                    if r["result"]:  # is not None and result['result'].strip():
+                        result += f'<li class="result">{r["result"]}</li>'
+                result += "</ul>"
+
         result += "</ul>"
         result += "</div>"
-
-        if self.key is None:
-            return result
-
-        output_for_key = doc_data.get(self.key, None)
-        # HACK ALERT:
-        # output_for_key is not None, then the output appears
-        # mysteriously some other way.
-        # But if it is None then test number don't line up and that is a different
-        # bug that we address here.
-        if output_for_key is None:
-            output_for_key = get_results_by_test(self.test, self.key, doc_data)
-            results = output_for_key.get("results", [])
-            result += '<div class="out"><span class="move"></span>'
-            result += f'<ul class="out" id="test_{self.index}">'
-            for r in results:
-                for out in r["out"]:
-                    result += escape_html(out["text"])
-                if r["result"]:  # is not None and result['result'].strip():
-                    result += f'<li class="result">{r["result"]}</li>'
-            result += "</ul>"
-            result += "</div>"
         return result
 
 
