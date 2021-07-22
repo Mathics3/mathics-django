@@ -105,6 +105,10 @@ def format_output(obj, expr, format=None):
             form_expr = Expression("StandardForm", expr)
             result = form_expr.format(obj, "System`StandardForm")
             return eval_boxes(result, result.boxes_to_svg, obj)
+        elif head in ("System`Symbol", "System`Integer"):
+            # What obviously doesn't need MathML? Note: System`Real is kept in MathML
+            # because we might have exponents, e.g. 3 * 10^8.
+            result = Expression("StandardForm", expr).format(obj, "System`OutputForm")
         else:
             result = Expression("StandardForm", expr).format(obj, "System`MathMLForm")
     else:
