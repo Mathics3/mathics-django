@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import re
-import unicodedata
-
 from django.utils.html import linebreaks
 
 from mathics.doc.common_doc import (
@@ -31,8 +28,16 @@ from mathics.doc.common_doc import (
 )
 
 
-# FIXME: can we replace this with Python 3's html.escape ?
 def escape_html(text, verbatim_mode=False, counters=None, single_line=False):
+    r"""Converts our style HTML/XML markup to proper HTML.
+
+    This includes things like:
+
+    * \Mathics -> <em>Mathics<em> (via SPECIAL_COMMANDS)
+    * Our custom tags, e.g. <url> (for HTML <a>).
+    * HTML escaping, e.g. "&" for "&amp;"
+    """
+
     def repl_python(match):
         return (
             r"""<pre><![CDATA[
@@ -43,6 +48,7 @@ def escape_html(text, verbatim_mode=False, counters=None, single_line=False):
 
     text, post_substitutions = pre_sub(PYTHON_RE, text, repl_python)
 
+    # Can we replace this with Python 3's html.escape?
     text = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
     if not verbatim_mode:
