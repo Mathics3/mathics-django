@@ -677,7 +677,7 @@ class DjangoDoc(XMLDoc):
         text = "\n".join(item.html(counters) for item in items if not item.is_private())
         if text == "":
             # HACK ALERT if text is "" we may have missed some test markup.
-            return self.rawdoc
+            return mark_safe(escape_html(self.rawdoc))
         return mark_safe(text)
 
 
@@ -925,24 +925,27 @@ class DjangoDocTest(DocTest):
 
         result += f'<li class="test">{escape_html(self.test, True)}</li>'
 
-        if self.key is not None:
+        if self.key is None:
+            result += "</ul>"
+            result += "</div>"
+            return result
 
-            output_for_key = doc_data.get(self.key, None)
-            # HACK ALERT:
-            # output_for_key is not None, then the output appears
-            # mysteriously some other way.
-            # But if it is None then test number don't line up and that is a different
-            # bug that we address here.
-            if output_for_key is None:
-                output_for_key = get_results_by_test(self.test, self.key, doc_data)
-                results = output_for_key.get("results", [])
-                result += '<ul class="out">'
-                for r in results:
-                    for out in r["out"]:
-                        result += f'<li class="out">{escape_html(out["text"])}</li>'
-                    if r["result"]:  # is not None and result['result'].strip():
-                        result += f'<li class="result">{r["result"]}</li>'
-                result += "</ul>"
+        output_for_key = doc_data.get(self.key, None)
+        # HACK ALERT:
+        # output_for_key is not None, then the output appears
+        # mysteriously some other way.
+        # But if it is None then test number don't line up and that is a different
+        # bug that we address here.
+        if output_for_key is None:
+            output_for_key = get_results_by_test(self.test, self.key, doc_data)
+            results = output_for_key.get("results", [])
+            result += '<ul class="out">'
+            for r in results:
+                for out in r["out"]:
+                    result += f'<li class="out">{escape_html(out["text"])}</li>'
+                if r["result"]:  # is not None and result['result'].strip():
+                    result += f'<li class="result">{r["result"]}</li>'
+            result += "</ul>"
 
         result += "</ul>"
         result += "</div>"

@@ -21,7 +21,6 @@ try:
 except ImportError:
     import json
 
-import json
 from django.conf import settings
 from django.contrib import auth
 from django.contrib.auth.models import User
