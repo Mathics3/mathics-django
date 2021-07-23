@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import re
-import unicodedata
-
 from django.utils.html import linebreaks
 
 from mathics.doc.common_doc import (
@@ -31,23 +28,16 @@ from mathics.doc.common_doc import (
 )
 
 
-def slugify(value):
-    """
-    Converts to lowercase, removes non-word characters apart from '$',
-    and converts spaces to hyphens. Also strips leading and trailing
-    whitespace.
-
-    Based on the Django version, but modified to preserve '$'.
-    """
-    value = (
-        unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii")
-    )
-    value = re.sub("[^$`\w\s-]", "", value).strip().lower()
-    return re.sub("[-\s`]+", "-", value)
-
-
-# FIXME: can we replace this with Python 3's html.escape ?
 def escape_html(text, verbatim_mode=False, counters=None, single_line=False):
+    r"""Converts our style HTML/XML markup to proper HTML.
+
+    This includes things like:
+
+    * \Mathics -> <em>Mathics<em> (via SPECIAL_COMMANDS)
+    * Our custom tags, e.g. <url> (for HTML <a>).
+    * HTML escaping, e.g. "&" for "&amp;"
+    """
+
     def repl_python(match):
         return (
             r"""<pre><![CDATA[
@@ -58,6 +48,7 @@ def escape_html(text, verbatim_mode=False, counters=None, single_line=False):
 
     text, post_substitutions = pre_sub(PYTHON_RE, text, repl_python)
 
+    # Can we replace this with Python 3's html.escape?
     text = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
     if not verbatim_mode:

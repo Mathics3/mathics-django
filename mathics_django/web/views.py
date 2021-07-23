@@ -21,7 +21,6 @@ try:
 except ImportError:
     import json
 
-import json
 from django.conf import settings
 from django.contrib import auth
 from django.contrib.auth.models import User
@@ -345,7 +344,9 @@ def get_mathics_threejs_backend_data():
     global mathics_threejs_backend_data
     if not mathics_threejs_backend_data:
         try:
-            with builtin_open(settings.MATHICS_BACKEND_THREEJS_JSON_PATH, "rb") as version_json_fp:
+            with builtin_open(
+                settings.MATHICS_BACKEND_THREEJS_JSON_PATH, "rb"
+            ) as version_json_fp:
                 mathics_threejs_backend_data = json.load(version_json_fp)
         except:
             pass
