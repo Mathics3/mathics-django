@@ -105,6 +105,7 @@ def about_view(request):
             "MachineName": system_info["$MachineName"],
             "ProcessID": system_info["$ProcessID"],
             "ProcessorType": system_info["$ProcessorType"],
+            "PythonVersion": sys.version,
             "user_settings": get_user_settings(evaluation),
         },
     )
