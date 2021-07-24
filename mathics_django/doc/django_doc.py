@@ -36,6 +36,8 @@ from mathics.doc.common_doc import (
     XMLDoc,
     Tests,
     filter_comments,
+    gather_tests,
+    get_doc_name_from_module,
     get_results_by_test,
     post_sub,
     pre_sub,
@@ -51,17 +53,6 @@ try:
 except IOError:
     print(f"Trouble reading Doc file {DOC_DATA_PATH}")
     doc_data = {}
-
-
-def get_doc_name_from_module(module):
-    name = "???"
-    if module.__doc__:
-        lines = module.__doc__.strip()
-        if not lines:
-            name = module.__name__
-        else:
-            name = lines.split("\n")[0]
-    return name
 
 
 class DjangoDocElement(object):
@@ -601,46 +592,6 @@ class PyMathicsDocumentation(Documentation):
                 test.key = (tests.part, tests.chapter, tests.section, test.index)
 
 
-def gather_tests(doc: str, key_part=None) -> list:
-    # Remove commented lines.
-    doc = filter_comments(doc).strip(r"\s")
-
-    # Remove leading <dl>...</dl>
-    # doc = DL_RE.sub("", doc)
-
-    # pre-substitute Python code because it might contain tests
-    doc, post_substitutions = pre_sub(
-        PYTHON_RE, doc, lambda m: "<python>%s</python>" % m.group(1)
-    )
-
-    # HACK: Artificially construct a last testcase to get the "intertext"
-    # after the last (real) testcase. Ignore the test, of course.
-    doc += "\n>> test\n = test"
-    testcases = TESTCASE_RE.findall(doc)
-
-    tests = None
-    items = []
-    for index in range(len(testcases)):
-        testcase = list(testcases[index])
-        text = testcase.pop(0).strip()
-        if text:
-            if tests is not None:
-                items.append(tests)
-                tests = None
-            text = post_sub(text, post_substitutions)
-            items.append(DjangoDocText(text))
-            tests = None
-        if index < len(testcases) - 1:
-            test = DjangoDocTest(index, testcase, key_part)
-            if tests is None:
-                tests = DjangoDocTests()
-            tests.tests.append(test)
-        if tests is not None:
-            items.append(tests)
-            tests = None
-    return items
-
-
 class DjangoDoc(XMLDoc):
     def __init__(self, doc, title, section):
         self.title = title
@@ -653,7 +604,9 @@ class DjangoDoc(XMLDoc):
             key_prefix = None
 
         self.rawdoc = doc
-        self.items = gather_tests(self.rawdoc, key_prefix)
+        self.items = gather_tests(
+            self.rawdoc, DjangoDocTests, DjangoDocTest, DjangoDocText, key_prefix
+        )
         return
 
     def __str__(self):
@@ -880,7 +833,9 @@ class DjangoDocSubsection(DjangoDocElement):
         if in_guide:
             # Tests haven't been picked out yet from the doc string yet.
             # Gather them here.
-            self.items = gather_tests(text)
+            self.items = gather_tests(
+                self.text, DjangoDocTests, DjangoDocTest, DjangoDocText, key_prefix
+            )
         else:
             self.items = []
 
