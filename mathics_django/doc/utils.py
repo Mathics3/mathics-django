@@ -3,6 +3,10 @@
 
 from django.utils.html import linebreaks
 
+# There is also xml.sax.saxutils escape whic is supposed to be faster,
+# but it doesn't handle single quote.
+from html import escape
+
 from mathics.doc.common_doc import (
     ALLOWED_TAGS,
     ALLOWED_TAGS_RE,
@@ -48,9 +52,6 @@ def escape_html(text, verbatim_mode=False, counters=None, single_line=False):
 
     text, post_substitutions = pre_sub(PYTHON_RE, text, repl_python)
 
-    # Can we replace this with Python 3's html.escape?
-    text = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-
     if not verbatim_mode:
 
         def repl_quotation(match):
@@ -61,7 +62,8 @@ def escape_html(text, verbatim_mode=False, counters=None, single_line=False):
     if counters is None:
         counters = {}
 
-    text = text.replace('"', "&quot;")
+    text = escape(text)
+
     if not verbatim_mode:
 
         def repl_latex(match):
