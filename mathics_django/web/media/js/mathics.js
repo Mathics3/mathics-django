@@ -1,4 +1,4 @@
-var deleting,
+let deleting,
 	blurredElement,
 	movedItem,
 	clickedQuery,
@@ -56,58 +56,25 @@ function prepareText(text) {
 }
 
 function getDimensions(math, callback) {
-	var all = document.getElementById('calc_all').cloneNode(true);
+	const all = document.getElementById('calc_all').cloneNode(true);
 	all.id = null;
 
 	document.body.appendChild(all);
-	var container = all.select('.calc_container')[0];
+	const container = all.querySelector('.calc_container');
 	container.appendChild(translateDOMElement(math));
 
 	MathJax.Hub.Queue(['Typeset', MathJax.Hub, container]);
 	MathJax.Hub.Queue(() => {
-		var pos = container.cumulativeOffset();
-		var next = all.select('.calc_next')[0].cumulativeOffset();
-		var below = all.select('.calc_below')[0].cumulativeOffset();
-		var width = next.left - pos.left + 4;
-		var height = below.top - pos.top + 20;
+		const pos = container.cumulativeOffset();
+		const next = all.querySelector('.calc_next').cumulativeOffset();
+		const below = all.querySelector('.calc_below').cumulativeOffset();
+		const width = next.left - pos.left + 4;
+		const height = below.top - pos.top + 20;
+
 		document.body.removeChild(all);
+
 		callback(width, height);
 	});
-}
-
-function drawMeshGradient(ctx, points) {
-	function color(c, a) {
-		return `rgba(${Math.round(c[0] * 255)}, ${Math.round(c[1] * 255)}, ${Math.round(c[2] * 255)}, ${a})`;
-	}
-
-	var grad1 = ctx.createLinearGradient(0, 0, 0.5, 0.5);
-	grad1.addColorStop(0, color(points[0][1], 1));
-	grad1.addColorStop(1, color(points[0][1], 0));
-	var grad2 = ctx.createLinearGradient(1, 0, 0, 0);
-	grad2.addColorStop(0, color(points[1][1], 1));
-	grad2.addColorStop(1, color(points[1][1], 0));
-	var grad3 = ctx.createLinearGradient(0, 1, 0, 0);
-	grad3.addColorStop(0, color(points[2][1], 1));
-	grad3.addColorStop(1, color(points[2][1], 0));
-
-	ctx.save();
-	ctx.setTransform(points[1][0][0] - points[0][0][0], points[1][0][1] - points[0][0][1],
-		points[2][0][0] - points[0][0][0], points[2][0][1] - points[0][0][1], points[0][0][0], points[0][0][1]);
-
-	ctx.beginPath();
-	ctx.moveTo(0, 0);
-	ctx.lineTo(1, 0);
-	ctx.lineTo(0, 1);
-	ctx.closePath();
-
-	ctx.globalCompositeOperation = "lighter";
-	ctx.fillStyle = grad1;
-	ctx.fill();
-	ctx.fillStyle = grad2;
-	ctx.fill();
-	ctx.fillStyle = grad3;
-	ctx.fill();
-	ctx.restore();
 }
 
 function createMathNode(nodeName) {
@@ -119,7 +86,7 @@ function createMathNode(nodeName) {
 	}
 }
 
-var objectsPrefix = 'math_object_', objectsCount = 0, objects = {};
+let objectsPrefix = 'math_object_', objectsCount = 0, objects = {};
 
 function translateDOMElement(element, svg) {
 	if (element.nodeType === 3) {
@@ -164,32 +131,6 @@ function translateDOMElement(element, svg) {
 		}
 	}
 
-	if (nodeName === 'meshgradient') {
-		if (!MathJax.Hub.Browser.isOpera) {
-			var data = JSON.parse(element.getAttribute('data'));
-			var div = document.createElementNS('http://www.w3.org/1999/xhtml', 'div');
-			var foreign = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
-			foreign.setAttribute('width', svg.getAttribute('width'));
-			foreign.setAttribute('height', svg.getAttribute('height'));
-			foreign.setAttribute('x', '0px');
-			foreign.setAttribute('y', '0px');
-			foreign.appendChild(div);
-
-			var canvas = createMathNode('canvas');
-			canvas.setAttribute('width', svg.getAttribute('width'));
-			canvas.setAttribute('height', svg.getAttribute('height'));
-			div.appendChild(canvas);
-
-			var ctx = canvas.getContext('2d');
-			for (var i = 0; i < data.length; ++i) {
-				if (data[i].length == 3) {
-					drawMeshGradient(ctx, data[i]);
-				}
-			}
-
-			dom = foreign;
-		}
-	}
 	var object = null;
 
 	if (nodeName === 'graphics3d') {
