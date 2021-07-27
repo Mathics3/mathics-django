@@ -1,4 +1,4 @@
-var authenticated = false, loginReason, loginNext;
+let authenticated = false, loginReason, loginNext;
 
 function showLogin(reason, next) {
 	document.getElementById('passwordSent').style.display = 'none';
@@ -33,8 +33,8 @@ function onLogout() {
 
 function login() {
 	submitForm('loginForm', '/ajax/login/', (response) => {
-		var result = response.result;
-		var email = response.form.values.email;
+		const { email, result } = response.form.values;
+
 		if (result === 'ok') {
 			onLogin(email);
 			hidePopup();

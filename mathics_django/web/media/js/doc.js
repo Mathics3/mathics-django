@@ -1,10 +1,10 @@
-var docLoaded = false, lastSearchValue = '';
+let docLoaded = false, lastSearchValue = '';
 
 function showPage(response) {
 	const doc = document.getElementById('doc');
 
 	if (doc) {
-		doc.updateDOM(response.content);
+		doc.innerHTML = response.content;
 	}
 
 	document.querySelectorAll('li.test p').forEach((test) => {
@@ -27,16 +27,17 @@ function showPage(response) {
 		);
 
 		test.children[1].addEventListener('click', () => {
-			var query = test.firstElementChild.innerHTML;
-			query = query.replace(/\xA0/g, ' ');
-			query = query.unescapeHTML();
-			setQueries([query]);
+			setQueries([
+				test.firstElementChild.innerHTML
+					.replace(/\xA0/g, ' ')
+					.unescapeHTML()
+			]);
 		});
 	});
 
 	document.querySelectorAll('ul.test').forEach((test) => {
 		const id = test.id.substr(5); // 'test_...'
-		var data = response.data[id];
+		const data = response.data[id];
 		setResult(test, data.results);
 	});
 }
@@ -61,8 +62,8 @@ function showDoc() {
 	document.getElementById('code').classList.add('doc');
 
 	docLink.classList.add('active');
-	docLink.select('i')[0].classList.remove('fa-question-circle-o');
-	docLink.select('i')[0].classList.add('fa-question-circle');
+	docLink.querySelector('i').classList.remove('fa-question-circle-o');
+	docLink.querySelector('i').classList.add('fa-question-circle');
 
 	document.getElementById('search').classList.add('shown');
 
@@ -92,6 +93,7 @@ function toggleDoc() {
 	} else {
 		showDoc();
 	}
+
 	document.getElementById('search').select();
 }
 

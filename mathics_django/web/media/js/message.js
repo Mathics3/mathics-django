@@ -83,9 +83,9 @@ function showPopup(element) {
 }
 
 function hidePopup() {
-	var containers = popup[0];
-	var onSubmit = popup[1];
-	var onCancel = popup[2];
+	const containers = popup[0];
+	const onSubmit = popup[1];
+	const onCancel = popup[2];
 
 	containers.forEach((item) => {
 		item.style.display = 'none';
