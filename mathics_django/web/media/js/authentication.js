@@ -11,7 +11,9 @@ function showLogin(reason, next) {
 	} else {
 		loginReasonElement.style.display = 'none';
 	}
+
 	showPopup(document.getElementById('login'));
+
 	loginNext = next;
 }
 
@@ -58,6 +60,7 @@ function logout() {
 
 function requireLogin(reason, onLogin) {
 	loginReason = reason;
+
 	if (REQUIRE_LOGIN && !authenticated) {
 		showLogin(reason, onLogin);
 	} else {
@@ -70,6 +73,7 @@ function checkLogin(response) {
 		onLogout();
 		hidePopup();
 		showLogin(loginReason, loginNext);
+
 		return false;
 	}
 

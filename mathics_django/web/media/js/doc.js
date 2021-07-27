@@ -18,12 +18,12 @@ function showPage(response) {
 
 		test.appendChild(submitButtonBox);
 
-		test.addEventListener('mouseover', () =>
-			test.classList.add('focused')
+		test.addEventListener('mouseover',
+			() => test.classList.add('focused')
 		);
 
-		test.addEventListener('mouseout', () =>
-			test.classList.remove('focused')
+		test.addEventListener('mouseout',
+			() => test.classList.remove('focused')
 		);
 
 		test.children[1].addEventListener('click', () => {
@@ -37,8 +37,9 @@ function showPage(response) {
 
 	document.querySelectorAll('ul.test').forEach((test) => {
 		const id = test.id.substr(5); // 'test_...'
-		const data = response.data[id];
-		setResult(test, data.results);
+		const { results } = response.data[id];
+
+		setResult(test, results);
 	});
 }
 
@@ -47,8 +48,13 @@ function loadDoc(page) {
 		method: 'get',
 		onSuccess: (transport) => {
 			docLoaded = true;
+
 			showPage(JSON.parse(transport.responseText));
-			document.querySelector('#doc *').scrollIntoView();
+
+			window.scrollTo(
+				0,
+				document.querySelector('#doc *').offsetTop
+			);
 		}
 	});
 }
@@ -81,8 +87,8 @@ function hideDoc() {
 	document.getElementById('code').classList.remove('doc');
 
 	docLink.classList.remove('active');
-	docLink.getElementsByTagName('i')[0].classList.add('fa-question-circle-o');
-	docLink.getElementsByTagName('i')[0].classList.remove('fa-question-circle');
+	docLink.querySelector('i').classList.add('fa-question-circle-o');
+	docLink.querySelector('i').classList.remove('fa-question-circle');
 
 	document.getElementById('search').classList.remove('shown');
 }
@@ -117,6 +123,7 @@ function searchChange() {
 			hideDoc();
 			loadDoc('/');
 		}
+
 		lastSearchValue = query;
 	} else {
 		lastSearchValue = '';
@@ -157,7 +164,7 @@ function searchKeyDown(event) {
 	}
 }
 
-function initDoc() {
+window.addEventListener('DOMContentLoaded', () => {
 	const search = document.getElementById('search');
 
 	search.addEventListener('focus', searchFocus);
@@ -168,6 +175,4 @@ function initDoc() {
 	search.value = '';
 
 	searchBlur();
-}
-
-window.addEventListener('DOMContentLoaded', initDoc);
+});

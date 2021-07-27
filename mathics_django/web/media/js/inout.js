@@ -78,6 +78,11 @@ function showOpen() {
 }
 
 function save(overwrite) {
+	// can't save worksheet with empty name
+	if (!document.getElementById('id_name').value.strip()) {
+		return;
+	}
+
 	// if overwrite is false set it to ''
 	overwrite ||= '';
 
@@ -87,11 +92,6 @@ function save(overwrite) {
 		content = getContent();
 	} else {
 		content = document.getElementById('codetext').value;
-	}
-
-	// can't save worksheet with empty name
-	if (!document.getElementById('id_name').value.strip()) {
-		return;
 	}
 
 	submitForm(
@@ -145,12 +145,12 @@ function getContent() {
 	const queriesElement = document.getElementById('queries');
 
 	for (let i = 0; i < queriesElement.childElementCount; i++) {
-		const textarea = queriesElement.children[i]
+		const { value, results } = queriesElement.children[i]
 			.querySelector('textarea.request');
 
 		queries.push({
-			request: textarea.value,
-			results: textarea.results
+			request: value,
+			results: results
 		});
 	}
 
@@ -163,7 +163,6 @@ function setContent(content) {
 	document.getElementById('welcome').style.display = 'none';
 
 	content.forEach((item) => {
-		// line below has an error
 		const li = createQuery(null, true, true);
 
 		li.textarea.value = item.request;
@@ -203,23 +202,22 @@ function createLink() {
 }
 
 function setQueries(queries) {
-	const list = [];
+	const queryList = [],
+		queriesElement = document.getElementById('queries');
 
 	queries.forEach((query) => {
 		const li = createQuery(null, true, true);
 
 		li.textarea.value = query;
 
-		list.push({ li, query });
+		queryList.push({ li, query });
 	});
 
 	refreshInputSizes();
 
-	const queriesElement = document.getElementById('queries');
-
 	function load(index) {
-		if (index < list.length) {
-			submitQuery(list[index].li.textarea, () => load(index + 1));
+		if (index < queryList.length) {
+			submitQuery(queryList[index].li.textarea, () => load(index + 1));
 		} else {
 			createSortable();
 			lastFocus = null;
