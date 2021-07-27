@@ -1,9 +1,14 @@
+// TODO: getSelection function
+
 let deleting,
 	blurredElement,
 	movedItem,
 	clickedQuery,
 	lastFocus = null,
-	welcome = true;
+	welcome = true,
+	queryIndex = 0,
+	mouseDownEvent = null,
+	timeout = -1;
 
 function getLetterWidth(element) {
 	const letter = document.createElement('span');
@@ -21,9 +26,10 @@ function getLetterWidth(element) {
 }
 
 function refreshInputSize(textarea) {
-	const letterWidth = getLetterWidth(textarea);
-	const width = textarea.clientWidth;
-	const lines = textarea.value.split('\n');
+	const letterWidth = getLetterWidth(textarea),
+		width = textarea.clientWidth,
+		lines = textarea.value.split('\n');
+
 	let lineCount = 0;
 
 	lines.forEach((line) => {
@@ -34,9 +40,9 @@ function refreshInputSize(textarea) {
 }
 
 function refreshInputSizes() {
-	document.querySelectorAll('textarea.request').forEach((textarea) => {
-		refreshInputSize(textarea);
-	});
+	document.querySelectorAll('textarea.request').forEach(
+		(textarea) => refreshInputSize(textarea)
+	);
 }
 
 function inputChange() {
@@ -48,11 +54,7 @@ function isEmpty(textarea) {
 }
 
 function prepareText(text) {
-	if (text == '') {
-		text = String.fromCharCode(160); // non breaking space, like &nbsp;
-	}
-
-	return text;
+	return text || String.fromCharCode(160); // non breaking space, like &nbsp;
 }
 
 function getDimensions(math, callback) {
@@ -65,13 +67,15 @@ function getDimensions(math, callback) {
 
 	MathJax.Hub.Queue(['Typeset', MathJax.Hub, container]);
 	MathJax.Hub.Queue(() => {
-		const pos = container.cumulativeOffset();
-		const next = all.querySelector('.calc_next').cumulativeOffset();
-		const below = all.querySelector('.calc_below').cumulativeOffset();
-		const width = next.left - pos.left + 4;
-		const height = below.top - pos.top + 20;
+		const containerOffsetLeft = container.offsetLeft,
+			containerOffsetTop = container.offsetTop,
+			nextOffsetLeft = all.querySelector('.calc_next').offsetLeft,
+			belowOffsetTop = all.querySelector('.calc_below').offsetTop;
 
-		document.body.removeChild(all);
+		const width = nextOffsetLeft - containerOffsetLeft + 4,
+			height = belowOffsetTop - containerOffsetTop + 20;
+
+		all.remove();
 
 		callback(width, height);
 	});
@@ -81,9 +85,8 @@ function createMathNode(nodeName) {
 	if (['svg', 'g', 'rect', 'circle', 'polyline', 'polygon', 'path', 'ellipse', 'foreignObject'].include(nodeName)) {
 		return document.createElementNS("http://www.w3.org/2000/svg", nodeName);
 	}
-	else {
-		return document.createElement(nodeName);
-	}
+
+	return document.createElement(nodeName);
 }
 
 let objectsPrefix = 'math_object_', objectsCount = 0, objects = {};
@@ -93,13 +96,14 @@ function translateDOMElement(element, svg) {
 		return document.createTextNode(element.nodeValue);
 	}
 
-	let dom = null;
 	const nodeName = element.nodeName;
+
+	let dom = null;
 
 	if (nodeName !== 'meshgradient' && nodeName !== 'graphics3d') {
 		dom = createMathNode(element.nodeName);
 
-		for (let i = 0; i < element.attributes.length; ++i) {
+		for (let i = 0; i < element.attributes.length; i++) {
 			const attr = element.attributes[i];
 
 			if (attr.nodeName != 'ox' && attr.nodeName != 'oy') {
@@ -131,11 +135,11 @@ function translateDOMElement(element, svg) {
 		}
 	}
 
-	var object = null;
+	let object = null;
 
 	if (nodeName === 'graphics3d') {
-		var data = JSON.parse(element.getAttribute('data'));
-		var div = document.createElement('div');
+		const data = JSON.parse(element.getAttribute('data')),
+			div = document.createElement('div');
 
 		drawGraphics3d(div, data);
 
@@ -151,9 +155,11 @@ function translateDOMElement(element, svg) {
 		if (nodeName === 'svg' || nodeName.toLowerCase() === 'img') {
 			width = dom.getAttribute('width');
 			height = dom.getAttribute('height');
+
 			if (!width.endsWith('px')) {
 				width += 'px';
 			}
+
 			if (!height.endsWith('px')) {
 				height += 'px';
 			}
@@ -170,8 +176,9 @@ function translateDOMElement(element, svg) {
 		svg = dom;
 	}
 
-	var rows = [[]];
-	$A(element.childNodes).each(function (child) {
+	let rows = [[]];
+
+	element.childNodes.forEach((child) => {
 		if (child.nodeName == 'mspace' && child.getAttribute('linebreak') == 'newline') {
 			rows.push([]);
 		} else {
@@ -179,39 +186,50 @@ function translateDOMElement(element, svg) {
 		}
 	});
 
-	var childParent = dom;
+	let childParent = dom;
 
 	if (nodeName === 'math') {
-		var mstyle = createMathNode('mstyle');
+		const mstyle = createMathNode('mstyle');
 		mstyle.setAttribute('displaystyle', 'true');
+
 		dom.appendChild(mstyle);
+
 		childParent = mstyle;
 	}
 
 	if (rows.length > 1) {
-		var mtable = createMathNode('mtable');
+		const nospace = 'cell-spacing: 0; cell-padding: 0; row-spacing: 0; row-padding: 0; border-spacing: 0; padding: 0; margin: 0';
+
+		const mtable = createMathNode('mtable');
 		mtable.setAttribute('rowspacing', '0');
 		mtable.setAttribute('columnalign', 'left');
-		var nospace = 'cell-spacing: 0; cell-padding: 0; row-spacing: 0; row-padding: 0; border-spacing: 0; padding: 0; margin: 0';
 		mtable.setAttribute('style', nospace);
-		rows.each(function (row) {
-			var mtr = createMathNode('mtr');
+
+		rows.forEach((row) => {
+			const mtr = createMathNode('mtr'),
+				mtd = createMathNode('mtd');
+
 			mtr.setAttribute('style', nospace);
-			var mtd = createMathNode('mtd');
 			mtd.setAttribute('style', nospace);
-			row.each(function (element) {
-				var elmt = translateDOMElement(element, svg);
+
+			row.forEach((element) => {
+				const elmt = translateDOMElement(element, svg);
+
 				if (nodeName == 'mtext') {
 					// wrap element in mtext
-					var outer = createMathNode('mtext');
+					const outer = createMathNode('mtext');
 					outer.appendChild(elmt);
+
 					elmt = outer;
 				}
+
 				mtd.appendChild(elmt);
 			});
+
 			mtr.appendChild(mtd);
 			mtable.appendChild(mtr);
 		});
+
 		if (nodeName === 'mtext') {
 			// no mtable inside mtext, but mtable instead of mtext
 			dom = mtable;
@@ -219,9 +237,11 @@ function translateDOMElement(element, svg) {
 			childParent.appendChild(mtable);
 		}
 	} else {
-		rows[0].each((element) => {
-			childParent.appendChild(translateDOMElement(element, svg));
-		});
+		rows[0].forEach(
+			(element) => childParent.appendChild(
+				translateDOMElement(element, svg)
+			)
+		);
 	}
 
 	if (object) {
@@ -238,7 +258,6 @@ function translateDOMElement(element, svg) {
 
 function createLine(value) {
 	const container = document.createElement('div');
-
 	container.innerHTML = value;
 
 	if (container?.firstElementChild?.tagName === 'math') {
@@ -266,7 +285,7 @@ function createLine(value) {
 		const p = document.createElement('p');
 		p.className = 'string';
 
-		for (let i = 0; i < lines.length; ++i) {
+		for (let i = 0; i < lines.length; i++) {
 			p.innerText += prepareText(lines[i]);
 
 			if (i < lines.length - 1) {
@@ -280,43 +299,48 @@ function createLine(value) {
 
 function afterProcessResult(list, command) {
 	// command is either 'Typeset' (default) or 'Rerender'
-	if (!command) {
-		command = 'Typeset';
-	}
+	command ||= 'Typeset';
 
 	MathJax.Hub.Queue([command, MathJax.Hub, list]);
 	MathJax.Hub.Queue(() => {
 		// inject SVG and other non-MathML objects into corresponding <mspace>s
 		list.querySelectorAll('.mspace').forEach((mspace) => {
-			var id = mspace.getAttribute('id').substr(objectsPrefix.length);
-			var object = objects[id];
-			mspace.appendChild(object);
+			const id = mspace.getAttribute('id').substr(objectsPrefix.length);
+
+			mspace.appendChild(objects[id]);
 		});
 	});
+
 	if (!MathJax.Hub.Browser.isOpera) {
 		// Opera 11.01 Build 1190 on Mac OS X 10.5.8 crashes on this call for Plot[x,{x,0,1}]
 		// => leave inner MathML untouched
 		MathJax.Hub.Queue(['Typeset', MathJax.Hub, list]);
 	}
+
 	MathJax.Hub.Queue(() => {
 		list.querySelectorAll('foreignObject > span > nobr > span.math')
 			.forEach((math) => {
-				var content = math.firstChild.firstChild.firstChild;
+				const content = math.firstChild.firstChild.firstChild;
+
 				math.removeChild(math.firstChild);
 				math.insertBefore(content, math.firstChild);
 
 				if (command === 'Typeset') {
 					// recalculate positions of insets based on ox/oy properties
-					const foreignObject = math.parentNode.parentNode.parentNode;
-					const dimensions = math.getDimensions();
-					const w = dimensions.width + 4;
-					const h = dimensions.height + 4;
-					let x = parseFloat(foreignObject.getAttribute('x').substr());
-					let y = parseFloat(foreignObject.getAttribute('y'));
-					const ox = parseFloat(foreignObject.getAttribute('ox'));
-					const oy = parseFloat(foreignObject.getAttribute('oy'));
-					x = x - w / 2.0 - ox * w / 2.0;
-					y = y - h / 2.0 + oy * h / 2.0;
+					const foreignObject = math.parentNode.parentNode.parentNode,
+						dimensions = math.getDimensions();
+
+					const ox = parseFloat(foreignObject.getAttribute('ox')),
+						oy = parseFloat(foreignObject.getAttribute('oy')),
+						width = dimensions.width + 4,
+						height = dimensions.height + 4;
+
+					let x = parseFloat(foreignObject.getAttribute('x').substr()),
+						y = parseFloat(foreignObject.getAttribute('y'));
+
+					x = x - width / 2.0 - ox * width / 2.0;
+					y = y - height / 2.0 + oy * height / 2.0;
+
 					foreignObject.setAttribute('x', x + 'px');
 					foreignObject.setAttribute('y', y + 'px');
 				}
@@ -325,7 +349,7 @@ function afterProcessResult(list, command) {
 }
 
 function setResult(list, results) {
-	var resultList = document.createElement('ul');
+	const resultList = document.createElement('ul');
 	resultList.className = 'out';
 	// we'll just show if it have children
 	resultList.style.display = 'none';
@@ -340,6 +364,7 @@ function setResult(list, results) {
 			}
 
 			li.appendChild(createLine(out.text));
+
 			resultList.appendChild(li);
 		});
 
@@ -360,6 +385,7 @@ function setResult(list, results) {
 	const li = document.createElement('li');
 	li.className = 'out';
 	li.appendChild(resultList);
+
 	list.appendChild(li);
 
 	afterProcessResult(list);
@@ -385,7 +411,8 @@ function submitQuery(element, onfinish, query) {
 		parameters: { query: query || element.value },
 		onSuccess: (transport) => {
 			if (element.ul) {
-				element.ul.select('li[class!=request][class!=submitbutton]').invoke('deleteElement');
+				element.ul.select('li[class!=request][class!=submitbutton]')
+					.forEach((element) => element.remove());
 
 				if (!transport.responseText) {
 					// a fatal Python error has occurred, e.g. on 4.4329408320439^43214234345
@@ -401,6 +428,7 @@ function submitQuery(element, onfinish, query) {
 				element.results = response.results;
 
 				const next = element.li.nextSibling;
+
 				if (next) {
 					next.textarea.focus();
 				} else {
@@ -409,7 +437,8 @@ function submitQuery(element, onfinish, query) {
 			}
 		},
 		onFailure: () => {
-			element?.ul.select('li[class!=request]').invoke('deleteElement');
+			element?.ul.select('li[class!=request]')
+				.forEach((element) => element.remove());
 
 			const li = document.createElement('li');
 			li.className = 'serverError';
@@ -421,15 +450,12 @@ function submitQuery(element, onfinish, query) {
 		onComplete: () => {
 			element?.li.classList.remove('loading');
 			document.getElementById('logo')?.classList.remove('working');
+
 			if (onfinish) {
 				onfinish();
 			}
 		}
 	});
-}
-
-function getSelection() {
-	// TODO
 }
 
 function keyDown(event) {
@@ -481,20 +507,21 @@ function deleteMouseDown(event) {
 }
 
 function deleteClick() {
-	if (lastFocus == this.li.textarea) {
+	if (lastFocus === this.li.textarea) {
 		lastFocus = null;
 	}
 
-	this.li.deleteElement();
+	this.li.remove();
 	deleting = false;
+
 	if (blurredElement) {
 		blurredElement.focus();
 		blurredElement = null;
 	}
+
 	if (document.getElementById('queries').childElementCount === 0) {
 		createQuery();
 	}
-
 }
 
 function moveMouseDown() {
@@ -511,23 +538,28 @@ function moveMouseUp() {
 }
 
 function onFocus() {
-	var textarea = this;
-	textarea.li.classList.add('focused');
-	lastFocus = textarea;
+	this.li.classList.add('focused');
+	lastFocus = this;
 }
 
 function onBlur() {
-	var textarea = this;
-	blurredElement = textarea;
-	if (!deleting && textarea.li != movedItem && isEmpty(textarea) && document.getElementById('queries').childElementCount > 1) {
-		textarea.li.display = 'none';
-		if (textarea == lastFocus) {
+	blurredElement = this;
+
+	if (!deleting &&
+		this.li != movedItem &&
+		isEmpty(this) &&
+		document.getElementById('queries').childElementCount > 1
+	) {
+		this.li.display = 'none';
+
+		if (this == lastFocus) {
 			lastFocus = null;
 		}
 
-		textarea.li.deleteElement();
+		this.li.remove();
 	}
-	textarea.li.classList.remove('focused');
+
+	this.li.classList.remove('focused');
 }
 
 function createSortable() {
@@ -538,8 +570,6 @@ function createSortable() {
 		scrollSensitivity: 1 // otherwise strange flying-away of item at top
 	});
 }
-
-var queryIndex = 0;
 
 function createQuery(beforeElement, noFocus, updatingAll) {
 	const textarea = document.createElement('textarea');
@@ -627,8 +657,6 @@ function createQuery(beforeElement, noFocus, updatingAll) {
 	return li;
 }
 
-var mouseDownEvent = null;
-
 function documentMouseDown(event) {
 	if (event.isLeftClick()) {
 		if (clickedQuery) {
@@ -660,14 +688,15 @@ function documentClick(event) {
 	}
 
 	const documentElement = document.getElementById('document');
-	var offset = documentElement.cumulativeOffset();
-	var y = event.pointerY() - offset.top + documentElement.scrollTop;
-	var element = null;
+	const y = event.pointerY() - documentElement.offsetTop + documentElement.scrollTop;
+
+	let element = null;
 
 	for (let i = 0; i < queries.childElementCount; i++) {
 		// margin-top: 10px
 		if (queries.children[i].positionedOffset().top + 20 > y) {
 			element = queries.children[i];
+
 			break;
 		}
 	}
@@ -706,22 +735,26 @@ function globalKeyUp(event) {
 				showDoc();
 				document.getElementById('search').select();
 				event.stop();
+
 				break;
 			// case 67: // C
 			// 	focusLast();
 			// 	event.stop();
+			// 
 			// 	break;
 			case 83: // S
 				event.stop();
 				event.stopPropagation();
 				event.preventDefault();
 				showSave();
+
 				break;
 			case 79: // O
 				event.stop();
 				event.stopPropagation();
 				event.preventDefault();
 				showOpen();
+
 				break;
 		}
 	}
@@ -747,6 +780,7 @@ function domLoaded() {
 			}
 		}
 	});
+
 	MathJax.Hub.Configured();
 
 	if (localStorage.getItem('hideMathicsStartupMsg') === 'true') {
@@ -756,12 +790,12 @@ function domLoaded() {
 	const queriesContainer = document.getElementById('queriesContainer');
 
 	if (queriesContainer) {
-		const queries = document.createElement('ul');
+		const queries = document.createElement('ul'),
+			documentElement = document.getElementById('document');
+
 		queries.id = 'queries';
 
 		queriesContainer.appendChild(queries);
-
-		const documentElement = document.getElementById('document');
 
 		documentElement.addEventListener('mousedown', documentMouseDown);
 		documentElement.addEventListener('click', documentClick);
@@ -778,8 +812,6 @@ function domLoaded() {
 
 window.addEventListener('DOMContentLoaded', domLoaded);
 window.addEventListener('resize', refreshInputSizes);
-
-let timeout = -1;
 
 window.addEventListener('resize', function () {
 	if (timeout >= 0) {

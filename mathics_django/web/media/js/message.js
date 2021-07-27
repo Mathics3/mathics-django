@@ -1,3 +1,5 @@
+let popup, dialogYesCallback;
+
 function grayOut(visible, zindex) {
 	let dark = document.getElementById('dark');
 
@@ -24,19 +26,18 @@ function grayOut(visible, zindex) {
 	}
 }
 
-let popup;
-
 function showPopup(element) {
-	const container = document.createElement('div');
+	const container = document.createElement('div'),
+		div = document.createElement('div'),
+		frameContainer = document.createElement('div'),
+		frame = document.createElement('iframe');
+
 	container.className = 'popupContainer';
 
-	const div = document.createElement('div');
 	div.className = 'popup';
 
-	const frameContainer = document.createElement('div');
 	frameContainer.className = 'popupFrameContainer';
 
-	const frame = document.createElement('iframe');
 	frame.className = 'popupFrame';
 
 	element.style.display = 'block';
@@ -52,7 +53,7 @@ function showPopup(element) {
 
 	grayOut(true, 9);
 
-	frame.scrollIntoView();
+	window.scrollTo(0, frame.offsetTop);
 
 	const submit = element.querySelector('input.submit, button.submit');
 
@@ -61,6 +62,7 @@ function showPopup(element) {
 			submit.onclick();
 		}
 	};
+
 	if (submit && submit.onclick) {
 		document.addEventListener('keydown', onSubmit);
 	}
@@ -71,6 +73,7 @@ function showPopup(element) {
 			cancel.onclick();
 		}
 	};
+
 	if (cancel && cancel.onclick) {
 		document.addEventListener('keydown', onCancel);
 	}
@@ -83,9 +86,7 @@ function showPopup(element) {
 }
 
 function hidePopup() {
-	const containers = popup[0];
-	const onSubmit = popup[1];
-	const onCancel = popup[2];
+	const [containers, onSubmit, onCancel] = popup;
 
 	containers.forEach((item) => {
 		item.style.display = 'none';
@@ -99,13 +100,11 @@ function hidePopup() {
 	popup = null;
 }
 
-var dialogYesCallback;
-
 function showDialog(title, text, yesCaption, noCaption, yesCallback) {
 	const dialog = document.getElementById('dialog');
 
-	dialog.getElementsByTagName('h1')[0].innerText = title;
-	dialog.getElementsByTagName('p')[0].innerText = text;
+	dialog.querySelector('h1').innerText = title;
+	dialog.querySelector('p').innerText = text;
 	dialog.querySelector('input.submit').value = yesCaption;
 	dialog.querySelector('input.cancel').value = noCaption;
 
