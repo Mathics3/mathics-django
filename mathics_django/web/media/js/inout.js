@@ -326,27 +326,30 @@ function showGallery() {
 		'Table[RGBColor[1, g, 0], {g, 0, 1, 0.05}]',
 		'Table[Plot[x^i Sin[j Pi x], {x, 0, 2}],{i, 2},{j, 2}]//MatrixForm',
 
-		'(**** 3D graphics ****)',
-
-		'Graphics3D[Arrow[{{1, 1, -1}, {2, 2, 0}, {3, 3, -1}, {4, 4, 0}}]]',
-		'Graphics3D[{Darker[Yellow], Sphere[{{-1, 0, 0}, {1, 0, 0}, {0, 0, Sqrt[3.]}}, 1]}]',
-		'Graphics3D[{ Cylinder[{{1,1,1}, {10,10,10}}], Cylinder[{{-1,-1,-1}, {-10,-10,-10}}] }]',
-		'(* A 3D grid of points.\n\
-Orient so the long diagonal becomes a point to see the kinds of difficulties visualizing a 3D lattice in 2D: *)\n\
-Graphics3D[Table[Point[{x, y, z}], {x, 5}, {y, 5}, {z, 5}]]',
-		'Plot3D[Sin[x y], {x, -2, 2}, {y, -2, 2}, Mesh->Full, PlotPoints->21, TicksStyle->{Darker[Magenta], Darker[Blue]}]',
-		'Plot3D[ Abs[Zeta[x + I y] ], {x, -1, 2}, {y, 2, 20}, PlotPoints->30]',
-		'Graphics3D[Polygon[Table[{Cos[2 Pi k/6], Sin[2 Pi k/6], 0}, {k, 0, 5}]]]',
 		'(**** Image ****)',
 		'jpg1 = Import["ExampleData/Einstein.jpg"]',
 		'ImageChannels[jpg1]',
 		'ImageColorSpace[jpg1]',
 
 		'jpg2 = Import["ExampleData/sunflowers.jpg"]',
-		'ImageChannels[jpg2]',
 		'ImageColorSpace[jpg2]',
+		'Binarize[jpg2]',
+		'ImageColorSpace[Binarize[jpg2]]',
 
-		'(* We also handle, gif, tif, and png, among others*)',
+		'(* We also handle, GIF, TIF, and PNG, among others. *)',
+
+		'(**** 3D Plots and Graphics ****)',
+
+		'Graphics3D[Arrow[{{1, 1, -1}, {2, 2, 0}, {3, 3, -1}, {4, 4, 0}}]]',
+		'Graphics3D[{Darker[Yellow], Sphere[{{-1, 0, 0}, {1, 0, 0}, {0, 0, Sqrt[3.]}}, 1]}]',
+		'Graphics3D[{ Cylinder[{{1,1,1}, {10,10,10}}], Cylinder[{{-1,-1,-1}, {-10,-10,-10}}] }]',
+		'Graphics3D[Polygon[Table[{Cos[2 Pi k/6], Sin[2 Pi k/6], 0}, {k, 0, 5}]]]',
+
+		'(* A 3D grid of points.\n\
+Orient so the long diagonal becomes a point to see the kinds of difficulties visualizing a 3D lattice in 2D: *)\n\
+Graphics3D[Table[Point[{x, y, z}], {x, 5}, {y, 5}, {z, 5}]]',
+		'Plot3D[Sin[x y], {x, -2, 2}, {y, -2, 2}, Mesh->Full, PlotPoints->21, TicksStyle->{Darker[Magenta], Darker[Blue]}]',
+		'Plot3D[ Abs[Zeta[x + I y] ], {x, -1, 2}, {y, 2, 20}, PlotPoints->30]',
 
 		'(**** Combinatorica: for Implementing Discrete Mathematics. ****)',
 		'Needs["DiscreteMath`CombinatoricaV0.9`"]',
