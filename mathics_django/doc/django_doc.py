@@ -15,6 +15,7 @@ More importantly, this code should be replaced by Sphinx and autodoc.
 from os import listdir
 from types import ModuleType
 import importlib
+import re
 
 from django.utils.safestring import mark_safe
 
@@ -29,18 +30,14 @@ from mathics.doc.common_doc import (
     DocGuideSection,
     DocTest,
     DocTests,
-    PYTHON_RE,
     SECTION_RE,
     SUBSECTION_RE,
-    TESTCASE_RE,
     XMLDoc,
     Tests,
     filter_comments,
     gather_tests,
     get_doc_name_from_module,
     get_results_by_test,
-    post_sub,
-    pre_sub,
     slugify,
 )
 
@@ -449,6 +446,9 @@ class MathicsMainDocumentation(Documentation):
         # user manual
         if not instance.__doc__:
             return
+        summary_text = (
+            instance.summary_text if hasattr(instance, "summary_text") else ""
+        )
         subsection = DjangoDocSubsection(
             chapter,
             section,
@@ -457,6 +457,7 @@ class MathicsMainDocumentation(Documentation):
             operator=operator,
             installed=installed,
             in_guide=in_guide,
+            summary_text=summary_text,
         )
         section.subsections.append(subsection)
 
@@ -800,6 +801,7 @@ class DjangoDocSubsection(DjangoDocElement):
         operator=None,
         installed=True,
         in_guide=False,
+        summary_text="",
     ):
         """
         Information that goes into a subsection object. This can be a written text, or
@@ -821,6 +823,11 @@ class DjangoDocSubsection(DjangoDocElement):
         the "section" name for the class Read (the subsection) inside it.
         """
 
+        title_summary_text = re.split(" -- ", title)
+        n = len(title_summary_text)
+        self.title = title_summary_text[0] if n > 0 else ""
+        self.summary_text = title_summary_text[1] if n > 1 else summary_text
+
         self.doc = DjangoDoc(text, title, section)
         self.chapter = chapter
         self.installed = installed
@@ -829,6 +836,13 @@ class DjangoDocSubsection(DjangoDocElement):
         self.section = section
         self.slug = slugify(title)
         self.title = title
+        if section:
+            chapter = section.chapter
+            part = chapter.part
+            # Note: we elide section.title
+            key_prefix = (part.title, chapter.title, title)
+        else:
+            key_prefix = None
 
         if in_guide:
             # Tests haven't been picked out yet from the doc string yet.
