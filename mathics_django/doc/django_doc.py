@@ -14,7 +14,9 @@ More importantly, this code should be replaced by Sphinx and autodoc.
 
 from os import listdir
 from types import ModuleType
+
 import importlib
+import os.path as osp
 import re
 
 from django.utils.safestring import mark_safe
@@ -23,7 +25,7 @@ from mathics import builtin, settings
 from mathics.builtin import get_module_doc
 
 from mathics_django.doc.utils import escape_html
-from mathics_django.settings import DOC_DATA_PATH
+from mathics_django.settings import get_doc_html_data_path
 
 from mathics.doc.common_doc import (
     CHAPTER_RE,
@@ -45,10 +47,11 @@ import pickle
 
 # FIXME: remove globalness
 try:
-    with open(DOC_DATA_PATH, "rb") as doc_data_file:
+    doc_data_path = get_doc_html_data_path(should_be_readable=True)
+    with open(doc_data_path, "rb") as doc_data_file:
         doc_data = pickle.load(doc_data_file)
 except IOError:
-    print(f"Trouble reading Doc file {DOC_DATA_PATH}")
+    print(f"Trouble reading Doc file {doc_data_path}")
     doc_data = {}
 
 
@@ -215,7 +218,6 @@ class Documentation(DjangoDocElement):
 
 class MathicsMainDocumentation(Documentation):
     def __init__(self):
-        self.doc_data_file = DOC_DATA_PATH
         self.doc_dir = settings.DOC_DIR
         self.parts = []
         self.parts_by_slug = {}
@@ -230,7 +232,7 @@ class MathicsMainDocumentation(Documentation):
             if part_title.endswith(".mdoc"):
                 part_title = part_title[: -len(".mdoc")]
                 part = DjangoDocPart(self, part_title)
-                text = open(self.doc_dir + file, "rb").read().decode("utf8")
+                text = open(osp.join(self.doc_dir, file), "rb").read().decode("utf8")
                 text = filter_comments(text)
                 chapters = CHAPTER_RE.findall(text)
                 for title, text in chapters:
