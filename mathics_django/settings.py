@@ -113,6 +113,9 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "mathics_django.urls"
 
+# Make this unique, and don't share it with anybody.
+SECRET_KEY = "uvbhuiasaeaph6Duh)r@3ex1i@et=0j4h(!p4@!r6s-=a_ev*e"
+
 SITE_ID = 1
 
 # Absolute path to the directory that holds static files.
