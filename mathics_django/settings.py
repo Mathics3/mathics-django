@@ -40,7 +40,7 @@ DOC_USER_HTML_DATA_PATH = osp.join(DATA_DIR, "doc_html_data.pcl")
 
 # We need another version as a fallback, and that is distributed with the
 # package. It is note user writable and not in the user space.
-DOC_SYSTEM_HTML_DATA_PATH = osp.join(ROOT_DIR, "data", "doc_html_data.pcl")
+DOC_SYSTEM_HTML_DATA_PATH = osp.join(ROOT_DIR, "doc", "doc_html_data.pcl")
 
 
 def get_doc_html_data_path(should_be_readable=False, create_parent=False) -> str:

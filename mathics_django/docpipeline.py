@@ -27,7 +27,7 @@ from mathics.builtin import builtins_dict
 
 from mathics import version_string
 
-from mathics_django.settings import DOC_DATA_PATH
+from mathics_django.settings import get_doc_html_data_path
 
 
 builtins = builtins_dict()
@@ -384,14 +384,18 @@ def test_all(
 
 
 def load_doc_data():
-    print(f"Loading internal document data from {DOC_DATA_PATH}")
-    with open_ensure_dir(DOC_DATA_PATH, "rb") as doc_data_file:
+    doc_html_data_path = get_doc_html_data_path(should_be_readable=True)
+    print(f"Loading internal document data from {doc_html_data_path}")
+    with open_ensure_dir(doc_html_data_path, "rb") as doc_data_file:
         return pickle.load(doc_data_file)
 
 
 def save_doc_data(output_data):
-    print(f"Writing internal document data to {DOC_DATA_PATH}")
-    with open_ensure_dir(DOC_DATA_PATH, "wb") as output_file:
+    doc_html_data_path = get_doc_html_data_path(
+        should_be_readable=False, create_parent=True
+    )
+    print(f"Writing internal document data to {doc_html_data_path}")
+    with open_ensure_dir(doc_html_data_path, "wb") as output_file:
         pickle.dump(output_data, output_file, 4)
 
 
