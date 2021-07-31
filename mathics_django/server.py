@@ -4,6 +4,7 @@
 
 import sys
 import os
+import os.path as osp
 import argparse
 import socket
 import errno
@@ -13,20 +14,21 @@ import mathics
 from mathics_django import server_version_string, license_string
 from mathics_django import settings as mathics_settings  # Prevents UnboundLocalError
 from mathics_django.version import __version__ as django_frontend_version
+from mathics.setting import DATA_DIR
 
 
 def check_database():
     # Check for the database
     database_file = mathics_settings.DATABASES["default"]["NAME"]
 
-    if not os.path.exists(database_file):
+    if not osp.exists(database_file):
         print("warning: database file %s not found\n" % database_file)
-        if not os.path.exists(mathics_settings.DATA_DIR):
-            print("Creating data directory %s" % mathics_settings.DATA_DIR)
-            os.makedirs(mathics_settings.DATA_DIR)
+        if not osp.exists(DATA_DIR):
+            print("Creating data directory %s" % DATA_DIR)
+            os.makedirs(DATA_DIR)
 
     print("Migrating database %s" % database_file)
-    manage_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), "manage.py")
+    manage_file = osp.join(osp.dirname(osp.realpath(__file__)), "manage.py")
     try:
         subprocess.check_call([sys.executable, manage_file, "migrate", "--noinput"])
         print("\ndatabase initialized sucessfully")
