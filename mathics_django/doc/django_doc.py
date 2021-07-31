@@ -21,7 +21,6 @@ from django.utils.safestring import mark_safe
 
 from mathics import builtin, settings
 from mathics.builtin import get_module_doc
-
 from mathics_django.doc.utils import escape_html
 from mathics_django.settings import DOC_DATA_PATH
 
