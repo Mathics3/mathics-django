@@ -149,7 +149,7 @@ setup(
     dependency_links=DEPENDENCY_LINKS,
     package_data={
         "mathics_django.autoload": ["autoload/*.m"],
-        "mathics_django.doc": ["documentation/*.mdoc", "xml/data"],
+        "mathics_django.doc": ["*.pcl"],
         "mathics_django.web": [
             "media/css/*.css",
             "media/img/*.*",
@@ -176,6 +176,7 @@ setup(
     zip_safe=False,
     # metadata for upload to PyPI
     maintainer="Mathics Group",
+    maintainer_email="mathics-devel@googlegroups.com",
     description="A Django front end for Mathics.",
     license="GPL",
     url="https://mathics.org/",
