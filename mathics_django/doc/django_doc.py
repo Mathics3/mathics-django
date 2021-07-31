@@ -629,7 +629,7 @@ class DjangoDoc(XMLDoc):
             # In module-style docstring tagging, the first line of the docstring is the section title.
             # since that is tagged and shown as a title, it is redundant here is the section body.
             # Or that is the intent. This code is a bit hacky.
-            items[0].text = items[0].text[len(title_line):]
+            items[0].text = items[0].text[len(title_line) :]
 
         text = "\n".join(item.html(counters) for item in items if not item.is_private())
         if text == "":

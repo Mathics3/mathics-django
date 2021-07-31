@@ -44,7 +44,7 @@ from mathics_django.web.forms import LoginForm, SaveForm
 from mathics_django.web.models import Query, Worksheet, get_session_evaluation
 
 from mathics_scanner import replace_wl_with_plain_text
-from mathics.settings import default_pymathics_modules
+from mathics.settings import default_pymathics_modules, TIMEOUT
 
 documentation.load_pymathics_doc()
 
@@ -585,7 +585,7 @@ def query(request):
                 results.append(Result(evaluation.out, None, None))  # syntax errors
                 evaluation.out = []
                 continue
-            result = evaluation.evaluate(expr, timeout=settings.TIMEOUT)
+            result = evaluation.evaluate(expr, timeout=TIMEOUT)
             if result.result is not None:
                 result.result = replace_wl_with_plain_text(result.result)
             results.append(result)  # syntax errors

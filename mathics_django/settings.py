@@ -50,16 +50,16 @@ def get_doc_html_data_path(should_be_readable=False, create_parent=False) -> str
     If `should_be_readable` is True, the we will check to see whether this file is
     readable (which also means it exists). If not, we'll return the `DOC_SYSTEM_DATA_PATH`.
     """
-    doc_user_tex_data_path = Path(DOC_USER_HTML_DATA_PATH)
-    base_config_dir = doc_user_tex_data_path.parent
+    doc_user_html_data_path = Path(DOC_USER_HTML_DATA_PATH)
+    base_config_dir = doc_user_html_data_path.parent
     if not base_config_dir.is_dir() and create_parent:
         Path("base_config_dir").mkdir(parents=True, exist_ok=True)
 
     if should_be_readable:
         return (
             DOC_USER_HTML_DATA_PATH
-            if doc_user_tex_data_path.is_file
-            else DOC_SYSTEM_DATA_PATH
+            if doc_user_html_data_path.is_file()
+            else DOC_SYSTEM_HTML_DATA_PATH
         )
     else:
         return DOC_USER_HTML_DATA_PATH
