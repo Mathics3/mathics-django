@@ -148,7 +148,7 @@ setup(
     extras_require=EXTRA_REQUIRES,
     dependency_links=DEPENDENCY_LINKS,
     package_data={
-        "mathics_django.autoload": ["autoload/*.m"],
+        "mathics_django": ["autoload/*.m"],
         "mathics_django.doc": ["*.pcl"],
         "mathics_django.web": [
             "media/css/*.css",
