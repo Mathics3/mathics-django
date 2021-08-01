@@ -1,6 +1,14 @@
 CHANGES
 =======
 
+4.0.1
+-----
+
+Fix a small packaging issue where we weren't install ``autoload/settings.m``.
+This combined with a bug in Mathics core was causing evaluationg expressions
+to fail.
+
+
 4.0.0
 -----
 
