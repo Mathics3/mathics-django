@@ -1,6 +1,69 @@
 CHANGES
 =======
 
+4.0.0
+-----
+
+The main thrust behind this API-breaking release is to be able to
+support a protocol for Graphics3D.
+
+It new Graphics3D protocol is currently expressed in JSON. There is an
+independent `threejs-based module
+<https://www.npmjs.com/package/@mathicsorg/mathics-threejs-backend>`_
+to implement this. Tiago Cavalcante Trindade is responsible for this
+code.
+
+Previously, this Javascript code and library was embedded into this
+code base. By separating the two, this library can be used more easily
+outside of Django. And the library has gotten considerably better in
+terms of being tested and documented.
+
+The other main API-breaking change is more decentralization of the
+Mathics Documentation. A lot more work needs to go on here, and so
+there will be one or two more API breaking releases. After this
+release, the documentation code will be split off into its own git
+repository.
+
+Enhancements
+++++++++++++
+
+* a Graphics3D protocol, mentioned above, has been started
+* ``mathics_django.setting`` has been gone over to simplify.
+* The "about" page now includes the Python version as well as the
+  mathics-threejs-backend version
+* Some Image Gallery examples have been added. Some of the examples
+  have been reordered to put the slower examples towards the end.
+* Much of the Javascript code that remains after pulling out the
+  Graphics3D code has been modernized.
+* Use of the "scriptaculous" library has been reduced. It will be
+  eliminated totally in a future release.
+
+
+Documentation
+.............
+
+* Document data used in producing HTML-rendered documents is now
+  stored in both the user space, where it can be extended, and in the
+  package install space -- which is useful when there is no user-space
+  data.
+* Code duplication used in creating documentation has been reduced. It
+  will be moved more completely out in a future release
+* Summary text for various built-in functions has been started. These
+  summaries are visible in Mathics Django when lists links are given
+  in Chapters, Guide Sections, or Sections. See the online
+  documentation of ``Associations`` for an example of a list with
+  additional summary information.
+
+Regressions
++++++++++++
+
+* Some of the test output for buitins inside a guide sections is not
+  automatically rendered. See the on-line documentation for ``Binarize`` for
+  an example of this.
+* Density plot rendered in Mathics Django do not render as nice since we no longer
+  use the secret protocol handshake hack. We may fix this in a future release
+
+
 3.2.0
 -----
 
