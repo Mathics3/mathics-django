@@ -22,7 +22,7 @@ cp -v ${HOME}/.local/var/mathics/doc_html_data.pcl mathics_django/doc/
 
 for pyversion in $PYVERSIONS; do
 	if ! pyenv local $pyversion ; then
-	exit $?
+		exit $?
 	fi
 	rm -fr build
 	python setup.py bdist_egg
