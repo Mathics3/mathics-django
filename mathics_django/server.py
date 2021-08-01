@@ -14,7 +14,7 @@ import mathics
 from mathics_django import server_version_string, license_string
 from mathics_django import settings as mathics_settings  # Prevents UnboundLocalError
 from mathics_django.version import __version__ as django_frontend_version
-from mathics.setting import DATA_DIR
+from mathics.settings import DATA_DIR
 
 
 def check_database():

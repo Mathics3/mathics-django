@@ -26,7 +26,8 @@ jobs:
         choco install llvm nodejs
         set LLVM_DIR="C:\Program Files\LLVM"
         # Can comment out when next Mathics is released
-        python -m pip install -e git://github.com/mathics/Mathics#egg=Mathics3[full]
+        # python -m pip install -e git://github.com/mathics/Mathics#egg=Mathics3[full]
+        pip install Mathics3[full]
         pip install -e .[full]
     - name: Install Mathics Django
       run: |
