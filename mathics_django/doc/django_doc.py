@@ -389,6 +389,13 @@ class MathicsMainDocumentation(Documentation):
         object to the chapter, a DjangoDocChapter object.
         "section_object" is either a Python module or a Class object instance.
         """
+
+        summary_text = (
+            section_object.summary_text
+            if hasattr(section_object, "summary_text")
+            else ""
+        )
+
         installed = True
         for package in getattr(section_object, "requires", []):
             try:
@@ -421,6 +428,7 @@ class MathicsMainDocumentation(Documentation):
                 operator=operator,
                 installed=installed,
                 in_guide=in_guide,
+                summary_text=summary_text,
             )
             chapter.sections.append(section)
 
@@ -705,7 +713,14 @@ class DjangoDocSection(DjangoDocElement):
     """
 
     def __init__(
-        self, chapter, title: str, text: str, operator, installed=True, in_guide=False
+        self,
+        chapter,
+        title: str,
+        text: str,
+        operator,
+        installed=True,
+        in_guide=False,
+        summary_text="",
     ):
         self.chapter = chapter
         self.in_guide = in_guide
@@ -714,6 +729,7 @@ class DjangoDocSection(DjangoDocElement):
         self.slug = slugify(title)
         self.subsections = []
         self.subsections_by_slug = {}
+        self.summary_text = summary_text
         self.title = title
 
         if text.count("<dl>") != text.count("</dl>"):
