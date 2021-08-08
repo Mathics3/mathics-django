@@ -1,6 +1,11 @@
 CHANGES
 =======
 
+4.0.2.dev0
+-----
+
+Extend summary lists to chapters and sections
+
 4.0.1
 -----
 
