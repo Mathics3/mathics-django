@@ -1,7 +1,7 @@
 Welcome to Mathics-Django
 =========================
 
-|CI Status| |Latest Version| |Supported Python Versions|
+|CI Status| |Pypi Installs| |Latest Version| |Supported Python Versions|
 
 |Packaging status|
 
@@ -61,6 +61,13 @@ environment variable ``MATHICS_DJANGO_DB_PATH``.
 If you just want to set the ``mathics.sqlite`` portion, you can use
 the environment variable ``MATHICS_DJANGO_DB``.
 
+Information for the onine-documentation comes from one of two places,
+``DOC_USER_HTML_DATA_PATH`` if that exists and
+``DOC_SYSTEM_HTML_DATA_PATH`` as fallback if that doesn't exist. The
+latter is created when the package is built. The former allows for the
+user or developer to update this information. In the future it will
+take into account plugins that have been added.
+
 
 Contributing
 ------------
@@ -81,3 +88,4 @@ Mathics-Django is released under the GNU General Public License Version 3 (GPL3)
 		       :target: https://github.com/Mathics3/mathics-django/actions
 .. |Packaging status| image:: https://repology.org/badge/vertical-allrepos/mathics-django.svg
 			    :target: https://repology.org/project/mathics-django/versions
+.. |Pypi Installs| image:: https://pepy.tech/badge/mathics-django
