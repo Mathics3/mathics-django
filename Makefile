@@ -93,5 +93,5 @@ build_mathics-threejs-backend: node_modules/\@mathicsorg/mathics-threejs-backend
 	cp node_modules/\@mathicsorg/mathics-threejs-backend/bundle/* mathics_django/web/media/js/mathics-threejs-backend/; \
 	cp node_modules/\@mathicsorg/mathics-threejs-backend/package.json mathics_django/web/media/js/mathics-threejs-backend/version.json
 
-$(THREEJS): node_modules/@mathicsorg/mathics-threejs-backend/package.json
+$(THREEJS): node_modules/@mathicsorg/mathics-threejs-backend/package.json package.json
 	$(MAKE) build_mathics-threejs-backend
