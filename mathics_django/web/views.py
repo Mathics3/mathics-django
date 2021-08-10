@@ -81,7 +81,7 @@ def about_view(request):
             "mathics_version": mathics_version_info["mathics"],
             "mathics_django_version": __version__,
             "mpmath_version": mathics_version_info["mpmath"],
-            "numpy_version": mathics_version_info["mathics"],
+            "numpy_version": mathics_version_info["numpy"],
             "python_version": mathics_version_info["python"],
             "sympy_version": mathics_version_info["sympy"],
             "SystemID": system_info["$SystemID"],
