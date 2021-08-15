@@ -55,6 +55,20 @@ except IOError:
     doc_data = {}
 
 
+def skip_doc(cls):
+    """Returns True if we should skip cls in docstring extraction."""
+    return cls.__name__.endswith("Box") or (hasattr(cls, "no_doc") and cls.no_doc)
+
+
+def skip_module_doc(module, modules_seen):
+    return (
+        module.__doc__ is None
+        or module in modules_seen
+        or hasattr(module, "no_doc")
+        and module.no_doc
+    )
+
+
 class DjangoDocElement(object):
     def href(self, ajax=False):
         if ajax:
@@ -286,9 +300,7 @@ class MathicsMainDocumentation(Documentation):
                 # FIXME add an additional mechanism in the module
                 # to allow a docstring and indicate it is not to go in the
                 # user manual
-                if module.__doc__ is None:
-                    continue
-                if module in modules_seen:
+                if skip_module_doc(module, modules_seen):
                     continue
                 title, text = get_module_doc(module)
                 chapter = DjangoDocChapter(
@@ -298,9 +310,7 @@ class MathicsMainDocumentation(Documentation):
                 # FIXME: some Box routines, like RowBox *are*
                 # documented
                 sections = [
-                    builtin
-                    for builtin in builtins
-                    if not builtin.__class__.__name__.endswith("Box")
+                    builtin for builtin in builtins if not skip_doc(builtin.__class__)
                 ]
 
                 if module.__file__.endswith("__init__.py"):
@@ -320,9 +330,7 @@ class MathicsMainDocumentation(Documentation):
                         # FIXME add an additional mechanism in the module
                         # to allow a docstring and indicate it is not to go in the
                         # user manual
-                        if submodule.__doc__ is None:
-                            continue
-                        if submodule in modules_seen:
+                        if skip_module_doc(submodule, modules_seen):
                             continue
 
                         section = self.add_section(
