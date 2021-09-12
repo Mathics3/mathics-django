@@ -1,5 +1,5 @@
 {
   "dependencies": {
-    "@mathicsorg/mathics-threejs-backend": "^0.6.1"
+    "@mathicsorg/mathics-threejs-backend": "^1.0.0"
   }
 }
