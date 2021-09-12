@@ -32,7 +32,7 @@ jobs:
     - name: Install Mathics Django
       run: |
         npm install @mathicsorg/mathics-threejs-backend
-        cp node_modules/\@mathicsorg/mathics-threejs-backend/bundle/* mathics_django/web/media/js/mathics-threejs-backend/
+        cp node_modules/\@mathicsorg/mathics-threejs-backend/docs/build.js mathics_django/web/media/js/mathics-threejs-backend/index.js
         cp node_modules/\@mathicsorg/mathics-threejs-backend/package.json mathics_d
     - name: Test mathics-django
       run: |
