@@ -783,7 +783,17 @@ function domLoaded() {
 
 	MathJax.Hub.Configured();
 
-	if (localStorage.getItem('hideMathicsStartupMsg') === 'true') {
+	function shouldHideStartup() {
+		if (localStorage.getItem('hideMathicsStartupMsg') === 'true') {
+			return true;
+		}
+		let params = new URLSearchParams(document.location.search);
+		if (params.get("hide_startup_msg") == "true") {
+			return true;
+		}
+		return false;
+	}
+	if (shouldHideStartup()) {
 		document.getElementById('welcome').style.display = 'none';
 	}
 
