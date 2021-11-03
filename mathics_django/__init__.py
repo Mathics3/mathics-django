@@ -1,25 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import sys
 import sympy
 import mpmath
 import django
 
-from mathics.version import __version__
-from mathics.core.expression import (
-    Expression,
-    Symbol,
-    String,
-    Number,
-    Integer,
-    Real,
-    Complex,
-    Rational,
-    from_python,
-    MachineReal,
-    PrecisionReal,
-)
 from mathics import version_info
+
 
 version_info["django"] = django.__version__
 
