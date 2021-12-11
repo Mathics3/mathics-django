@@ -5,7 +5,7 @@ the functions that get called.
 All of the callback functions are located in mathics_django.web.views.
 """
 
-from django.conf.urls import url
+from django.urls import re_path
 
 # These are the callback functions.
 from mathics_django.web.views import (
@@ -30,27 +30,27 @@ from mathics_django.web.views import (
 # Note that although what we have here are URIs not URLs.
 urlpatterns = [
     # 'mathics.web.views',
-    url(r"^$", main_view),
-    url(r"^about(?:\.htm(?:l)?)?$", about_view),
-    url(r"^ajax/query/$", query),
-    url(r"^ajax/login/$", login),
-    url(r"^ajax/logout/$", logout),
-    url(r"^ajax/save/$", save),
-    url(r"^ajax/open/$", open),
-    url(r"^ajax/delete/$", delete),
-    url(r"^ajax/getworksheets/$", get_worksheets),
-    url(r"^(?P<ajax>(?:ajax/)?)doc/$", doc),
-    url(r"^ajax/doc/search/$", doc_search),
-    url(r"^(?P<ajax>(?:ajax/)?)doc/(?P<part>[\w-]+)/$", doc_part),
-    url(
+    re_path(r"^$", main_view),
+    re_path(r"^about(?:\.htm(?:l)?)?$", about_view),
+    re_path(r"^ajax/query/$", query),
+    re_path(r"^ajax/login/$", login),
+    re_path(r"^ajax/logout/$", logout),
+    re_path(r"^ajax/save/$", save),
+    re_path(r"^ajax/open/$", open),
+    re_path(r"^ajax/delete/$", delete),
+    re_path(r"^ajax/getworksheets/$", get_worksheets),
+    re_path(r"^(?P<ajax>(?:ajax/)?)doc/$", doc),
+    re_path(r"^ajax/doc/search/$", doc_search),
+    re_path(r"^(?P<ajax>(?:ajax/)?)doc/(?P<part>[\w-]+)/$", doc_part),
+    re_path(
         r"^(?P<ajax>(?:ajax/)?)doc/(?P<part>[\w-]+)/(?P<chapter>[\w-]+)/$", doc_chapter
     ),
-    url(
+    re_path(
         r"^(?P<ajax>(?:ajax/)?)doc/(?P<part>[\w-]+)/(?P<chapter>[\w-]+)/"
         r"(?P<section>[$\w-]+)/$",
         doc_section,
     ),
-    url(
+    re_path(
         r"^(?P<ajax>(?:ajax/)?)doc/(?P<part>[\w-]+)/(?P<chapter>[\w-]+)/"
         r"(?P<section>[$\w-]+)/(?P<subsection>[$\w-]+)/$",
         doc_subsection,
