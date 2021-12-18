@@ -19,7 +19,7 @@
 	{% block main %}
 		<div id="about">
 
-			<h1>Software information</h1>
+			<h1>Software Information</h1>
 
 			<h2>Python</h2>
 			<ul>
@@ -127,9 +127,19 @@
 		<!-- FIXME: figure out how to reuse welcome.html. We can't run ajax from here. -->
 		<div id="welcomeContainerAbout">
 			<div id="welcome">
-				<p><h1>About Mathics in Django!</h1></p>
-				<p>Mathics is a general-purpose computer algebra system.</p>
-				<p>See the <a href="/doc">online documentation in fullscreen</a> for a full list of supported functions, or <a href="/">go back to the main page</a>.
+			  <p><h1>About Mathics in Django!</h1></p>
+
+			  <p>Mathics is a general-purpose computer algebra system.</p>
+
+			  <p>Copyright (C) 2021 The Mathics Team<p><br>
+			  This program comes with ABSOLUTELY NO WARRANTY;
+			    This is free software, and you are welcome to redistribute it
+			    under <a href="doc/license/gnu-general-public-license/">certain conditions</a>.
+			  </p>
+			  <p>See the <a href="/doc">online documentation in fullscreen</a> for
+			    a full list of supported functions, or <a href="/">go
+			      back to the main page</a>.
+			  </p>
 			</div>
 		</div>
 	{% endblock main %}
