@@ -1,10 +1,13 @@
 CHANGES
 =======
 
-4.0.2.dev0
+4.0.2
 -----
 
-Extend summary lists to chapters and sections
+* Extend summary lists to chapters and sections
+* Support Django 4.0
+* Add GPL Copyright notice to popup startup boxes
+* Update mathics-threejs-backend to 1.0.3, and in this three.js to 1.3.5
 
 4.0.1
 -----
