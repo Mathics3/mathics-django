@@ -58,9 +58,10 @@ def print_and_log(*args):
         logfile.write(string)
 
 
-def compare(result, wanted):
+def compare(result, wanted) -> bool:
     if result == wanted:
         return True
+
     if result is None or wanted is None:
         return False
     result = result.splitlines()
@@ -81,7 +82,7 @@ def compare(result, wanted):
 stars = "*" * 10
 
 
-def test_case(test, tests, index=0, subindex=0, quiet=False, section=None):
+def test_case(test, tests, index=0, subindex=0, quiet=False, section=None) -> bool:
     global check_partial_enlapsed_time
     test, wanted_out, wanted = test.test, test.outs, test.result
 
@@ -127,6 +128,7 @@ def test_case(test, tests, index=0, subindex=0, quiet=False, section=None):
 
     time_comparing = datetime.now()
     comparison_result = compare(result, wanted)
+
     if check_partial_enlapsed_time:
         print("   comparison took ", datetime.now() - time_comparing)
     if not comparison_result:
@@ -138,9 +140,14 @@ def test_case(test, tests, index=0, subindex=0, quiet=False, section=None):
         return fail(fail_msg)
     output_ok = True
     time_comparing = datetime.now()
-    if len(out) != len(wanted_out):
+    if len(wanted_out) == 1 and wanted_out[0].text == "...":
+        # If we have ... don't check
+        pass
+    elif len(out) != len(wanted_out):
+        # Mismatched number of output lines and we don't have "..."
         output_ok = False
     else:
+        # Need to check all output line by line
         for got, wanted in zip(out, wanted_out):
             if not got == wanted:
                 output_ok = False
