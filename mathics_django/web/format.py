@@ -90,7 +90,7 @@ def format_output(obj, expr, format=None):
             result = expr.format(obj, "System`OutputForm")
         elif head == "System`String":
             result = expr.format(obj, "System`InputForm")
-            result = result.boxes_to_text(result)
+            result = result.boxes_to_text()
 
             if not use_quotes:
                 # Substring without the quotes
