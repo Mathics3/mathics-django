@@ -24,7 +24,7 @@ jobs:
         python -m pip install --upgrade pip
         LLVM_CONFIG=/usr/local/Cellar/llvm@11/11.1.0/bin/llvm-config pip install llvmlite
         # Can comment out when next Mathics is released
-        # python -m pip install -e git://github.com/Mathics3/mathics-cores#egg=Mathics3[full]
+        python -m pip install -e git+https://github.com/Mathics3/mathics-core#egg=Mathics3[full]
         pip install Mathics3[full]
         npm install
         pip install -e .[full]
