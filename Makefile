@@ -90,8 +90,11 @@ node_modules/\@mathicsorg/mathics-threejs-backend/package.json node_modules/@mat
 
 #: Install mathics-threejs-backend with npm and copy the necessary files to the right place.
 build_mathics-threejs-backend: node_modules/\@mathicsorg/mathics-threejs-backend/package.json
-	cp node_modules/\@mathicsorg/mathics-threejs-backend/docs/build.js mathics_django/web/media/js/mathics-threejs-backend/index.js; \
-	cp node_modules/\@mathicsorg/mathics-threejs-backend/package.json mathics_django/web/media/js/mathics-threejs-backend/version.json
+	cp mathics_django/web/media/js/mathics-threejs-backend/index-no-custom-shader.js mathics_django/web/media/js/mathics-threejs-backend/index.js; \
+	cp mathics_django/web/media/js/mathics-threejs-backend/version-no-custom-shader.js mathics_django/web/media/js/mathics-threejs-backend/version.json
+# 	cp node_modules/\@mathicsorg/mathics-threejs-backend/docs/build.js mathics_django/web/media/js/mathics-threejs-backend/index.js; \
+# 	cp node_modules/\@mathicsorg/mathics-threejs-backend/package.json mathics_django/web/media/js/mathics-threejs-backend/version.json
+
 
 $(THREEJS): node_modules/@mathicsorg/mathics-threejs-backend/package.json package.json
 	$(MAKE) build_mathics-threejs-backend
