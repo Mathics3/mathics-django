@@ -8,6 +8,7 @@ import math
 import networkx as nx
 
 from mathics.core.expression import Expression, BoxError
+from mathics.core.systemsymbols import SymbolFullForm, SymbolStandardForm
 from mathics.session import get_settings_value
 
 
@@ -28,15 +29,18 @@ def format_output(obj, expr, format=None):
     """
 
     def eval_boxes(result, fn, obj, **options):
+        options["evaluation"] = obj
         try:
-            boxes = fn(evaluation=obj, **options)
+            boxes = fn(**options)
             # print("XXX\n", boxes)
         except BoxError:
             boxes = None
             if not hasattr(obj, "seen_box_error"):
                 obj.seen_box_error = True
                 obj.message(
-                    "General", "notboxes", Expression("FullForm", result).evaluate(obj)
+                    "General",
+                    "notboxes",
+                    Expression(SymbolFullForm, result).evaluate(obj),
                 )
 
         return boxes
@@ -55,15 +59,15 @@ def format_output(obj, expr, format=None):
     if expr_type in ("System`MathMLForm", "System`TeXForm"):
         # For these forms, we strip off the outer "Form" part
         format = FORM_TO_FORMAT[expr_type]
-        leaves = expr.get_leaves()
-        if len(leaves) == 1:
-            expr = leaves[0]
+        elements = expr.get_elements()
+        if len(elements) == 1:
+            expr = elements[0]
 
     if expr_type in ("System`FullForm", "System`OutputForm"):
-        result = Expression("StandardForm", expr).format(obj, expr_type)
+        result = Expression(SymbolStandardForm, expr).format(obj, expr_type)
         return str(result)
     elif expr_type == "System`Graphics":
-        result = Expression("StandardForm", expr).format(obj, "System`MathMLForm")
+        result = Expression(SymbolStandardForm, expr).format(obj, "System`MathMLForm")
 
     # This part was derived from and the same as evaluation.py format_output.
 
@@ -78,9 +82,9 @@ def format_output(obj, expr, format=None):
 
         return result
     elif format == "xml":
-        result = Expression("StandardForm", expr).format(obj, "System`MathMLForm")
+        result = Expression(SymbolStandardForm, expr).format(obj, "System`MathMLForm")
     elif format == "tex":
-        result = Expression("StandardForm", expr).format(obj, "System`TeXForm")
+        result = Expression(SymbolStandardForm, expr).format(obj, "System`TeXForm")
     elif format == "unformatted":
         # This part is custom to mathics-django:
         if str(expr) == "-Graph-" and hasattr(expr, "G"):
@@ -98,15 +102,17 @@ def format_output(obj, expr, format=None):
 
             return result
         elif head == "System`Graphics3D":
-            form_expr = Expression("StandardForm", expr)
+            form_expr = Expression(SymbolStandardForm, expr)
             result = form_expr.format(obj, "System`StandardForm")
             return eval_boxes(result, result.boxes_to_js, obj)
         elif head == "System`Graphics":
-            form_expr = Expression("StandardForm", expr)
+            form_expr = Expression(SymbolStandardForm, expr)
             result = form_expr.format(obj, "System`StandardForm")
             return eval_boxes(result, result.boxes_to_svg, obj)
         else:
-            result = Expression("StandardForm", expr).format(obj, "System`MathMLForm")
+            result = Expression(SymbolStandardForm, expr).format(
+                obj, "System`MathMLForm"
+            )
     else:
         raise ValueError
 

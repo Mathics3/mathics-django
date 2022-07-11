@@ -24,7 +24,7 @@ jobs:
         python -m pip install --upgrade pip
         # Can comment out when next Mathics is released
         python -m pip install -e git+https://github.com/Mathics3/mathics-core#egg=Mathics3[full]
-        pip install Mathics3[full]
+        # pip install Mathics3[full]
         npm install
         pip install -e .[full]
     - name: Install Mathics Django
