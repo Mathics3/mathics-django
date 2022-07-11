@@ -64,7 +64,7 @@ if sys.platform == "darwin":
 INSTALL_REQUIRES += [
     "Mathics-Scanner >= 1.2.2,<1.3.0",
     # "Mathics3 @ http://github.com/Mathics3/mathics-core/archive/master.zip",
-    "Mathics3 >= 4.0.0",
+    "Mathics3 >= 5.0.0.dev0,<5.1.0",
     "django >= 3.2",
     "networkx >= 2.5",  # Used in format, should disappear though
     "requests",
@@ -190,6 +190,7 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: Implementation :: CPython",
         "Programming Language :: Python :: Implementation :: PyPy",
         "Topic :: Scientific/Engineering",
