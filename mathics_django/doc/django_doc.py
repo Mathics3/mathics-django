@@ -40,6 +40,8 @@ from mathics.doc.common_doc import (
     gather_tests,
     get_doc_name_from_module,
     get_results_by_test,
+    skip_module_doc,
+    sorted_chapters,
     slugify,
 )
 
@@ -58,15 +60,6 @@ except IOError:
 def skip_doc(cls):
     """Returns True if we should skip cls in docstring extraction."""
     return cls.__name__.endswith("Box") or (hasattr(cls, "no_doc") and cls.no_doc)
-
-
-def skip_module_doc(module, modules_seen):
-    return (
-        module.__doc__ is None
-        or module in modules_seen
-        or hasattr(module, "no_doc")
-        and module.no_doc
-    )
 
 
 class DjangoDocElement(object):
@@ -130,7 +123,7 @@ class Documentation(DjangoDocElement):
 
     def get_tests(self):
         for part in self.parts:
-            for chapter in part.chapters:
+            for chapter in sorted_chapters(part.chapters):
                 tests = chapter.doc.get_tests()
                 if tests:
                     yield Tests(part.title, chapter.title, "", tests)
@@ -214,7 +207,7 @@ class Documentation(DjangoDocElement):
         for part in self.parts:
             if matches(part.title):
                 result.append((False, part))
-            for chapter in part.chapters:
+            for chapter in sorted_chapters(part.chapters):
                 if matches(chapter.title):
                     result.append((False, chapter))
                 for section in chapter.sections:
@@ -296,10 +289,12 @@ class MathicsMainDocumentation(Documentation):
 
             builtin_part = DjangoDocPart(self, title, is_reference=start)
             modules_seen = set([])
-            for module in modules:
-                # FIXME add an additional mechanism in the module
-                # to allow a docstring and indicate it is not to go in the
-                # user manual
+            for module in sorted(
+                modules,
+                key=lambda module: module.sort_order
+                if hasattr(module, "sort_order")
+                else module.__name__,
+            ):
                 if skip_module_doc(module, modules_seen):
                     continue
                 title, text = get_module_doc(module)
@@ -695,7 +690,7 @@ class DjangoDocPart(DjangoDocElement):
     def __str__(self):
         return "%s\n\n%s" % (
             self.title,
-            "\n".join(str(chapter) for chapter in self.chapters),
+            "\n".join(str(chapter) for chapter in sorted_chapters(self.chapters)),
         )
 
     def get_collection(self):
