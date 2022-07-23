@@ -43,6 +43,7 @@ from mathics.doc.common_doc import (
     skip_module_doc,
     sorted_chapters,
     slugify,
+    sorted_chapters,
 )
 
 import pickle
@@ -224,7 +225,7 @@ class Documentation(DjangoDocElement):
 
 
 class MathicsMainDocumentation(Documentation):
-    def __init__(self):
+    def __init__(self, want_sorting=True):
         self.doc_dir = settings.DOC_DIR
         self.parts = []
         self.parts_by_slug = {}
@@ -289,12 +290,19 @@ class MathicsMainDocumentation(Documentation):
 
             builtin_part = DjangoDocPart(self, title, is_reference=start)
             modules_seen = set([])
-            for module in sorted(
-                modules,
-                key=lambda module: module.sort_order
-                if hasattr(module, "sort_order")
-                else module.__name__,
-            ):
+            if want_sorting:
+                module_collection_fn = lambda x: sorted(
+                    modules,
+                    key=lambda module: module.sort_order
+                    if hasattr(module, "sort_order")
+                    else module.__name__,
+                )
+            else:
+                module_collection_fn = lambda x: x
+            for module in module_collection_fn(modules):
+                # FIXME add an additional mechanism in the module
+                # to allow a docstring and indicate it is not to go in the
+                # user manual
                 if skip_module_doc(module, modules_seen):
                     continue
                 title, text = get_module_doc(module)
@@ -492,7 +500,7 @@ class MathicsMainDocumentation(Documentation):
         for pymmodule in default_pymathics_modules:
             pymathicsdoc = PyMathicsDocumentation(pymmodule)
             for part in pymathicsdoc.parts:
-                for ch in part.chapters:
+                for ch in sorted_chapters(part.chapters):
                     ch.title = f"{pymmodule} {part.title} {ch.title}"
                     ch.part = pymathicspart
                     pymathicspart.chapters_by_slug[ch.slug] = ch
@@ -579,7 +587,7 @@ class PyMathicsDocumentation(Documentation):
                 text = open(self.doc_dir + file, "rb").read().decode("utf8")
                 text = filter_comments(text)
                 chapters = CHAPTER_RE.findall(text)
-                for title, text in chapters:
+                for title, text in sorted(chapters):
                     chapter = DjangoDocChapter(part, title)
                     text += '<section title=""></section>'
                     sections = SECTION_RE.findall(text)
