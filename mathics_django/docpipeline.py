@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # FIXME: combine with same thing in Mathics Django
 """
@@ -406,7 +406,7 @@ def save_doc_data(output_data):
         pickle.dump(output_data, output_file, 4)
 
 
-def extract_doc_from_source(quiet=False, reload=False):
+def extract_doc_from_source(quiet=False, reload=False, want_source=False):
     """
     Write internal (pickled) doc files and example data in docstrings.
     """
@@ -416,7 +416,7 @@ def extract_doc_from_source(quiet=False, reload=False):
 
     try:
         output_data = load_doc_data() if reload else {}
-        for tests in documentation.get_tests():
+        for tests in documentation.get_tests(want_source=want_source):
             create_output(tests, output_data)
     except KeyboardInterrupt:
         print("\nAborted.\n")
@@ -569,11 +569,12 @@ def main():
         # if we want to check also the pymathics modules
         if args.pymathics:
             print("Building pymathics documentation object")
-            documentation.load_pymathics_doc()
+            documentation.load_pymathics_doc(want_sorting=args.want_sorting)
         elif args.doc_only:
             extract_doc_from_source(
                 quiet=args.quiet,
                 reload=args.reload,
+                want_sorting=args.want_sorting,
             )
         else:
             excludes = set(args.exclude.split(","))
