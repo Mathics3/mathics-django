@@ -296,7 +296,12 @@ class MathicsMainDocumentation(Documentation):
 
             builtin_part = DjangoDocPart(self, title, is_reference=start)
             modules_seen = set([])
-            for module in modules:
+            for module in sorted(
+                modules,
+                key=lambda module: module.sort_order
+                if hasattr(module, "sort_order")
+                else module.__name__,
+            ):
                 # FIXME add an additional mechanism in the module
                 # to allow a docstring and indicate it is not to go in the
                 # user manual
