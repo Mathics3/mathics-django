@@ -125,7 +125,13 @@ def escape_html(text, verbatim_mode=False, counters=None, single_line=False):
             if tag == "em":
                 return r"<em>%s</em>" % content
             elif tag == "url":
-                return r'<a href="%s">%s</a>' % (content, content)
+                try:
+                    text = match.group("text")
+                except IndexError:
+                    text = None
+                if text is None:
+                    text = content
+                return r'<a href="%s">%s</a>' % (content, text)
 
         text = HYPERTEXT_RE.sub(repl_hypertext, text)
 
