@@ -40,7 +40,10 @@ from mathics.doc.common_doc import (
     gather_tests,
     get_doc_name_from_module,
     get_results_by_test,
+    skip_module_doc,
+    sorted_chapters,
     slugify,
+    sorted_chapters,
 )
 
 import pickle
@@ -58,15 +61,6 @@ except IOError:
 def skip_doc(cls):
     """Returns True if we should skip cls in docstring extraction."""
     return cls.__name__.endswith("Box") or (hasattr(cls, "no_doc") and cls.no_doc)
-
-
-def skip_module_doc(module, modules_seen):
-    return (
-        module.__doc__ is None
-        or module in modules_seen
-        or hasattr(module, "no_doc")
-        and module.no_doc
-    )
 
 
 class DjangoDocElement(object):
@@ -130,7 +124,7 @@ class Documentation(DjangoDocElement):
 
     def get_tests(self):
         for part in self.parts:
-            for chapter in part.chapters:
+            for chapter in sorted_chapters(part.chapters):
                 tests = chapter.doc.get_tests()
                 if tests:
                     yield Tests(part.title, chapter.title, "", tests)
@@ -214,7 +208,7 @@ class Documentation(DjangoDocElement):
         for part in self.parts:
             if matches(part.title):
                 result.append((False, part))
-            for chapter in part.chapters:
+            for chapter in sorted_chapters(part.chapters):
                 if matches(chapter.title):
                     result.append((False, chapter))
                 for section in chapter.sections:
@@ -231,7 +225,7 @@ class Documentation(DjangoDocElement):
 
 
 class MathicsMainDocumentation(Documentation):
-    def __init__(self):
+    def __init__(self, want_sorting=True):
         self.doc_dir = settings.DOC_DIR
         self.parts = []
         self.parts_by_slug = {}
@@ -296,12 +290,17 @@ class MathicsMainDocumentation(Documentation):
 
             builtin_part = DjangoDocPart(self, title, is_reference=start)
             modules_seen = set([])
-            for module in sorted(
-                modules,
-                key=lambda module: module.sort_order
-                if hasattr(module, "sort_order")
-                else module.__name__,
-            ):
+
+            if want_sorting:
+                module_collection_fn = lambda x: sorted(
+                    modules,
+                    key=lambda module: module.sort_order
+                    if hasattr(module, "sort_order")
+                    else module.__name__,
+                )
+            else:
+                module_collection_fn = lambda x: x
+            for module in module_collection_fn(modules):
                 # FIXME add an additional mechanism in the module
                 # to allow a docstring and indicate it is not to go in the
                 # user manual
@@ -502,7 +501,7 @@ class MathicsMainDocumentation(Documentation):
         for pymmodule in default_pymathics_modules:
             pymathicsdoc = PyMathicsDocumentation(pymmodule)
             for part in pymathicsdoc.parts:
-                for ch in part.chapters:
+                for ch in sorted_chapters(part.chapters):
                     ch.title = f"{pymmodule} {part.title} {ch.title}"
                     ch.part = pymathicspart
                     pymathicspart.chapters_by_slug[ch.slug] = ch
@@ -589,7 +588,7 @@ class PyMathicsDocumentation(Documentation):
                 text = open(self.doc_dir + file, "rb").read().decode("utf8")
                 text = filter_comments(text)
                 chapters = CHAPTER_RE.findall(text)
-                for title, text in chapters:
+                for title, text in sorted(chapters):
                     chapter = DjangoDocChapter(part, title)
                     text += '<section title=""></section>'
                     sections = SECTION_RE.findall(text)
@@ -700,7 +699,7 @@ class DjangoDocPart(DjangoDocElement):
     def __str__(self):
         return "%s\n\n%s" % (
             self.title,
-            "\n".join(str(chapter) for chapter in self.chapters),
+            "\n".join(str(chapter) for chapter in sorted_chapters(self.chapters)),
         )
 
     def get_collection(self):
