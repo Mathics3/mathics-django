@@ -5,7 +5,7 @@
 # remake --tasks to shows the targets and the comments
 
 GIT2CL ?= admin-tools/git2cl
-PYTHON ?= python3
+PYTHON ?= python
 PIP ?= pip3
 RM  ?= rm
 
@@ -63,7 +63,7 @@ doctest: $(THREEJS)
 
 #: Make Python Pickle-format document data.
 doc-data:
-	$(PYTHON) mathics_django/docpipeline.py -o
+	$(PYTHON) mathics_django/docpipeline.py -o --want-sorting
 
 #: Install Mathics-Django
 install: $(THREEJS)

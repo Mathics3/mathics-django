@@ -10,6 +10,7 @@ as a pipeline:
 """
 
 import os
+import os.path as osp
 import pickle
 import re
 import sys
@@ -42,7 +43,7 @@ sep = "-" * 70 + "\n"
 
 # Global variables
 definitions = None
-documentation = MathicsMainDocumentation()
+documentation = None
 check_partial_enlapsed_time = False
 logfile = None
 
@@ -149,7 +150,7 @@ def test_case(test, tests, index=0, subindex=0, quiet=False, section=None) -> bo
     else:
         # Need to check all output line by line
         for got, wanted in zip(out, wanted_out):
-            if not got == wanted:
+            if not got == wanted and wanted.text != "...":
                 output_ok = False
                 break
     if check_partial_enlapsed_time:
@@ -212,7 +213,7 @@ def create_output(tests, doc_data, format="xml"):
         )
         try:
             result = evaluation.parse_evaluate(test.test)
-        except:
+        except:  # noqa
             result = None
         if result is None:
             result = []
@@ -230,6 +231,7 @@ def test_chapters(
     stop_on_failure=False,
     generate_output=False,
     reload=False,
+    want_sorting=False,
 ):
     failed = 0
     index = 0
@@ -238,7 +240,7 @@ def test_chapters(
     output_data = load_doc_data() if reload else {}
     prev_key = []
     for tests in documentation.get_tests():
-        if tests.chapter in chapters:
+        if tests.chapter in sorted(chapters):
             for test in tests.tests:
                 key = list(test.key)[1:-1]
                 if prev_key != key:
@@ -270,6 +272,7 @@ def test_sections(
     stop_on_failure=False,
     generate_output=False,
     reload=False,
+    want_sorting=False,
 ):
     failed = 0
     index = 0
@@ -278,7 +281,7 @@ def test_sections(
     sections |= {"$" + s for s in sections}
     output_data = load_doc_data() if reload else {}
     prev_key = []
-    for tests in documentation.get_tests():
+    for tests in documentation.get_tests(want_sorting=want_sorting):
         if tests.section in sections:
             for test in tests.tests:
                 key = list(test.key)[1:-1]
@@ -311,8 +314,8 @@ def open_ensure_dir(f, *args, **kwargs):
     try:
         return open(f, *args, **kwargs)
     except (IOError, OSError):
-        d = os.path.dirname(f)
-        if d and not os.path.exists(d):
+        d = osp.dirname(f)
+        if d and not osp.exists(d):
             os.makedirs(d)
         return open(f, *args, **kwargs)
 
@@ -326,6 +329,7 @@ def test_all(
     texdatafolder=None,
     doc_even_if_error=False,
     excludes=[],
+    want_sorting=False,
 ):
     if not quiet:
         print(f"Testing {version_string}")
@@ -335,7 +339,7 @@ def test_all(
         total = failed = skipped = 0
         failed_symbols = set()
         output_data = {}
-        for tests in documentation.get_tests():
+        for tests in documentation.get_tests(want_sorting=want_sorting):
             sub_total, sub_failed, sub_skipped, symbols, index = test_tests(
                 tests,
                 index,
@@ -534,7 +538,20 @@ def main():
         default=MAX_TESTS,
         help="run only  N tests",
     )
-
+    # FIXME: there is some weird interacting going on with
+    # mathics when tests in sorted order. Some of the Plot
+    # show a noticeable 2 minute delay in processing.
+    # I think the problem is in Mathics itself rather than
+    # sorting, but until we figure that out, use
+    # sort as an option only. For normal testing we don't
+    # want it for speed. But for document building which is
+    # rarely done, we do want sorting of the sections and chapters.
+    parser.add_argument(
+        "--want-sorting",
+        dest="want_sorting",
+        action="store_true",
+        help="Sort chapters and sections",
+    )
     global logfile
 
     args = parser.parse_args()
@@ -546,6 +563,8 @@ def main():
     if args.logfilename:
         logfile = open(args.logfilename, "wt")
 
+    global documentation
+    documentation = MathicsMainDocumentation(want_sorting=args.want_sorting)
     if args.sections:
         sections = set(args.sections.split(","))
         if args.pymathics:  # in case the section is in a pymathics module...
@@ -588,6 +607,7 @@ def main():
                 count=args.count,
                 doc_even_if_error=args.keep_going,
                 excludes=excludes,
+                want_sorting=args.want_sorting,
             )
             end_time = datetime.now()
             print("Tests took ", end_time - start_time)

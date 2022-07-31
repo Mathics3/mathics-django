@@ -290,6 +290,7 @@ class MathicsMainDocumentation(Documentation):
 
             builtin_part = DjangoDocPart(self, title, is_reference=start)
             modules_seen = set([])
+
             if want_sorting:
                 module_collection_fn = lambda x: sorted(
                     modules,
