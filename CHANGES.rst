@@ -1,6 +1,14 @@
 CHANGES
 =======
 
+5.0.0
+-----
+
+* Adjust for Mathics3 core 5.0.0 API
+* Sort document reference chapters and sections
+* Urls can now have links in them
+
+
 4.0.2
 -----
 
