@@ -7,6 +7,10 @@ Welcome to Mathics-Django
 
 This is the Django front-end to `Mathics <https://mathics.org>`_.
 
+.. contents::
+   :depth: 1
+   :local:
+
 Features:
 ---------
 
@@ -25,10 +29,47 @@ mathicsserver: a Django-based Web interface
 |mathicssserver|
 
 
+Installing
+----------
+
+This package needs a working `Mathics3
+<https://pypi.org/project/Mathics3/>`_, the core engine, installed as well as a recent
+version of Django. For Django, you will need mysql or mariadb
+installed, since that is where worksheets are stored.
+
+See the `Installing Mathics <https://mathics-development-guide.readthedocs.io/en/latest/installing.html>`_ for instructions on installing Mathics3.
+
+If you are a novice at installing Python packages, consider using either a pre-built OS package if available under "Packaging status" above,
+or the `mathics docker image <https://hub.docker.com/r/mathicsorg/mathics>`_.
+
+
+Ubuntu/Debian Specific OS dependent packages
+++++++++++++++++++++++++++++++++++++++++++++
+
+On Ubuntu or Debian::
+
+  apt install default-libmysqlclient-dev.
+
+Install from PyPI
++++++++++++++++++
+
+Once Mathics3 is installed, run::
+
+   pip install Mathics-Django
+
+
+Install from Github source
+++++++++++++++++++++++++++
+
+From the place root directory that github was checked out::
+
+  make install
+
+
 Running
 -------
 
-This is a Django project so Dango's `manage.py <https://docs.djangoproject.com/en/3.2/ref/django-admin/>`_ script used.
+This is a Django project, so Dango's `manage.py <https://docs.djangoproject.com/en/3.2/ref/django-admin/>`_ script used.
 
 A simple way to start Mathics Django when GNU make is installed (which is the case on most POSIX systems):
 
@@ -45,6 +86,12 @@ are the ``runserver`` and ``testserver`` commands. ``python
 mathics_django/manage.py help runserver`` will show options in running
 the Django server.
 
+Once the server is started you will see a URL listed that lookss like this::
+
+   Starting development server at http://127.0.0.1:8000/
+   Quit the server with CONTROL-C.
+
+Point your browser to the URL listed above. Here it is ``http://127.0.0.1:8000``
 
 Environment Variables
 +++++++++++++++++++++
@@ -61,7 +108,7 @@ environment variable ``MATHICS_DJANGO_DB_PATH``.
 If you just want to set the ``mathics.sqlite`` portion, you can use
 the environment variable ``MATHICS_DJANGO_DB``.
 
-Information for the onine-documentation comes from one of two places,
+Information for the online-documentation comes from one of two places,
 ``DOC_USER_HTML_DATA_PATH`` if that exists and
 ``DOC_SYSTEM_HTML_DATA_PATH`` as fallback if that doesn't exist. The
 latter is created when the package is built. The former allows for the
