@@ -365,7 +365,9 @@ class MathicsMainDocumentation(Documentation):
                             )
                 else:
                     for instance in sections:
-                        if instance not in modules_seen:
+                        if instance not in modules_seen and not hasattr(
+                            instance, "no_doc"
+                        ):
                             name = instance.get_name(short=True)
                             self.add_section(
                                 chapter,
@@ -401,6 +403,10 @@ class MathicsMainDocumentation(Documentation):
         object to the chapter, a DjangoDocChapter object.
         "section_object" is either a Python module or a Class object instance.
         """
+        if section_name == "FormBase_":
+            from trepan.api import debug
+
+            debug()
 
         summary_text = (
             section_object.summary_text

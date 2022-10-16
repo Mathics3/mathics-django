@@ -59,7 +59,7 @@ doctest-workaround:
 
 #: Run tests that appear in docstring in the code.
 doctest: $(THREEJS)
-	SANDBOX=$(SANDBOX) $(PYTHON) mathics_django/docpipeline.py $o
+	MATHICS_CHARACTER_ENCODING="ASCII" SANDBOX=$(SANDBOX) $(PYTHON) mathics_django/docpipeline.py $o
 
 #: Make Python Pickle-format document data.
 doc-data:
