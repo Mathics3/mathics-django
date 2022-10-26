@@ -64,8 +64,8 @@ def format_output(obj, expr, format=None):
             expr = elements[0]
 
     if expr_type in ("System`FullForm", "System`OutputForm"):
-        result = Expression(SymbolStandardForm, expr).format(obj, expr_type)
-        return str(result)
+        result = expr.elements[0].format(obj, expr_type)
+        return result.boxes_to_text()
     elif expr_type == "System`Graphics":
         result = Expression(SymbolStandardForm, expr).format(obj, "System`MathMLForm")
 
