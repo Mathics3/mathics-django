@@ -4,4 +4,4 @@
 # well as importing into Python. That's why there is no
 # space around "=" below.
 # fmt: off
-__version__="5.0.0"  # noqa
+__version__="5.1.0.dev"  # noqa
