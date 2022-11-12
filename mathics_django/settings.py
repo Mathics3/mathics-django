@@ -6,10 +6,24 @@ import os.path as osp
 from mathics.settings import DATA_DIR
 from pathlib import Path
 
-DEBUG = True
+debug_str = os.environ.get("MATHICS_DJANGO_DEBUG", "true")
+DEBUG = debug_str.lower().strip() in ("true", "t", "1", "yes")
+
+# The environment variable MATHICS_DJANGO_ALLOWED_HOSTS is used
+# to set Django's ALLOWED_HOST, which specifies what kinds of
+# host/domain names that Django can serve.
+# See:
+#   https://docs.djangoproject.com/en/4.1/ref/settings/#allowed-hosts
+# for details
+allowed_host_list = os.environ.get("MATHICS_DJANGO_ALLOWED_HOSTS", None)
+if allowed_host_list is not None:
+    ALLOWED_HOSTS = allowed_host_list.split(";")
+else:
+    # Use Django's default value for ALLOWED_HOSTS.
+    ALLOWED_HOSTS = []
 
 # set only to True in DEBUG mode
-DISPLAY_EXCEPTIONS = True
+DISPLAY_EXCEPTIONS = os.environ.get("MATHICS_DJANGO_DISPLAY_EXCEPTIONS", True)
 
 LOG_QUERIES = False
 

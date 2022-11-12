@@ -74,38 +74,39 @@ def about_view(request):
         request,
         "about.html",
         {
-            "django_version": django_version,
-            "three_js_version": get_threejs_version(),
-            "mathics_threejs_backend_version": get_mathics_threejs_backend_version(),
-            "MathJax_version": get_MathJax_version(),
-            "mathics_version": mathics_version_info["mathics"],
-            "mathics_django_version": __version__,
-            "mpmath_version": mathics_version_info["mpmath"],
-            "numpy_version": mathics_version_info["numpy"],
-            "python_version": mathics_version_info["python"],
-            "sympy_version": mathics_version_info["sympy"],
-            "SystemID": system_info["$SystemID"],
-            "SystemTimeZone": system_info["$SystemTimeZone"],
-            "UserName": system_info["$UserName"],
             "BaseDirectory": system_info["$BaseDirectory"],
-            "HomeDirectory": system_info["$HomeDirectory"],
-            "InstallationDirectory": system_info["$InstallationDirectory"],
-            "RootDirectory": system_info["$RootDirectory"],
-            "TemporaryDirectory": system_info["$TemporaryDirectory"],
             "DB_PATH": MATHICS_DJANGO_DB_PATH,
             "DOC_DATA_PATH": DOC_USER_HTML_DATA_PATH,
             "HTTP_USER_AGENT": request.META.get("HTTP_USER_AGENT", ""),
-            "REMOTE_USER": request.META.get("REMOTE_USER", ""),
-            "REMOTE_ADDR": request.META.get("REMOTE_ADDR", ""),
-            "REMOTE_HOST": request.META.get("REMOTE_HOST", ""),
-            "MachinePrecision": system_info["MachinePrecision"],
-            "MemoryAvailable": system_info["MemoryAvailable[]"],
-            "SystemMemory": system_info["$SystemMemory"],
+            "HomeDirectory": system_info["$HomeDirectory"],
+            "InstallationDirectory": system_info["$InstallationDirectory"],
             "Machine": system_info["$Machine"],
             "MachineName": system_info["$MachineName"],
+            "MachinePrecision": system_info["MachinePrecision"],
+            "MathJax_version": get_MathJax_version(),
+            "MemoryAvailable": system_info["MemoryAvailable[]"],
             "ProcessID": system_info["$ProcessID"],
             "ProcessorType": system_info["$ProcessorType"],
             "PythonVersion": sys.version,
+            "REMOTE_ADDR": request.META.get("REMOTE_ADDR", ""),
+            "REMOTE_HOST": request.META.get("REMOTE_HOST", ""),
+            "REMOTE_USER": request.META.get("REMOTE_USER", ""),
+            "RootDirectory": system_info["$RootDirectory"],
+            "SystemID": system_info["$SystemID"],
+            "SystemMemory": system_info["$SystemMemory"],
+            "SystemTimeZone": system_info["$SystemTimeZone"],
+            "TemporaryDirectory": system_info["$TemporaryDirectory"],
+            "UserName": system_info["$UserName"],
+            "django_version": django_version,
+            "mathics_django_version": __version__,
+            "mathics_threejs_backend_version": get_mathics_threejs_backend_version(),
+            "mathics_version": mathics_version_info["mathics"],
+            "mpmath_version": mathics_version_info["mpmath"],
+            "numpy_version": mathics_version_info["numpy"],
+            "python_version": mathics_version_info["python"],
+            "settings": settings,
+            "sympy_version": mathics_version_info["sympy"],
+            "three_js_version": get_threejs_version(),
             "user_settings": get_user_settings(evaluation),
         },
     )
@@ -294,31 +295,12 @@ def email_user(user, subject, text):
 
 def error_404_view(request, exception):
     t = loader.get_template("404.html")
-    return HttpResponseNotFound(
-        t.render(
-            RequestContext(
-                request,
-                {
-                    "title": "Page not found",
-                    "request_path": request.path,
-                },
-            )
-        )
-    )
+    return HttpResponseNotFound(t.render({"request_path": request.path}))
 
 
 def error_500_view(request):
     t = loader.get_template("500.html")
-    return HttpResponseServerError(
-        t.render(
-            RequestContext(
-                request,
-                {
-                    "title": "Server error",
-                },
-            )
-        )
-    )
+    return HttpResponseServerError(t.render({"request_path": request.path}))
 
 
 def get_MathJax_version():

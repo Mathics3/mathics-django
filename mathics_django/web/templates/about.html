@@ -49,6 +49,16 @@
 
 
 			<h1>Settings</h1>
+
+			<h2>Django</h2>
+			<ul>
+				<li><code>ALLOWED_HOSTS</code>: <code>{{settings.ALLOWED_HOSTS}}</code></li>
+				<li><code>DEBUG</code>: <code>{{settings.DEBUG}}</code></li>
+				<li><code>DISPLAY_EXCEPTIONS</code>: <code>{{settings.DISPLAY_EXCEPTIONS}}</code></li>
+			</ul>
+
+
+			<h2>Mathics Django</h2>
 			<p>
 				<ul>
 				{% for setting, value in user_settings.items %}

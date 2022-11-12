@@ -1,6 +1,16 @@
 CHANGES
 =======
 
+5.1.0.dev
+-----
+
+* Environment variables which change Django settings (also shown under Settings)
+  - ``MATHICS_DJANGO_ALLOWED_HOSTS`` sets Django ``ALLOWED_HOST``; use semicolon to separate entries
+  - ``MATHICS_DJANGO_DEBUG_HOSTS`` sets Django ``DEBUG``
+  - ``MATHICS_DJANGO_DDISPLAY_EXCEPTIONS_HOSTS`` sets Django ``DISPLAY_EXCEPTIONS``
+
+* Adjust for Mathics3 core 5.0.3 API
+
 5.0.0
 -----
 
