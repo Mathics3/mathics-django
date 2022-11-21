@@ -22,7 +22,6 @@ import re
 from django.utils.safestring import mark_safe
 
 from mathics import builtin, settings
-from mathics.builtin import get_module_doc
 
 from mathics_django.doc.utils import escape_html
 from mathics_django.settings import get_doc_html_data_path
@@ -38,6 +37,7 @@ from mathics.doc.common_doc import (
     Tests,
     filter_comments,
     gather_tests,
+    get_module_doc,
     get_doc_name_from_module,
     get_results_by_test,
     skip_module_doc,
@@ -559,7 +559,8 @@ class PyMathicsDocumentation(Documentation):
 
         # Load the dictionary of mathics symbols defined in the module
         self.symbols = {}
-        from mathics.builtin import is_builtin, Builtin
+        from mathics.builtin.base import is_builtin, Builtin
+        from mathics.builtin.system_init import is_builtin
 
         for name in dir(self.pymathicsmodule):
             var = getattr(self.pymathicsmodule, name)
