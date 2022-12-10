@@ -22,6 +22,7 @@ _evaluations = {}
 def get_session_evaluation(session):
     evaluation = _evaluations.get(session.session_key)
     if evaluation is None:
+        session.create()
         definitions = Definitions(add_builtin=True)
         # We set the formatter to "unformatted" so that we can use
         # our own custom formatter that understand better how to format
