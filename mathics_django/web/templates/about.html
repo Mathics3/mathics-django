@@ -24,6 +24,7 @@
 			<h2>Python</h2>
 			<ul>
 				<li>Python: {{PythonVersion}}</li>
+				<li>Implementation: {{PythonImplementation}}</li>
 			</ul>
 
 			<h2>Mathics Software</h2>
@@ -45,6 +46,17 @@
 				<li>mpmath: {{mpmath_version}}</li>
 				<li>Numpy: {{numpy_version}}</li>
 				<li>Sympy: {{sympy_version}}</li>
+			</ul>
+
+
+			<h2>Optional Software</h2>
+			<ul>
+			{% for package_name, package_version in mathics_version_info.items %}
+				{% if package_name in optional_software %}
+					<li>{{package_name}}: {{package_version}}</li>
+		  		{% endif %}
+
+			{% endfor %}
 			</ul>
 
 

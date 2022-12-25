@@ -11,6 +11,10 @@ CHANGES
 
 * Adjust for Mathics3 core 5.0.3 API
 
+* "About" page:
+  - Python Implementation (CPython, PyPy, Pyston) explicitly is shown
+  - Optional Python packages are also shown along with their version
+
 5.0.0
 -----
 

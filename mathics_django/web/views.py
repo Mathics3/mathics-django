@@ -4,17 +4,17 @@ import os.path as osp
 import re
 import sys
 import traceback
-
 from builtins import open as builtin_open
+
 from django import __version__ as django_version
-from django.shortcuts import render
-from django.template import RequestContext, loader
 from django.http import (
+    Http404,
     HttpResponse,
     HttpResponseNotFound,
     HttpResponseServerError,
-    Http404,
 )
+from django.shortcuts import render
+from django.template import loader
 
 try:
     import ujson as json
@@ -24,27 +24,24 @@ except ImportError:
 from django.conf import settings
 from django.contrib import auth
 from django.contrib.auth.models import User
-
 from django.core.mail import send_mail
-
-from mathics import version_info as mathics_version_info
+from mathics import optional_software, version_info as mathics_version_info
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Message, Result
+from mathics.settings import TIMEOUT, default_pymathics_modules
 from mathics.system_info import mathics_system_info
+from mathics_scanner import replace_wl_with_plain_text
 
 from mathics_django.doc import documentation
 from mathics_django.doc.django_doc import (
-    DjangoDocPart,
     DjangoDocChapter,
+    DjangoDocPart,
     DjangoDocSection,
 )
 from mathics_django.settings import DOC_USER_HTML_DATA_PATH, MATHICS_DJANGO_DB_PATH
 from mathics_django.version import __version__
 from mathics_django.web.forms import LoginForm, SaveForm
 from mathics_django.web.models import Query, Worksheet, get_session_evaluation
-
-from mathics_scanner import replace_wl_with_plain_text
-from mathics.settings import default_pymathics_modules, TIMEOUT
 
 documentation.load_pymathics_doc()
 
@@ -88,6 +85,7 @@ def about_view(request):
             "ProcessID": system_info["$ProcessID"],
             "ProcessorType": system_info["$ProcessorType"],
             "PythonVersion": sys.version,
+            "PythonImplementation": system_info["$PythonImplementation"],
             "REMOTE_ADDR": request.META.get("REMOTE_ADDR", ""),
             "REMOTE_HOST": request.META.get("REMOTE_HOST", ""),
             "REMOTE_USER": request.META.get("REMOTE_USER", ""),
@@ -101,8 +99,10 @@ def about_view(request):
             "mathics_django_version": __version__,
             "mathics_threejs_backend_version": get_mathics_threejs_backend_version(),
             "mathics_version": mathics_version_info["mathics"],
+            "mathics_version_info": mathics_version_info,
             "mpmath_version": mathics_version_info["mpmath"],
             "numpy_version": mathics_version_info["numpy"],
+            "optional_software": optional_software,
             "python_version": mathics_version_info["python"],
             "settings": settings,
             "sympy_version": mathics_version_info["sympy"],
@@ -474,8 +474,8 @@ def nicepass(alpha=6, numeric=2):
     returns a human-readble password (say rol86din instead of
     a difficult to remember K8Yn9muL )
     """
-    import string
     import random
+    import string
 
     vowels = ["a", "e", "i", "o", "u"]
     consonants = [a for a in string.ascii_lowercase if a not in vowels]

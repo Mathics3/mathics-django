@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 
 
-from django.db import models
 from django.contrib.auth.models import User
-from django.db.models.signals import pre_delete
 from django.contrib.sessions.models import Session
-
+from django.db import models
+from django.db.models.signals import pre_delete
 from mathics.core.definitions import Definitions, autoload_files
 from mathics.core.evaluation import Evaluation, Output
-from mathics_django.web.format import format_output
+
 from mathics_django.settings import ROOT_DIR
+from mathics_django.web.format import format_output
 
 
 class WebOutput(Output):
