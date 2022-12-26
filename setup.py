@@ -28,8 +28,9 @@ mathics-users@googlegroups.com and ask for help.
 import os.path as osp
 import platform
 import re
-from setuptools import setup, Command
 import sys
+
+from setuptools import Command, setup
 
 
 def get_srcdir():
@@ -52,7 +53,9 @@ exec(
 long_description = read("README.rst") + "\n"
 
 
-is_PyPy = platform.python_implementation() == "PyPy"
+is_PyPy = platform.python_implementation() == "PyPy" or hasattr(
+    sys, "pypy_version_info"
+)
 
 DEPENDENCY_LINKS = []
 INSTALL_REQUIRES = []

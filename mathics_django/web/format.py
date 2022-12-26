@@ -2,15 +2,14 @@
 Format Mathics objects
 """
 
-from tempfile import NamedTemporaryFile
-import random
 import math
-import networkx as nx
+import random
+from tempfile import NamedTemporaryFile
 
-from mathics.core.expression import Expression, BoxError
+import networkx as nx
+from mathics.core.expression import BoxError, Expression
 from mathics.core.systemsymbols import SymbolFullForm, SymbolStandardForm
 from mathics.session import get_settings_value
-
 
 FORM_TO_FORMAT = {
     "System`MathMLForm": "xml",

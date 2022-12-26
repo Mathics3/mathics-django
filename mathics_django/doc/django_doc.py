@@ -12,41 +12,37 @@ FIXME: Too much of this code is duplicated from Mathics Core.
 More importantly, this code should be replaced by Sphinx and autodoc.
 """
 
+import importlib
+import os.path as osp
+import pickle
+import re
 from os import listdir
 from types import ModuleType
 
-import importlib
-import os.path as osp
-import re
-
 from django.utils.safestring import mark_safe
-
 from mathics import builtin, settings
-
-from mathics_django.doc.utils import escape_html
-from mathics_django.settings import get_doc_html_data_path
-
 from mathics.doc.common_doc import (
     CHAPTER_RE,
+    SECTION_RE,
+    SUBSECTION_RE,
     DocGuideSection,
     DocTest,
     DocTests,
-    SECTION_RE,
-    SUBSECTION_RE,
-    XMLDoc,
     Tests,
+    XMLDoc,
     filter_comments,
     gather_tests,
-    get_module_doc,
     get_doc_name_from_module,
+    get_module_doc,
     get_results_by_test,
+    skip_doc,
     skip_module_doc,
-    sorted_chapters,
     slugify,
     sorted_chapters,
 )
 
-import pickle
+from mathics_django.doc.utils import escape_html
+from mathics_django.settings import get_doc_html_data_path
 
 # FIXME: remove globalness
 try:
@@ -56,11 +52,6 @@ try:
 except IOError:
     print(f"Trouble reading Doc file {doc_data_path}")
     doc_data = {}
-
-
-def skip_doc(cls):
-    """Returns True if we should skip cls in docstring extraction."""
-    return cls.__name__.endswith("Box") or (hasattr(cls, "no_doc") and cls.no_doc)
 
 
 class DjangoDocElement(object):
@@ -346,7 +337,7 @@ class MathicsMainDocumentation(Documentation):
                         )
                         modules_seen.add(submodule)
 
-                        builtins = builtins_by_module[submodule.__name__]
+                        builtins = builtins_by_module.get(submodule.__name__, [])
                         subsections = [
                             builtin
                             for builtin in builtins
@@ -559,7 +550,7 @@ class PyMathicsDocumentation(Documentation):
 
         # Load the dictionary of mathics symbols defined in the module
         self.symbols = {}
-        from mathics.builtin.base import is_builtin, Builtin
+        from mathics.builtin.base import Builtin, is_builtin
         from mathics.builtin.system_init import is_builtin
 
         for name in dir(self.pymathicsmodule):
