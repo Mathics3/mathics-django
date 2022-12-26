@@ -5,6 +5,7 @@ import re
 import sys
 import traceback
 from builtins import open as builtin_open
+from typing import Union
 
 from django import __version__ as django_version
 from django.http import (
@@ -24,6 +25,7 @@ except ImportError:
 from django.conf import settings
 from django.contrib import auth
 from django.contrib.auth.models import User
+from django.core.handlers.wsgi import WSGIRequest
 from django.core.mail import send_mail
 from mathics import optional_software, version_info as mathics_version_info
 from mathics.core.definitions import Definitions
@@ -59,7 +61,10 @@ class JsonResponse(HttpResponse):
         super(JsonResponse, self).__init__(response, content_type=JSON_CONTENT_TYPE)
 
 
-def about_view(request):
+DocResponse = Union[HttpResponse, JsonResponse]
+
+
+def about_view(request: WSGIRequest) -> HttpResponse:
     """
     This view gives information about the version and software we have loaded.
     """
@@ -84,8 +89,8 @@ def about_view(request):
             "MemoryAvailable": system_info["MemoryAvailable[]"],
             "ProcessID": system_info["$ProcessID"],
             "ProcessorType": system_info["$ProcessorType"],
-            "PythonVersion": sys.version,
             "PythonImplementation": system_info["$PythonImplementation"],
+            "PythonVersion": sys.version,
             "REMOTE_ADDR": request.META.get("REMOTE_ADDR", ""),
             "REMOTE_HOST": request.META.get("REMOTE_HOST", ""),
             "REMOTE_USER": request.META.get("REMOTE_USER", ""),
@@ -112,7 +117,7 @@ def about_view(request):
     )
 
 
-def delete(request):
+def delete(request: WSGIRequest) -> JsonResponse:
     user = request.user
     if settings.REQUIRE_LOGIN and not is_authenticated(user):
         raise Http404
@@ -133,7 +138,7 @@ def delete(request):
     )
 
 
-def doc(request, ajax=""):
+def doc(request: WSGIRequest, ajax: bool = False) -> DocResponse:
     return render_doc(
         request,
         "overview.html",
@@ -145,7 +150,7 @@ def doc(request, ajax=""):
     )
 
 
-def doc_part(request, part, ajax=""):
+def doc_part(request: WSGIRequest, part, ajax: bool = False) -> DocResponse:
     """
     Produces HTML via jinja templating for a Part - the top-most
     subdivision of the document. Some examples of Parts:
@@ -167,7 +172,7 @@ def doc_part(request, part, ajax=""):
     )
 
 
-def doc_chapter(request, part, chapter, ajax=""):
+def doc_chapter(request: WSGIRequest, part, chapter, ajax: bool = False) -> DocResponse:
     """
     Produces HTML via jinja templating for a chapter. Some examples of Chapters:
     * Introduction (in part Manual)
@@ -189,10 +194,15 @@ def doc_chapter(request, part, chapter, ajax=""):
 
 
 def doc_section(
-    request, part: str, chapter: str, section: str, ajax=False, subsections=[]
-):
+    request: WSGIRequest,
+    part: str,
+    chapter: str,
+    section: str,
+    ajax: bool = False,
+    subsections=[],
+) -> DocResponse:
     """
-    Produces HTML via jinja templating for a section which is either:
+    Produces HTML via Jinja templating a section which is either:
     * A section of the static Manual. For example, "Why yet another CAS?"
     * A Built-in function which is not part of a Section Guide. For example, Abort[]
     * A list of builtin-functions under a Guide Section. For example: Color Directives.
@@ -218,8 +228,13 @@ def doc_section(
 
 
 def doc_subsection(
-    request, part: str, chapter: str, section: str, subsection: str, ajax=""
-):
+    request: WSGIRequest,
+    part: str,
+    chapter: str,
+    section: str,
+    subsection: str,
+    ajax: bool = False,
+) -> DocResponse:
     """Proceses a document subsection. This is often the bottom-most
     entity right now.  In particular it contains built-in functions
     which are part of a guide section.  (Those builtings that are not
@@ -245,7 +260,7 @@ def doc_subsection(
     )
 
 
-def doc_search(request):
+def doc_search(request: WSGIRequest) -> DocResponse:
     query = request.GET.get("query", "")
     result = documentation.search(query)
     if len([item for exact, item in result if exact]) <= 1:
@@ -293,12 +308,12 @@ def email_user(user, subject, text):
     )
 
 
-def error_404_view(request, exception):
+def error_404_view(request: WSGIRequest, exception):
     t = loader.get_template("404.html")
     return HttpResponseNotFound(t.render({"request_path": request.path}))
 
 
-def error_500_view(request):
+def error_500_view(request: WSGIRequest):
     t = loader.get_template("500.html")
     return HttpResponseServerError(t.render({"request_path": request.path}))
 
@@ -373,7 +388,7 @@ def get_user_settings(evaluation):
     return user_settings
 
 
-def get_worksheets(request):
+def get_worksheets(request: WSGIRequest) -> JsonResponse:
     if settings.REQUIRE_LOGIN and not is_authenticated(request.user):
         result = []
     else:
@@ -392,13 +407,13 @@ def get_worksheets(request):
     )
 
 
-def is_authenticated(user):
+def is_authenticated(user) -> bool:
     if callable(user.is_authenticated):
         return user.is_authenticated()
     return user.is_authenticated
 
 
-def login(request):
+def login(request: WSGIRequest) -> JsonResponse:
     if settings.DEBUG and not request.POST:
         request.POST = request.GET
     form = LoginForm(request.POST)
@@ -449,12 +464,12 @@ Your password is: %s\n\nYours,\nThe Mathics team"""
     )
 
 
-def logout(request):
+def logout(request: WSGIRequest) -> JsonResponse:
     auth.logout(request)
     return JsonResponse()
 
 
-def main_view(request):
+def main_view(request: WSGIRequest):
     """
     This is what people normally see when running the server.
     It contains the banner line with logo and icons to load and save and
@@ -512,7 +527,7 @@ def nicepass(alpha=6, numeric=2):
     return "%s%s%s" % (start, mid, end)
 
 
-def open(request):
+def open(request: WSGIRequest):
     user = request.user
     if settings.REQUIRE_LOGIN and not is_authenticated(user):
         raise Http404
@@ -533,7 +548,7 @@ def open(request):
     )
 
 
-def query(request):
+def query(request: WSGIRequest) -> JsonResponse:
     """
     Handles Mathics input expressions.
     """
@@ -603,7 +618,7 @@ def require_ajax_login(f):
 
 
 @require_ajax_login
-def save(request):
+def save(request: WSGIRequest):
     if settings.DEBUG and not request.POST:
         request.POST = request.GET
     if settings.REQUIRE_LOGIN and not is_authenticated(request.user):
@@ -638,7 +653,19 @@ def save(request):
 # auxiliary function
 
 
-def render_doc(request, template_name, context, data=None, ajax: str = ""):
+def render_doc(
+    request: WSGIRequest,
+    template_name: str,
+    context: dict,
+    data=None,
+    ajax: bool = False,
+) -> DocResponse:
+    """
+    Call this routine is called to render documentation. ``template_name`` is the Jinja documentation template
+    that is used for creating the HTML result, and ``context`` contains the variables used in that template.
+
+    If ``ajax`` is True the should the ajax URI prefix, e.g. " it we pass the result
+    """
     object = context.get("object")
     context.update(
         {
@@ -655,7 +682,10 @@ def render_doc(request, template_name, context, data=None, ajax: str = ""):
             }
         )
 
-    result = render(request, "doc/%s" % template_name, context)
+    result = render(request, f"doc/{template_name}", context)
+    from trepan.api import debug
+
+    debug()
     if not ajax:
         return result
 

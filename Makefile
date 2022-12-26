@@ -5,6 +5,7 @@
 # remake --tasks to shows the targets and the comments
 
 GIT2CL ?= admin-tools/git2cl
+MATHICS_CHARACTER_ENCODING ?= ASCII
 PYTHON ?= python
 PIP ?= pip3
 RM  ?= rm
@@ -54,12 +55,12 @@ djangotest: $(THREEJS)
 
 #: Run tests that appear in docstring in the code.
 doctest-workaround:
-	SANDBOX=$(SANDBOX) $(PYTHON) mathics_django/docpipeline.py --exclude=NIntegrate,MaxRecursion
-	SANDBOX=$(SANDBOX) $(PYTHON) mathics_django/docpipeline.py --sections=NIntegrate,MaxRecursion
+	MATHICS_CHARACTER_ENCODING=$(MATHICS_CHARACTER_ENCODING) SANDBOX=$(SANDBOX) $(PYTHON) mathics_django/docpipeline.py --exclude=NIntegrate,MaxRecursion
+	MATHICS_CHARACTER_ENCODING=$(MATHICS_CHARACTER_ENCODING) SANDBOX=$(SANDBOX) $(PYTHON) mathics_django/docpipeline.py --sections=NIntegrate,MaxRecursion
 
 #: Run tests that appear in docstring in the code.
 doctest: $(THREEJS)
-	MATHICS_CHARACTER_ENCODING="ASCII" SANDBOX=$(SANDBOX) $(PYTHON) mathics_django/docpipeline.py $o
+	MATHICS_CHARACTER_ENCODING=$(MATHICS_CHARACTER_ENCODING) SANDBOX=$(SANDBOX) $(PYTHON) mathics_django/docpipeline.py $o
 
 #: Make Python Pickle-format document data.
 doc-data:
