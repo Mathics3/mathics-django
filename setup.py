@@ -144,6 +144,7 @@ setup(
         "mathics_django",
         "mathics_django.doc",
         "mathics_django.web",
+        "mathics_django.web.controllers",
         "mathics_django.web.templatetags",
         "mathics_django.web.migrations",
     ],

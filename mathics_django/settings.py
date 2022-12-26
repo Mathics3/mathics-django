@@ -113,6 +113,7 @@ INSTALLED_APPS = (
     "django.contrib.sessions",
     "django.contrib.sites",
     "mathics_django.web",
+    "mathics_django.web.controllers",
 )
 
 LANGUAGE_CODE = "en-us"
