@@ -1,21 +1,17 @@
 # -*- coding: utf-8 -*-
 
-import os.path as osp
-import re
 import sys
 import traceback
-from builtins import open as builtin_open
-from typing import Union
 
-from django import __version__ as django_version
+from django.core.handlers.wsgi import WSGIRequest
+from django.shortcuts import render
+from django.template import loader
 from django.http import (
-    Http404,
     HttpResponse,
     HttpResponseNotFound,
     HttpResponseServerError,
+    Http404,
 )
-from django.shortcuts import render
-from django.template import loader
 
 try:
     import ujson as json
@@ -25,34 +21,22 @@ except ImportError:
 from django.conf import settings
 from django.contrib import auth
 from django.contrib.auth.models import User
-from django.core.handlers.wsgi import WSGIRequest
+
 from django.core.mail import send_mail
-from mathics import optional_software, version_info as mathics_version_info
+
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Message, Result
-from mathics.settings import TIMEOUT, default_pymathics_modules
-from mathics.system_info import mathics_system_info
-from mathics_scanner import replace_wl_with_plain_text
 
-from mathics_django.doc import documentation
-from mathics_django.doc.django_doc import (
-    DjangoDocChapter,
-    DjangoDocPart,
-    DjangoDocSection,
-)
-from mathics_django.settings import DOC_USER_HTML_DATA_PATH, MATHICS_DJANGO_DB_PATH
-from mathics_django.version import __version__
 from mathics_django.web.forms import LoginForm, SaveForm
 from mathics_django.web.models import Query, Worksheet, get_session_evaluation
 
-documentation.load_pymathics_doc()
+from mathics_scanner import replace_wl_with_plain_text
+from mathics.settings import default_pymathics_modules, TIMEOUT
 
 if settings.DEBUG:
     JSON_CONTENT_TYPE = "text/html"
 else:
     JSON_CONTENT_TYPE = "application/json"
-
-mathics_threejs_backend_data = {}
 
 
 class JsonResponse(HttpResponse):
@@ -61,63 +45,7 @@ class JsonResponse(HttpResponse):
         super(JsonResponse, self).__init__(response, content_type=JSON_CONTENT_TYPE)
 
 
-DocResponse = Union[HttpResponse, JsonResponse]
-
-
-def about_view(request: WSGIRequest) -> HttpResponse:
-    """
-    This view gives information about the version and software we have loaded.
-    """
-    evaluation = get_session_evaluation(request.session)
-    definitions = evaluation.definitions
-    system_info = mathics_system_info(definitions)
-
-    return render(
-        request,
-        "about.html",
-        {
-            "BaseDirectory": system_info["$BaseDirectory"],
-            "DB_PATH": MATHICS_DJANGO_DB_PATH,
-            "DOC_DATA_PATH": DOC_USER_HTML_DATA_PATH,
-            "HTTP_USER_AGENT": request.META.get("HTTP_USER_AGENT", ""),
-            "HomeDirectory": system_info["$HomeDirectory"],
-            "InstallationDirectory": system_info["$InstallationDirectory"],
-            "Machine": system_info["$Machine"],
-            "MachineName": system_info["$MachineName"],
-            "MachinePrecision": system_info["MachinePrecision"],
-            "MathJax_version": get_MathJax_version(),
-            "MemoryAvailable": system_info["MemoryAvailable[]"],
-            "ProcessID": system_info["$ProcessID"],
-            "ProcessorType": system_info["$ProcessorType"],
-            "PythonImplementation": system_info["$PythonImplementation"],
-            "PythonVersion": sys.version,
-            "REMOTE_ADDR": request.META.get("REMOTE_ADDR", ""),
-            "REMOTE_HOST": request.META.get("REMOTE_HOST", ""),
-            "REMOTE_USER": request.META.get("REMOTE_USER", ""),
-            "RootDirectory": system_info["$RootDirectory"],
-            "SystemID": system_info["$SystemID"],
-            "SystemMemory": system_info["$SystemMemory"],
-            "SystemTimeZone": system_info["$SystemTimeZone"],
-            "TemporaryDirectory": system_info["$TemporaryDirectory"],
-            "UserName": system_info["$UserName"],
-            "django_version": django_version,
-            "mathics_django_version": __version__,
-            "mathics_threejs_backend_version": get_mathics_threejs_backend_version(),
-            "mathics_version": mathics_version_info["mathics"],
-            "mathics_version_info": mathics_version_info,
-            "mpmath_version": mathics_version_info["mpmath"],
-            "numpy_version": mathics_version_info["numpy"],
-            "optional_software": optional_software,
-            "python_version": mathics_version_info["python"],
-            "settings": settings,
-            "sympy_version": mathics_version_info["sympy"],
-            "three_js_version": get_threejs_version(),
-            "user_settings": get_user_settings(evaluation),
-        },
-    )
-
-
-def delete(request: WSGIRequest) -> JsonResponse:
+def delete(request):
     user = request.user
     if settings.REQUIRE_LOGIN and not is_authenticated(user):
         raise Http404
@@ -138,170 +66,6 @@ def delete(request: WSGIRequest) -> JsonResponse:
     )
 
 
-def doc(request: WSGIRequest, ajax: bool = False) -> DocResponse:
-    return render_doc(
-        request,
-        "overview.html",
-        {
-            "title": "Documentation",
-            "doc": documentation,
-        },
-        ajax=ajax,
-    )
-
-
-def doc_part(request: WSGIRequest, part, ajax: bool = False) -> DocResponse:
-    """
-    Produces HTML via jinja templating for a Part - the top-most
-    subdivision of the document. Some examples of Parts:
-    * Manual
-    * Reference of Built-in Symbols
-    """
-    part = documentation.get_part(part)
-    if not part:
-        raise Http404
-    return render_doc(
-        request,
-        "part.html",
-        {
-            "title": part.get_title_html(),
-            "part": part,
-            "object": part,
-        },
-        ajax=ajax,
-    )
-
-
-def doc_chapter(request: WSGIRequest, part, chapter, ajax: bool = False) -> DocResponse:
-    """
-    Produces HTML via jinja templating for a chapter. Some examples of Chapters:
-    * Introduction (in part Manual)
-    * Procedural Programming (in part Reference of Built-in Symbols)
-    """
-    chapter = documentation.get_chapter(part, chapter)
-    if not chapter:
-        raise Http404
-    return render_doc(
-        request,
-        "chapter.html",
-        {
-            "title": chapter.get_title_html(),
-            "chapter": chapter,
-            "object": chapter,
-        },
-        ajax=ajax,
-    )
-
-
-def doc_section(
-    request: WSGIRequest,
-    part: str,
-    chapter: str,
-    section: str,
-    ajax: bool = False,
-    subsections=[],
-) -> DocResponse:
-    """
-    Produces HTML via Jinja templating a section which is either:
-    * A section of the static Manual. For example, "Why yet another CAS?"
-    * A Built-in function which is not part of a Section Guide. For example, Abort[]
-    * A list of builtin-functions under a Guide Section. For example: Color Directives.
-      The guide section here would be Colors.
-    """
-    section_obj = documentation.get_section(part, chapter, section)
-    if not section_obj:
-        raise Http404
-    data = section_obj.html_data()
-    return render_doc(
-        request,
-        "section.html",
-        {
-            "title": section_obj.get_title_html(),
-            "title_operator": section_obj.operator,
-            "section": section_obj,
-            "subsections": subsections,
-            "object": section_obj,
-        },
-        data=data,
-        ajax=ajax,
-    )
-
-
-def doc_subsection(
-    request: WSGIRequest,
-    part: str,
-    chapter: str,
-    section: str,
-    subsection: str,
-    ajax: bool = False,
-) -> DocResponse:
-    """Proceses a document subsection. This is often the bottom-most
-    entity right now.  In particular it contains built-in functions
-    which are part of a guide section.  (Those builtings that are not
-    organized in a guide section are tagged as a section rather than a
-    subsection.)
-    """
-    subsection_obj = documentation.get_subsection(part, chapter, section, subsection)
-    if not subsection_obj:
-        raise Http404
-    data = subsection_obj.html_data()
-    return render_doc(
-        request,
-        "subsection.html",
-        {
-            "title": subsection_obj.get_title_html(),
-            "title_operator": subsection_obj.operator,
-            "section": section,
-            "subsection": subsection_obj,
-            "object": subsection_obj,
-        },
-        data=data,
-        ajax=ajax,
-    )
-
-
-def doc_search(request: WSGIRequest) -> DocResponse:
-    query = request.GET.get("query", "")
-    result = documentation.search(query)
-    if len([item for exact, item in result if exact]) <= 1:
-        for exact, item in result:
-            if exact and (len(item.slug) > 4) or len(result) == 1:
-                if isinstance(item, DjangoDocPart):
-                    return doc_part(request, item.slug, ajax=True)
-                elif isinstance(item, DjangoDocChapter):
-                    return doc_chapter(request, item.part.slug, item.slug, ajax=True)
-                elif isinstance(item, DjangoDocSection):
-                    return doc_section(
-                        request,
-                        item.chapter.part.slug,
-                        item.chapter.slug,
-                        item.slug,
-                        ajax=True,
-                        subsections=item.subsections,
-                    )
-                else:
-                    return doc_subsection(
-                        request,
-                        item.chapter.part.slug,
-                        item.chapter.slug,
-                        item.section.slug,
-                        item.slug,
-                        ajax=True,
-                    )
-
-    result = [item for exact, item in result]
-
-    return render_doc(
-        request,
-        "search.html",
-        {
-            "title": "Search documentation",
-            "result": result,
-        },
-        ajax=True,
-    )
-
-
 def email_user(user, subject, text):
     send_mail(
         subject, text, "noreply@mathics.net", [user.username], fail_silently=False
@@ -318,77 +82,7 @@ def error_500_view(request: WSGIRequest):
     return HttpResponseServerError(t.render({"request_path": request.path}))
 
 
-def get_MathJax_version():
-    """
-    Get the MathJax version the static and hacky way not involving javascript.
-    """
-    three_file = osp.join(
-        osp.normcase(osp.dirname(osp.abspath(__file__))),
-        "media",
-        "js",
-        "mathjax",
-        "MathJax.js",
-    )
-    pattern = r'MathJax.version="(\d\.\d\.\d)"'
-    match = re.search(pattern, builtin_open(three_file).read())
-    if match:
-        return match.group(1)
-    else:
-        return "?.?.?"
-
-
-def get_mathics_threejs_backend_data():
-    """Load mathics-three-package.json. It contains version information."""
-    global mathics_threejs_backend_data
-    if not mathics_threejs_backend_data:
-        try:
-            with builtin_open(
-                settings.MATHICS_BACKEND_THREEJS_JSON_PATH, "rb"
-            ) as version_json_fp:
-                mathics_threejs_backend_data = json.load(version_json_fp)
-        except:
-            pass
-    return mathics_threejs_backend_data
-
-
-def get_mathics_threejs_backend_version():
-    return get_mathics_threejs_backend_data().get("version", "??")
-
-
-def get_threejs_version():
-    """
-    Get the three.js via information from mathics_threejs_backend's package/version.json.
-    """
-    return get_mathics_threejs_backend_data().get("threejs_revision", "??")
-
-
-def get_user_settings(evaluation):
-    definitions = evaluation.definitions
-    setting_names = sorted(definitions.get_matching_names("Settings`*"))
-    user_settings = {}
-
-    evaluation.stopped = False
-
-    for setting_name in setting_names:
-        rule = evaluation.parse(setting_name)
-        value = rule.evaluate(evaluation).to_python()
-
-        setting_usage_expr = evaluation.parse(setting_name + "::usage")
-        setting_usage = setting_usage_expr.evaluate(evaluation).to_python(
-            string_quotes=False
-        )
-
-        user_settings[setting_name] = {
-            "value": value,
-            "usage": setting_usage,
-            "is_boolean": type(value) is bool,
-            "boolean_value": value,
-        }
-
-    return user_settings
-
-
-def get_worksheets(request: WSGIRequest) -> JsonResponse:
+def get_worksheets(request):
     if settings.REQUIRE_LOGIN and not is_authenticated(request.user):
         result = []
     else:
@@ -648,50 +342,3 @@ def save(request: WSGIRequest):
             "result": result,
         }
     )
-
-
-# auxiliary function
-
-
-def render_doc(
-    request: WSGIRequest,
-    template_name: str,
-    context: dict,
-    data=None,
-    ajax: bool = False,
-) -> DocResponse:
-    """
-    Call this routine is called to render documentation. ``template_name`` is the Jinja documentation template
-    that is used for creating the HTML result, and ``context`` contains the variables used in that template.
-
-    If ``ajax`` is True the should the ajax URI prefix, e.g. " it we pass the result
-    """
-    object = context.get("object")
-    context.update(
-        {
-            "ajax": ajax,
-            "help_base": ("doc/base_ajax.html" if ajax else "doc/base_standalone.html"),
-            "prev": object.get_prev() if object else None,
-            "next": object.get_next() if object else None,
-        }
-    )
-    if not ajax:
-        context.update(
-            {
-                "data": data,
-            }
-        )
-
-    result = render(request, f"doc/{template_name}", context)
-    from trepan.api import debug
-
-    debug()
-    if not ajax:
-        return result
-
-    result = {
-        "content": result.getvalue().decode("utf-8"),
-    }
-    if data is not None:
-        result["data"] = data
-    return JsonResponse(result)
