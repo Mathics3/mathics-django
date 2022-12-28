@@ -551,7 +551,6 @@ class PyMathicsDocumentation(Documentation):
         # Load the dictionary of mathics symbols defined in the module
         self.symbols = {}
         from mathics.builtin.base import Builtin, is_builtin
-        from mathics.builtin.system_init import is_builtin
 
         for name in dir(self.pymathicsmodule):
             var = getattr(self.pymathicsmodule, name)

@@ -4,14 +4,14 @@ import sys
 import traceback
 
 from django.core.handlers.wsgi import WSGIRequest
-from django.shortcuts import render
-from django.template import loader
 from django.http import (
+    Http404,
     HttpResponse,
     HttpResponseNotFound,
     HttpResponseServerError,
-    Http404,
 )
+from django.shortcuts import render
+from django.template import loader
 
 try:
     import ujson as json
@@ -21,17 +21,15 @@ except ImportError:
 from django.conf import settings
 from django.contrib import auth
 from django.contrib.auth.models import User
-
 from django.core.mail import send_mail
-
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Message, Result
+from mathics.core.exceptions import BoxExpressionError
+from mathics.settings import TIMEOUT, default_pymathics_modules
+from mathics_scanner import replace_wl_with_plain_text
 
 from mathics_django.web.forms import LoginForm, SaveForm
 from mathics_django.web.models import Query, Worksheet, get_session_evaluation
-
-from mathics_scanner import replace_wl_with_plain_text
-from mathics.settings import default_pymathics_modules, TIMEOUT
 
 if settings.DEBUG:
     JSON_CONTENT_TYPE = "text/html"
@@ -276,7 +274,25 @@ def query(request: WSGIRequest) -> JsonResponse:
                 results.append(Result(evaluation.out, None, None))  # syntax errors
                 evaluation.out = []
                 continue
-            result = evaluation.evaluate(expr, timeout=TIMEOUT)
+            try:
+                result = evaluation.evaluate(expr, timeout=TIMEOUT)
+            except BoxExpressionError as e:
+                # Show the results we have, and a traceback.  The
+                # below is a little hoaky and is not rendered pretty
+                # but it is a start.
+                results.append(
+                    Result(
+                        out=evaluation.out,
+                        result="\n".join(e.pretty_lines),
+                        line_no=None,
+                    )
+                )
+                evaluation.out = []
+                continue
+
+            except Exception as e:
+                results.append(Result(e, None, None))
+
             if result.result is not None:
                 result.result = replace_wl_with_plain_text(result.result)
             results.append(result)  # syntax errors
@@ -288,6 +304,7 @@ def query(request: WSGIRequest) -> JsonResponse:
             add_builtin=True, extension_modules=default_pymathics_modules
         )
         evaluation.definitions = definitions
+
     except Exception as exc:
         if settings.DEBUG and settings.DISPLAY_EXCEPTIONS:
             info = traceback.format_exception(*sys.exc_info())

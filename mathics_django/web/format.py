@@ -8,7 +8,8 @@ from tempfile import NamedTemporaryFile
 
 import networkx as nx
 from mathics.core.atoms import SymbolString
-from mathics.core.expression import BoxError, Expression
+from mathics.core.exceptions import BoxError
+from mathics.core.expression import Expression
 from mathics.core.systemsymbols import (
     SymbolCompiledFunction,
     SymbolFullForm,
