@@ -6,7 +6,6 @@ from typing import Union
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import Http404, HttpResponse
-
 from django.shortcuts import render
 
 from mathics_django.doc import documentation
@@ -15,12 +14,9 @@ from mathics_django.doc.django_doc import (
     DjangoDocPart,
     DjangoDocSection,
 )
-
 from mathics_django.web.views import JsonResponse
 
 DocResponse = Union[HttpResponse, JsonResponse]
-
-documentation.load_pymathics_doc()
 
 
 def doc(request: WSGIRequest, ajax: bool = False) -> DocResponse:

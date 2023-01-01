@@ -325,6 +325,7 @@ function showGallery() {
 	'Table[Plot[x^i Sin[j Pi x], {x, 0, 2}],{i, 2},{j, 2}]//MatrixForm',
 
 	'(**** Image ****)',
+	'alice = Import["ExampleData/MadTeaParty.gif"]; ImageTake[alice, {40, 150}, {500, 600}]',
 	'ein = Import["ExampleData/Einstein.jpg"]; ImageRotate[ein, Pi / 4]',
 	'ImageChannels[ein]',
 	'ImageColorSpace[ein]',

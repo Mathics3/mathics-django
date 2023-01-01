@@ -1,15 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-A module and library that assists in organizing document data
-previously obtained from static files and Python module/class doc
-strings. This data is stored in a way that facilitates viewing
-documentation.
-
-As with reading in data, viewing extracted document information is
-documentation tests is done elsewhere.
-
-FIXME: Too much of this code is duplicated from Mathics Core.
-More importantly, this code should be replaced by Sphinx and autodoc.
+This code is the Django-specific part of the homegrown sphinx documentation.
+FIXME: Ditch this and hook into sphinx
 """
 
 import importlib
@@ -21,13 +13,16 @@ from types import ModuleType
 
 from django.utils.safestring import mark_safe
 from mathics import builtin, settings
+from mathics.core.util import IS_PYPY
 from mathics.doc.common_doc import (
     CHAPTER_RE,
     SECTION_RE,
     SUBSECTION_RE,
+    DocChapter,
     DocGuideSection,
     DocTest,
     DocTests,
+    Documentation,
     Tests,
     XMLDoc,
     filter_comments,
@@ -37,9 +32,9 @@ from mathics.doc.common_doc import (
     get_results_by_test,
     skip_doc,
     skip_module_doc,
-    slugify,
     sorted_chapters,
 )
+from mathics.doc.utils import slugify
 
 from mathics_django.doc.utils import escape_html
 from mathics_django.settings import get_doc_html_data_path
@@ -81,37 +76,9 @@ class DjangoDocElement(object):
         return mark_safe(escape_html(self.title, single_line=True))
 
 
-class Documentation(DjangoDocElement):
+class DjangoDocumentation(Documentation, DjangoDocElement):
     def __str__(self):
         return "\n\n\n".join(str(part) for part in self.parts)
-
-    def get_part(self, part_slug):
-        return self.parts_by_slug.get(part_slug)
-
-    def get_chapter(self, part_slug, chapter_slug):
-        part = self.parts_by_slug.get(part_slug)
-        if part:
-            return part.chapters_by_slug.get(chapter_slug)
-        return None
-
-    def get_section(self, part_slug, chapter_slug, section_slug):
-        part = self.parts_by_slug.get(part_slug)
-        if part:
-            chapter = part.chapters_by_slug.get(chapter_slug)
-            if chapter:
-                return chapter.sections_by_slug.get(section_slug)
-        return None
-
-    def get_subsection(self, part_slug, chapter_slug, section_slug, subsection_slug):
-        part = self.parts_by_slug.get(part_slug)
-        if part:
-            chapter = part.chapters_by_slug.get(chapter_slug)
-            if chapter:
-                section = chapter.sections_by_slug.get(section_slug)
-                if section:
-                    return section.subsections_by_slug.get(subsection_slug)
-
-        return None
 
     def get_tests(self):
         for part in self.parts:
@@ -215,7 +182,7 @@ class Documentation(DjangoDocElement):
         return sorted_results
 
 
-class MathicsMainDocumentation(Documentation):
+class MathicsMainDocumentation(DjangoDocumentation):
     def __init__(self, want_sorting=True):
         self.doc_dir = settings.DOC_DIR
         self.parts = []
@@ -320,12 +287,23 @@ class MathicsMainDocumentation(Documentation):
                         if isinstance(value, ModuleType)
                     ]
 
+                    sorted_submodule = lambda x: sorted(
+                        submodules,
+                        key=lambda submodule: submodule.sort_order
+                        if hasattr(submodule, "sort_order")
+                        else submodule.__name__,
+                    )
+
                     # Add sections in the guide section...
-                    for submodule in submodules:
+                    for submodule in sorted_submodule(submodules):
                         # FIXME add an additional mechanism in the module
                         # to allow a docstring and indicate it is not to go in the
                         # user manual
                         if skip_module_doc(submodule, modules_seen):
+                            continue
+                        elif IS_PYPY and submodule.__name__ == "builtins":
+                            # PyPy seems to add this module on its own,
+                            # but it is not something that can be importable
                             continue
 
                         section = self.add_section(
@@ -480,138 +458,6 @@ class MathicsMainDocumentation(Documentation):
         )
         section.subsections.append(subsection)
 
-    def load_pymathics_doc(self):
-        if self.pymathics_doc_loaded:
-            return
-        from mathics.settings import default_pymathics_modules
-
-        pymathicspart = None
-        # Look the "Pymathics Modules" part, and if it does not exist, create it.
-        for part in self.parts:
-            if part.title == "Pymathics Modules":
-                pymathicspart = part
-        if pymathicspart is None:
-            pymathicspart = DjangoDocPart(self, "Pymathics Modules", is_reference=True)
-            self.parts.append(pymathicspart)
-
-        # For each module, create the documentation object and load the chapters in the pymathics part.
-        for pymmodule in default_pymathics_modules:
-            pymathicsdoc = PyMathicsDocumentation(pymmodule)
-            for part in pymathicsdoc.parts:
-                for ch in sorted_chapters(part.chapters):
-                    ch.title = f"{pymmodule} {part.title} {ch.title}"
-                    ch.part = pymathicspart
-                    pymathicspart.chapters_by_slug[ch.slug] = ch
-                    pymathicspart.chapters.append(ch)
-
-        self.pymathics_doc_loaded = True
-
-
-class PyMathicsDocumentation(Documentation):
-    def __init__(self, module=None):
-        self.title = "Overview"
-        self.parts = []
-        self.parts_by_slug = {}
-        self.doc_dir = None
-        self.doc_data_file = None
-        self.symbols = {}
-        if module is None:
-            return
-
-        import importlib
-
-        # Load the module and verifies it is a pymathics module
-        try:
-            self.pymathicsmodule = importlib.import_module(module)
-        except ImportError:
-            print("Module does not exist")
-            self.pymathicsmodule = None
-            self.parts = []
-            return
-
-        try:
-            if "name" in self.pymathicsmodule.pymathics_version_data:
-                self.name = self.version = self.pymathicsmodule.pymathics_version_data[
-                    "name"
-                ]
-            else:
-                self.name = (self.pymathicsmodule.__package__)[10:]
-            self.version = self.pymathicsmodule.pymathics_version_data["version"]
-            self.author = self.pymathicsmodule.pymathics_version_data["author"]
-        except (AttributeError, KeyError, IndexError):
-            print(module + " is not a pymathics module.")
-            self.pymathicsmodule = None
-            self.parts = []
-            return
-
-        # Paths
-        self.doc_dir = self.pymathicsmodule.__path__[0] + "/doc/"
-        self.doc_data_file = self.doc_dir + "xml/data"
-
-        # Load the dictionary of mathics symbols defined in the module
-        self.symbols = {}
-        from mathics.builtin.base import Builtin, is_builtin
-        from mathics.builtin.system_init import is_builtin
-
-        for name in dir(self.pymathicsmodule):
-            var = getattr(self.pymathicsmodule, name)
-            if (
-                hasattr(var, "__module__")
-                and var.__module__ != "mathics.builtin.base"
-                and is_builtin(var)
-                and not name.startswith("_")
-                and var.__module__[: len(self.pymathicsmodule.__name__)]
-                == self.pymathicsmodule.__name__
-            ):  # nopep8
-                instance = var(expression=False)
-                if isinstance(instance, Builtin):
-                    self.symbols[instance.get_name()] = instance
-        # Defines de default first part, in case we are building an independent documentation module.
-        self.title = "Overview"
-        self.parts = []
-        self.parts_by_slug = {}
-        try:
-            files = listdir(self.doc_dir)
-            files.sort()
-        except FileNotFoundError:
-            self.doc_dir = ""
-            self.doc_data_file = ""
-            files = []
-        appendix = []
-        for file in files:
-            part_title = file[2:]
-            if part_title.endswith(".mdoc"):
-                part_title = part_title[: -len(".mdoc")]
-                part = DjangoDocPart(self, part_title)
-                text = open(self.doc_dir + file, "rb").read().decode("utf8")
-                text = filter_comments(text)
-                chapters = CHAPTER_RE.findall(text)
-                for title, text in sorted(chapters):
-                    chapter = DjangoDocChapter(part, title)
-                    text += '<section title=""></section>'
-                    sections = SECTION_RE.findall(text)
-                    for pre_text, title, text in sections:
-                        if not chapter.doc:
-                            chapter.doc = DjangoDoc(pre_text)
-                        if title:
-                            section = DjangoDocSection(chapter, title, text)
-                            chapter.sections.append(section)
-                    part.chapters.append(chapter)
-                if file[0].isdigit():
-                    self.parts.append(part)
-                else:
-                    part.is_appendix = True
-                    appendix.append(part)
-
-        # Adds possible appendices
-        for part in appendix:
-            self.parts.append(part)
-
-        # set keys of tests
-        for tests in self.get_tests():
-            for test in tests.tests:
-                test.key = (tests.part, tests.chapter, tests.section, test.index)
-
 
 class DjangoDoc(XMLDoc):
     def __init__(self, doc, title, section):
@@ -656,24 +502,10 @@ class DjangoDoc(XMLDoc):
         return mark_safe(text)
 
 
-class DjangoDocChapter(DjangoDocElement):
+class DjangoDocChapter(DocChapter, DjangoDocElement):
     """An object for a Django Documentation Chapter.
     A Chapter is part of a Part and contains Sections.
     """
-
-    def __init__(self, part: str, title: str, doc=None):
-        self.doc = doc
-        self.guide_sections = []
-        self.part = part
-        self.sections = []
-        self.sections_by_slug = {}
-        self.slug = slugify(title)
-        self.title = title
-        part.chapters_by_slug[self.slug] = self
-
-    def __str__(self):
-        sections = "\n".join(str(section) for section in self.sections)
-        return f"= {self.title} =\n\n{sections}"
 
     def get_collection(self):
         """Return a list of chapters in the part of this chapter."""
