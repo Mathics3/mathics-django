@@ -5,6 +5,7 @@ Format Mathics objects
 import math
 import random
 from tempfile import NamedTemporaryFile
+from typing import Callable
 
 import networkx as nx
 from mathics.core.atoms import SymbolString
@@ -37,7 +38,7 @@ def format_output(obj, expr, format=None):
     it can't make use of a front-ends specific capabilities.
     """
 
-    def eval_boxes(result, fn, obj, **options):
+    def eval_boxes(result, fn: Callable, obj, **options):
         options["evaluation"] = obj
         try:
             boxes = fn(**options)

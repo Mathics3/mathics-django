@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import django
-
 from mathics import version_info
-
 
 version_info["django"] = django.__version__
 
@@ -21,7 +19,7 @@ if "cython" in version_info:
     version_string += f", cython {version_info['cython']}"
 
 license_string = """\
-Copyright (C) 2011-2022 The Mathics Team.
+Copyright (C) 2011-2023 The Mathics Team.
 This program comes with ABSOLUTELY NO WARRANTY.
 This is free software, and you are welcome to redistribute it
 under certain conditions.
