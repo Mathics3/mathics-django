@@ -337,6 +337,8 @@ function showGallery() {
 
 	'(* We also handle, GIF, TIF, and PNG, among others. *)',
 
+	'WordCloud[StringSplit[Import["ExampleData/EinsteinSzilLetter.txt", CharacterEncoding->"UTF8"]]]',
+
 	'(**** 3D Plots and Graphics ****)',
 
 	'Graphics3D[Arrow[{{1, 1, -1}, {2, 2, 0}, {3, 3, -1}, {4, 4, 0}}]]',
