@@ -296,7 +296,10 @@ function showGallery() {
 	'ListPlot[{Sqrt[Range[40]], Log[Range[40, 80]]}, TicksStyle->{Blue,Purple}]',
 	'Plot[{Sin[x], Cos[x], Tan[x]}, {x, -3Pi, 3Pi}]',
 	'DiscretePlot[{Sin[Pi x/20], Cos[Pi x/20]}, {x, 0, 40}]',
+
+	'(**** Polygons ****)',
 	'Graphics[Polygon[{{150,0},{121,90},{198,35},{102,35},{179,90}}]]',
+	'Show[Graphics[Table[Polygon[TranslationTransform[{Sqrt[3] (i - j/2), 3 j/2}] /@ {{Sqrt[3]/2, -1/2}, {0, 1}, {-Sqrt[3]/2, -1/2}}], {i, 7}, {j, i}]]]',
 
 	'(* Charts: *)',
 	'BarChart[{{1, 2, 3}, {2, 3, 4}}]',
