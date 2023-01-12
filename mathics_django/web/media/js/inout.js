@@ -324,16 +324,17 @@ function showGallery() {
 	'Table[RGBColor[1, g, 0], {g, 0, 1, 0.05}]',
 	'Table[Plot[x^i Sin[j Pi x], {x, 0, 2}],{i, 2},{j, 2}]//MatrixForm',
 
-	'(**** Image ****)',
+	'(**** Image handling via Pillow ****)',
 	'alice = Import["ExampleData/MadTeaParty.gif"]; ImageTake[alice, {40, 150}, {500, 600}]',
 	'ein = Import["ExampleData/Einstein.jpg"]; ImageRotate[ein, Pi / 4]',
 	'ImageChannels[ein]',
 	'ImageColorSpace[ein]',
 
-	'jpg2 = Import["ExampleData/sunflowers.jpg"]',
-	'ImageColorSpace[jpg2]',
-	'Binarize[jpg2]',
-	'ImageColorSpace[Binarize[jpg2]]',
+	'flowers = Import["ExampleData/sunflowers.jpg"]',
+	'ColorNegate[flowers]',
+	'ImageColorSpace[flowers]',
+	'Binarize[flowers]',
+	'ImageColorSpace[Binarize[flowers]]',
 
 	'(* We also handle, GIF, TIF, and PNG, among others. *)',
 
