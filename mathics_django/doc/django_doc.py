@@ -316,12 +316,11 @@ class MathicsMainDocumentation(DjangoDocumentation):
                         modules_seen.add(submodule)
 
                         builtins = builtins_by_module.get(submodule.__name__, [])
-                        subsections = [
-                            builtin
-                            for builtin in builtins
-                            if not builtin.__class__.__name__.endswith("Box")
-                        ]
+                        subsections = [builtin for builtin in builtins]
                         for instance in subsections:
+                            if hasattr(instance, "no_doc") and instance.no_doc:
+                                continue
+
                             modules_seen.add(instance)
                             name = instance.get_name(short=True)
                             self.add_subsection(
@@ -334,8 +333,8 @@ class MathicsMainDocumentation(DjangoDocumentation):
                             )
                 else:
                     for instance in sections:
-                        if instance not in modules_seen and not hasattr(
-                            instance, "no_doc"
+                        if instance not in modules_seen and (
+                            not hasattr(instance, "no_doc") or not instance.no_doc
                         ):
                             name = instance.get_name(short=True)
                             self.add_section(
@@ -372,11 +371,6 @@ class MathicsMainDocumentation(DjangoDocumentation):
         object to the chapter, a DjangoDocChapter object.
         "section_object" is either a Python module or a Class object instance.
         """
-        if section_name == "FormBase_":
-            from trepan.api import debug
-
-            debug()
-
         summary_text = (
             section_object.summary_text
             if hasattr(section_object, "summary_text")
