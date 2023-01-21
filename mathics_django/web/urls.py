@@ -7,16 +7,20 @@ All of the callback functions are located in mathics_django.web.views.
 
 from django.urls import re_path
 
-# These are the callback functions.
-from mathics_django.web.views import (
-    about_view,
-    delete,
+from mathics_django.web.controllers.about import about_page
+from mathics_django.web.controllers.doc import (
     doc,
     doc_chapter,
     doc_part,
     doc_search,
     doc_section,
     doc_subsection,
+)
+
+
+# These are the callback functions.
+from mathics_django.web.views import (
+    delete,
     get_worksheets,
     login,
     logout,
@@ -31,7 +35,7 @@ from mathics_django.web.views import (
 urlpatterns = [
     # 'mathics.web.views',
     re_path(r"^$", main_view),
-    re_path(r"^about(?:\.htm(?:l)?)?$", about_view),
+    re_path(r"^about(?:\.htm(?:l)?)?$", about_page),
     re_path(r"^ajax/query/$", query),
     re_path(r"^ajax/login/$", login),
     re_path(r"^ajax/logout/$", logout),

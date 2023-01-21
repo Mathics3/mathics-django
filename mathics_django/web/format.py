@@ -2,15 +2,25 @@
 Format Mathics3 objects
 """
 
-from tempfile import NamedTemporaryFile
-import random
 import math
+import random
+from tempfile import NamedTemporaryFile
+from typing import Callable
+
 import networkx as nx
-
-from mathics.core.expression import Expression, BoxError
-from mathics.core.systemsymbols import SymbolFullForm, SymbolStandardForm
+from mathics.core.atoms import SymbolString
+from mathics.core.expression import BoxError, Expression
+from mathics.core.systemsymbols import (
+    SymbolCompiledFunction,
+    SymbolFullForm,
+    SymbolGraphics,
+    SymbolGraphics3D,
+    SymbolMathMLForm,
+    SymbolOutputForm,
+    SymbolStandardForm,
+    SymbolTeXForm,
+)
 from mathics.session import get_settings_value
-
 
 FORM_TO_FORMAT = {
     "System`MathMLForm": "xml",
@@ -28,7 +38,7 @@ def format_output(obj, expr, format=None):
     it can't make use of a front-ends specific capabilities.
     """
 
-    def eval_boxes(result, fn, obj, **options):
+    def eval_boxes(result, fn: Callable, obj, **options):
         options["evaluation"] = obj
         try:
             boxes = fn(**options)
@@ -56,17 +66,18 @@ def format_output(obj, expr, format=None):
     # plain-ol' text so we can cut and paste that.
 
     expr_type = expr.get_head_name()
-    if expr_type in ("System`MathMLForm", "System`TeXForm"):
+    expr_head = expr.get_head()
+    if expr_head in (SymbolMathMLForm, SymbolTeXForm):
         # For these forms, we strip off the outer "Form" part
         format = FORM_TO_FORMAT[expr_type]
         elements = expr.get_elements()
         if len(elements) == 1:
             expr = elements[0]
 
-    if expr_type in ("System`FullForm", "System`OutputForm"):
+    if expr_head in (SymbolFullForm, SymbolOutputForm):
         result = expr.elements[0].format(obj, expr_type)
         return result.boxes_to_text()
-    elif expr_type == "System`Graphics":
+    elif expr_head is SymbolGraphics:
         result = Expression(SymbolStandardForm, expr).format(obj, "System`MathMLForm")
 
     # This part was derived from and the same as evaluation.py format_output.
@@ -87,12 +98,11 @@ def format_output(obj, expr, format=None):
         result = Expression(SymbolStandardForm, expr).format(obj, "System`TeXForm")
     elif format == "unformatted":
         # This part is custom to mathics-django:
-        if str(expr) == "-Graph-" and hasattr(expr, "G"):
+        if expr_head is SymbolGraphics and hasattr(expr, "G"):
             return format_graph(expr.G)
-        head = str(expr.get_head())
-        if head == "System`CompiledFunction":
+        if expr_head is SymbolCompiledFunction:
             result = expr.format(obj, "System`OutputForm")
-        elif head == "System`String":
+        elif expr_head is SymbolString:
             result = expr.format(obj, "System`InputForm")
             result = result.boxes_to_text()
 
@@ -101,11 +111,11 @@ def format_output(obj, expr, format=None):
                 result = result[1:-1]
 
             return result
-        elif head == "System`Graphics3D":
+        elif expr_head is SymbolGraphics3D:
             form_expr = Expression(SymbolStandardForm, expr)
             result = form_expr.format(obj, "System`StandardForm")
             return eval_boxes(result, result.boxes_to_js, obj)
-        elif head == "System`Graphics":
+        elif expr_head is SymbolGraphics:
             form_expr = Expression(SymbolStandardForm, expr)
             result = form_expr.format(obj, "System`StandardForm")
             return eval_boxes(result, result.boxes_to_svg, obj)
