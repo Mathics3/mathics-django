@@ -12,6 +12,9 @@
 			<img id="logo" class="load" src="{% static 'img/logo-heptatom.svg' %}" height="32" alt="Logo" />
 			<img id="logotext" class="load" src="{% static 'img/logo-text.svg' %}" height="26" alt="Mathics" />
 		</a>
+		<div class="menu">
+		  <a href="https://github.com/Mathics3" title="Go to Mathics3 GitHub repository"><i class="fa fa-github"></i></a>
+		</div>
 
 		<!-- worksheet controls are not wanted here -->
 	</header>
@@ -24,12 +27,13 @@
 			<h2>Python</h2>
 			<ul>
 				<li>Python: {{PythonVersion}}</li>
+				<li>Implementation: {{PythonImplementation}}</li>
 			</ul>
 
-			<h2>Mathics Software</h2>
+			<h2>Mathics3 Software</h2>
 			<ul>
-				<li>Mathics Django: {{mathics_django_version}}</li>
-				<li>Mathics: {{mathics_version}}</li>
+				<li>Mathics3 Django: {{mathics_django_version}}</li>
+				<li>Mathics3: {{mathics_version}}</li>
 			</ul>
 
 			<h2>Web Software</h2>
@@ -48,6 +52,17 @@
 			</ul>
 
 
+			<h2>Optional Software</h2>
+			<ul>
+			{% for package_name, package_version in mathics_version_info.items %}
+				{% if package_name in optional_software %}
+					<li>{{package_name}}: {{package_version}}</li>
+		  		{% endif %}
+
+			{% endfor %}
+			</ul>
+
+
 			<h1>Settings</h1>
 
 			<h2>Django</h2>
@@ -58,7 +73,7 @@
 			</ul>
 
 
-			<h2>Mathics Django</h2>
+			<h2>Mathics3 Django</h2>
 			<p>
 				<ul>
 				{% for setting, value in user_settings.items %}
@@ -137,11 +152,11 @@
 		<!-- FIXME: figure out how to reuse welcome.html. We can't run ajax from here. -->
 		<div id="welcomeContainerAbout">
 			<div id="welcome">
-			  <p><h1>About Mathics in Django!</h1></p>
+			  <p><h1>About Mathics3 in Django!</h1></p>
 
-			  <p>Mathics is a general-purpose computer algebra system.</p>
+			  <p>Mathics3 is a general-purpose computer algebra system.</p>
 
-			  <p>Copyright (C) 2021-2022 The Mathics Team<p><br>
+			  <p>Copyright (C) 2021-2023 The Mathics3 Team<p><br>
 			  This program comes with ABSOLUTELY NO WARRANTY;
 			    This is free software, and you are welcome to redistribute it
 			    under <a href="doc/license/gnu-general-public-license/">certain conditions</a>.
