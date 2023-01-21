@@ -1,5 +1,5 @@
 """
-Format Mathics objects
+Format Mathics3 objects
 """
 
 import math

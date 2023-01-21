@@ -17,7 +17,7 @@
 		"fast",
 		"easy"
 	],
-	"author": "The Mathics Team",
+	"author": "The Mathics3 Team",
 	"license": "GPL-3.0",
 	"bugs": {
 		"url": "https://github.com/Mathics3/mathics-threejs-backend/issues"

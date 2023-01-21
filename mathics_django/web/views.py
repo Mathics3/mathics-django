@@ -133,7 +133,7 @@ def login(request: WSGIRequest) -> JsonResponse:
                     "Your password at mathics.net",
                     (
                         """You have reset your password at mathics.net.\n
-Your password is: %s\n\nYours,\nThe Mathics team"""
+Your password is: %s\n\nYours,\nThe Mathics3 team"""
                     )
                     % password,
                 )
@@ -144,7 +144,7 @@ Your password is: %s\n\nYours,\nThe Mathics team"""
                     user,
                     "New account at mathics.net",
                     """Welcome to mathics.net!\n
-Your password is: %s\n\nYours,\nThe Mathics team"""
+Your password is: %s\n\nYours,\nThe Mathics3 team"""
                     % password,
                 )
             user.set_password(password)
@@ -244,7 +244,7 @@ def open(request: WSGIRequest):
 
 def query(request: WSGIRequest) -> JsonResponse:
     """
-    Handles Mathics input expressions.
+    Handles Mathics3 input expressions.
     """
     global definitions
     from mathics.core.parser import MathicsMultiLineFeeder
