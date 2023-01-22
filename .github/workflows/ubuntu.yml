@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-version: [3.6, 3.7, 3.8, 3.9]
+        python-version: [3.7, 3.8, 3.9]
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
@@ -20,15 +20,16 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install OS dependencies
       run: |
-        sudo apt-get update -qq && sudo apt-get install -qq liblapack-dev llvm-dev remake nodejs npm
+        sudo apt-get update -qq && sudo apt-get install -qq liblapack-dev llvm-dev remake nodejs npm tesseract-ocr
         python -m pip install --upgrade pip
     - name: Install Python dependencies
       run: |
         # Can adjust when next Mathics is released
         python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
-        python -m pip install -e git+https://github.com/Mathics3/mathics-core#egg=Mathics3[full]
-        # Do this even when installing from github to get opcode tables created in
-        pip install Mathics3[full]
+        git clone https://github.com/Mathics3/mathics-core
+        (cd mathics-core && make)
+        (cd mathics-core && python -m pip install -e .[full])
+        # pip install Mathics3[full]
     - name: Install Mathics Django
       run: |
         pip install pytest pexpect

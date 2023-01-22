@@ -67,7 +67,7 @@ if sys.platform == "darwin":
 INSTALL_REQUIRES += [
     "Mathics-Scanner >=1.2.2,<1.3.1",
     # "Mathics3 @ http://github.com/Mathics3/mathics-core/archive/master.zip",
-    "Mathics3 >= 5.0.2,<6.1.0",
+    "Mathics3 >5.0.2,<6.1.0",
     "django >= 3.2",  # After Python 3.6 is removed, we can bump min version to 4.1
     "networkx >= 2.5",  # Used in format, should disappear though
     "requests",
