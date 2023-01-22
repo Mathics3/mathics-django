@@ -27,12 +27,13 @@ jobs:
         # Can adjust when next Mathics is released
         python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
         python -m pip install -e git+https://github.com/Mathics3/mathics-core#egg=Mathics3[full]
-        # pip install Mathics3[full]
+        # Do this even when installing from github to get opcode tables created in
+        pip install Mathics3[full]
     - name: Install Mathics Django
       run: |
+        pip install pytest pexpect
         npm install
         python -m pip install -e .[full]
-        pip install pytest pexpect
         remake -x develop
     - name: Test mathics-django
       run: |
