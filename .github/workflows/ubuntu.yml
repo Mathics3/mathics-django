@@ -18,19 +18,22 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
+    - name: Install OS dependencies
       run: |
         sudo apt-get update -qq && sudo apt-get install -qq liblapack-dev llvm-dev remake nodejs npm
         python -m pip install --upgrade pip
-        # Can comment out when next Mathics is released
+    - name: Install Python dependencies
+      run: |
+        # Can adjust when next Mathics is released
+        python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
         python -m pip install -e git+https://github.com/Mathics3/mathics-core#egg=Mathics3[full]
-        pip install Mathics3[full]
-        npm install
-        pip install -e .[full]
+        # pip install Mathics3[full]
     - name: Install Mathics Django
       run: |
+        npm install
+        python -m pip install -e .[full]
+        pip install pytest pexpect
         remake -x develop
     - name: Test mathics-django
       run: |
-        pip install pytest pexpect
         remake -x check
