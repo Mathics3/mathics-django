@@ -17,7 +17,7 @@ In addition, there are some other commands:
 
     python setup.py clean -> will clean all trash (*.pyc and stuff)
 
-To get a full list of avaiable commands, read the output of:
+To get a full list of available commands, read the output of:
 
     python setup.py --help-commands
 
@@ -65,10 +65,10 @@ if sys.platform == "darwin":
 
 # General Requirements
 INSTALL_REQUIRES += [
-    "Mathics-Scanner >= 1.2.2,<1.3.1",
+    "Mathics-Scanner >=1.2.2,<1.3.1",
     # "Mathics3 @ http://github.com/Mathics3/mathics-core/archive/master.zip",
-    "Mathics3 >= 5.0.1,<5.1.0",
-    "django >= 3.2",
+    "Mathics3 >5.0.2,<6.1.0",
+    "django >= 3.2",  # After Python 3.6 is removed, we can bump min version to 4.1
     "networkx >= 2.5",  # Used in format, should disappear though
     "requests",
 ]
