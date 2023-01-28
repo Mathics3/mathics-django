@@ -47,7 +47,7 @@ LOG_QUERIES = False
 # Show on Django console:
 # * evaluation timeout
 # * results
-LOG_ON_CONSOLE = get_bool_from_environment("MATHICS_LOG_ON_CONSOLE", "false")
+LOG_ON_CONSOLE = get_bool_from_environment("MATHICS_DJANGO_LOG_ON_CONSOLE", "false")
 
 MATHICS_DJANGO_DB = os.environ.get("MATHICS_DJANGO_DB", "mathics.sqlite")
 MATHICS_DJANGO_DB_PATH = os.environ.get(

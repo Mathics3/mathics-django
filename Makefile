@@ -12,9 +12,16 @@ RM  ?= rm
 
 .PHONY: all build \
 	check clean \
-	develop dist doc doc-data djangotest docker \
+	develop \
+        dist \
+        doc \
+        doc-data \
+        djangotest \
+        docker \
 	gstest pytest \
 	rmChangeLog \
+	runserver \
+	runserver-debug \
 	test
 
 THREEJS=mathics_django/web/media/js/mathics-threejs-backend/index.js mathics_django/web/media/js/mathics-threejs-backend/version.json
@@ -73,6 +80,10 @@ install: $(THREEJS)
 #: Run Django-based server in development mode. Use environment variable "o" for manage options
 runserver: $(THREEJS)
 	$(PYTHON) mathics_django/manage.py runserver $o
+
+#: Run Django-based server in development mode. Use environment variable "o" for manage options
+runserver-debug: $(THREEJS)
+	MATHICS_DJANGO_LOG_ON_CONSOLE=true $(PYTHON) mathics_django/manage.py runserver $o
 
 #: Remove ChangeLog
 rmChangeLog:
