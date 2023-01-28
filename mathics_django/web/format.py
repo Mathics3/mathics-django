@@ -4,12 +4,13 @@ Format Mathics3 objects
 
 import math
 import random
-from tempfile import NamedTemporaryFile
+from io import BytesIO
 from typing import Callable
 
 import networkx as nx
 from mathics.core.atoms import SymbolString
 from mathics.core.expression import BoxError, Expression
+from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import (
     SymbolCompiledFunction,
     SymbolFullForm,
@@ -21,6 +22,11 @@ from mathics.core.systemsymbols import (
     SymbolTeXForm,
 )
 from mathics.session import get_settings_value
+
+# FIXME handle graphviz as well
+from matplotlib import pyplot
+
+PyMathicsGraph = Symbol("Pymathics`Graph")
 
 FORM_TO_FORMAT = {
     "System`MathMLForm": "xml",
@@ -97,8 +103,7 @@ def format_output(obj, expr, format=None):
     elif format == "tex":
         result = Expression(SymbolStandardForm, expr).format(obj, "System`TeXForm")
     elif format == "unformatted":
-        # This part is custom to mathics-django:
-        if expr_head is SymbolGraphics and hasattr(expr, "G"):
+        if expr_head is PyMathicsGraph and hasattr(expr, "G"):
             return format_graph(expr.G)
         if expr_head is SymbolCompiledFunction:
             result = expr.format(obj, "System`OutputForm")
@@ -428,12 +433,11 @@ def format_graph(G):
     """
     Format a Graph
     """
-    # FIXME handle graphviz as well
-    import matplotlib.pyplot as plt
 
     global node_size
     global cached_pair
 
+    pyplot.switch_backend("AGG")
     cached_pair = None
 
     graph_layout = G.graph_layout if hasattr(G, "graph_layout") else None
@@ -455,7 +459,7 @@ def format_graph(G):
         draw_options["with_labels"] = bool(vertex_labels)
 
     if hasattr(G, "title") and G.title:
-        fig, ax = plt.subplots()  # Create a figure and an axes
+        fig, ax = pyplot.subplots()  # Create a figure and an axes
         ax.set_title(G.title)
 
     layout_fn = None
@@ -464,7 +468,7 @@ def format_graph(G):
             graph_layout = graph_layout.get_string_value()
         layout_fn = NETWORKX_LAYOUTS.get(graph_layout, None)
         if graph_layout in ["circular", "spiral", "spiral_equidistant"]:
-            plt.axes().set_aspect("equal")
+            pyplot.axes().set_aspect("equal")
 
     harmonize_parameters(G, draw_options)
 
@@ -472,15 +476,19 @@ def format_graph(G):
         nx.draw(G, pos=layout_fn(G), **draw_options)
     else:
         nx.draw_shell(G, **draw_options)
-    tempbuf = NamedTemporaryFile(
-        mode="w+b",
-        buffering=-1,
-        encoding=None,
-        newline=None,
-        delete=False,
-        suffix=".svg",
-        prefix="MathicsGraph-",
-    )
-    plt.savefig(tempbuf.name, format="svg")
-    plt.show()
-    return tempbuf.name
+    # pyplot.tight_layout()
+    chart = get_graph()
+    return chart
+
+
+def get_graph():
+    buffer = BytesIO()
+    pyplot.savefig(buffer, format="svg")
+    buffer.seek(0)
+    image_svg = buffer.getvalue()
+    # from trepan.api import debug; debug()
+    return image_svg
+    # graph = base64.b64encode(image_svg)
+    # graph = graph.decode('utf-8')
+    # buffer.close()
+    # return graph

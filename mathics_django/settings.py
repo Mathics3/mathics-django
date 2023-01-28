@@ -1,13 +1,28 @@
 # -*- coding: utf-8 -*-
 
-import pkg_resources
 import os
 import os.path as osp
-from mathics.settings import DATA_DIR
 from pathlib import Path
 
-debug_str = os.environ.get("MATHICS_DJANGO_DEBUG", "true")
-DEBUG = debug_str.lower().strip() in ("true", "t", "1", "yes")
+import pkg_resources
+from mathics.settings import DATA_DIR
+
+# The kinds of strings in an environment variable be interpreted as True.
+ENV_VAR_YES_VALUE = ("true", "t", "1", "yes", "y")
+
+
+def get_bool_from_environment(env_var: str, default_value: str):
+    """
+    Read environment variable ``env_var``, and turn that into a
+    boolean which is returned.
+    ``default_value`` is the value to use if ``env_var`` is not
+    set as an environment variable
+    """
+    env_var_value = os.environ.get(env_var, default_value)
+    return env_var_value in ENV_VAR_YES_VALUE
+
+
+DEBUG = get_bool_from_environment("MATHICS_DJANGO_DEBUG", "true")
 
 # The environment variable MATHICS_DJANGO_ALLOWED_HOSTS is used
 # to set Django's ALLOWED_HOST, which specifies what kinds of
@@ -22,10 +37,17 @@ else:
     # Use Django's default value for ALLOWED_HOSTS.
     ALLOWED_HOSTS = []
 
-# set only to True in DEBUG mode
-DISPLAY_EXCEPTIONS = os.environ.get("MATHICS_DJANGO_DISPLAY_EXCEPTIONS", True)
+DISPLAY_EXCEPTIONS = get_bool_from_environment(
+    "MATHICS_DJANGO_DISPLAY_EXCEPTIONS", DEBUG
+)
 
+# Setting this to True causes Django to freak out. Figure out why and fix.
 LOG_QUERIES = False
+
+# Show on Django console:
+# * evaluation timeout
+# * results
+LOG_ON_CONSOLE = get_bool_from_environment("MATHICS_DJANGO_LOG_ON_CONSOLE", "false")
 
 MATHICS_DJANGO_DB = os.environ.get("MATHICS_DJANGO_DB", "mathics.sqlite")
 MATHICS_DJANGO_DB_PATH = os.environ.get(

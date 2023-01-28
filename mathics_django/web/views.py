@@ -4,14 +4,14 @@ import sys
 import traceback
 
 from django.core.handlers.wsgi import WSGIRequest
-from django.shortcuts import render
-from django.template import loader
 from django.http import (
+    Http404,
     HttpResponse,
     HttpResponseNotFound,
     HttpResponseServerError,
-    Http404,
 )
+from django.shortcuts import render
+from django.template import loader
 
 try:
     import ujson as json
@@ -21,17 +21,13 @@ except ImportError:
 from django.conf import settings
 from django.contrib import auth
 from django.contrib.auth.models import User
-
 from django.core.mail import send_mail
-
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Message, Result
+from mathics.settings import TIMEOUT, default_pymathics_modules
 
 from mathics_django.web.forms import LoginForm, SaveForm
 from mathics_django.web.models import Query, Worksheet, get_session_evaluation
-
-from mathics_scanner import replace_wl_with_plain_text
-from mathics.settings import default_pymathics_modules, TIMEOUT
 
 if settings.DEBUG:
     JSON_CONTENT_TYPE = "text/html"
@@ -273,13 +269,20 @@ def query(request: WSGIRequest) -> JsonResponse:
         while not feeder.empty():
             expr = evaluation.parse_feeder(feeder)
             if expr is None:
-                results.append(Result(evaluation.out, None, None))  # syntax errors
+                # Syntax or Parse errors
+                results.append(
+                    Result(
+                        out=evaluation.out,
+                        result=None,
+                        line_no=None,
+                        last_eval=None,
+                        form="SyntaxError",
+                    )
+                )
                 evaluation.out = []
                 continue
             result = evaluation.evaluate(expr, timeout=TIMEOUT)
-            if result.result is not None:
-                result.result = replace_wl_with_plain_text(result.result)
-            results.append(result)  # syntax errors
+            results.append(result)
 
     except SystemExit:
         results = []
@@ -299,11 +302,13 @@ def query(request: WSGIRequest) -> JsonResponse:
     result = {
         "results": [result.get_data() for result in results],
     }
-    if settings.LOG_QUERIES:
-        query_log.timeout = evaluation.timeout
-        query_log.result = str(result)  # evaluation.results
-        query_log.error = False
-        query_log.save()
+    if settings.LOG_ON_CONSOLE:
+        print(evaluation.timeout)
+        print(str(result))
+        # query_log.timeout = evaluation.timeout
+        # query_log.result = str(result)  # evaluation.results
+        # query_log.error = False
+        # query_log.save()
     return JsonResponse(result)
 
 
