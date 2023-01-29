@@ -263,24 +263,45 @@ def query(request: WSGIRequest) -> JsonResponse:
         query_log.save()
 
     evaluation = get_session_evaluation(request.session)
-    feeder = MathicsMultiLineFeeder(input, "<notebook>")
+    feeder = MathicsMultiLineFeeder(input, "Django-cell-input")
     results = []
     try:
         while not feeder.empty():
-            expr = evaluation.parse_feeder(feeder)
-            if expr is None:
-                # Syntax or Parse errors
+            (
+                expr,
+                source_code,
+                messages,
+            ) = evaluation.parse_feeder_returning_code_and_messages(feeder)
+            if len(messages) > 0 and messages[0].tag in ("sntxf", "sntxb", "sntxi"):
+                # Syntax or Parse errors.
+
+                # For simplicity, when there is an error there will be just one
+                # error shown and we will use a dictionary for that rather than
+                # an array of dictionaries. This simplifies Javascript, formatting
+                # because at the top level we don't need a list element.
+
+                # Strip quotes from messages.
+                message = evaluation.out[0]
+
+                if message.text.startswith('"') and message.text.endswith('"'):
+                    message.text = message.text[1:-1]
                 results.append(
                     Result(
                         out=evaluation.out,
                         result=None,
                         line_no=None,
                         last_eval=None,
-                        form="SyntaxError",
+                        form="Syntax Error",
                     )
                 )
                 evaluation.out = []
                 continue
+            elif expr is None:
+                # Most likely comment.
+                # TODO: source_code should have '(* ... *)' and
+                # better would be to create tagged result.
+                continue
+
             result = evaluation.evaluate(expr, timeout=TIMEOUT)
             results.append(result)
 
@@ -293,18 +314,30 @@ def query(request: WSGIRequest) -> JsonResponse:
         evaluation.definitions = definitions
     except Exception as exc:
         if settings.DEBUG and settings.DISPLAY_EXCEPTIONS:
-            info = traceback.format_exception(*sys.exc_info())
-            info = "\n".join(info)
-            msg = "Exception raised: %s\n\n%s" % (exc, info)
-            results.append(Result([Message("System", "exception", msg)], None, None))
+            call_stack = traceback.format_exception(*sys.exc_info())
+            except_head = f"Exception raised: {exc}"
+            message = Message(
+                "Python Exception", tag="exception", text=[except_head] + call_stack
+            )
+            results.append(
+                Result(
+                    out=[message],
+                    result=None,
+                    line_no=None,
+                    last_eval=None,
+                    form="Python Exception",
+                )
+            )
         else:
             raise
     result = {
         "results": [result.get_data() for result in results],
     }
     if settings.LOG_ON_CONSOLE:
+        from pprint import pprint as pp
+
         print(evaluation.timeout)
-        print(str(result))
+        pp(result)
         # query_log.timeout = evaluation.timeout
         # query_log.result = str(result)  # evaluation.results
         # query_log.error = False
