@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import sys
 import traceback
 
 from django.core.handlers.wsgi import WSGIRequest
@@ -312,9 +311,19 @@ def query(request: WSGIRequest) -> JsonResponse:
             add_builtin=True, extension_modules=default_pymathics_modules
         )
         evaluation.definitions = definitions
+
     except Exception as exc:
+
+        # Should we show the Python exception details back to the user?
         if settings.DEBUG and settings.DISPLAY_EXCEPTIONS:
-            call_stack = traceback.format_exception(*sys.exc_info())
+            call_stack = traceback.format_exception(exc)
+            # TODO: we may want to do other processing on the traceback
+            #       like splitting up lines. Encapsulate the below and put
+            #       in a function.
+            # FIXME: allow the the stack limit to be user settable
+            if len(call_stack) > 18:
+                call_stack = call_stack[:9] + ["..."] + call_stack[-9:]
+
             except_head = f"Exception raised: {exc}"
             message = Message(
                 "Python Exception", tag="exception", text=[except_head] + call_stack

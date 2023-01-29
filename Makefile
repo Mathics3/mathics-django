@@ -83,7 +83,7 @@ runserver: $(THREEJS)
 
 #: Run Django-based server in development mode. Use environment variable "o" for manage options
 runserver-debug: $(THREEJS)
-	MATHICS_DJANGO_LOG_ON_CONSOLE=true $(PYTHON) mathics_django/manage.py runserver $o
+	MATHICS_DJANGO_DISPLAY_EXCEPTIONS=true MATHICS_DJANGO_LOG_ON_CONSOLE=true $(PYTHON) mathics_django/manage.py runserver $o
 
 #: Remove ChangeLog
 rmChangeLog:

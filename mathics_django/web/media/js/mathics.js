@@ -397,7 +397,7 @@ function setResult(list, results) {
 	// FIXME: redo with better formatting, (a table?) with parsed entries.
 	const pre = document.createElement('pre');
 	// Last line repeats information from the first line?
-	pre.innerHTML = out.text.slice(1, -1).join();
+	pre.innerHTML = out.text.slice(1, -1).join("\n");
 
 	resultList.appendChild(pre);
 	resultList.style.display = 'block';
