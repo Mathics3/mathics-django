@@ -429,9 +429,10 @@ def harmonize_parameters(G, draw_options: dict):
         draw_options["font_size"] = font_size
 
 
-def format_graph(G):
+def format_graph(G) -> str:
     """
-    Format a Graph
+    Format a networkx graph using nx.draw (using matplotlib) and
+    return a SVG string that encodes the graph.
     """
 
     global node_size
@@ -476,19 +477,25 @@ def format_graph(G):
         nx.draw(G, pos=layout_fn(G), **draw_options)
     else:
         nx.draw_shell(G, **draw_options)
+
     # pyplot.tight_layout()
-    chart = get_graph()
-    return chart
+    svg_graph_xml = get_graph()
+    svg_str = svg_graph_xml[svg_graph_xml.find("<svg xmlns:xlink") :]
+    return svg_str
 
 
-def get_graph():
+def get_graph() -> str:
+    """
+    Retrieves SVG XML from what has already been stored the matplotlib buffer
+    pyplot. Return the XML SVG string.
+    """
+
     buffer = BytesIO()
     pyplot.savefig(buffer, format="svg")
     buffer.seek(0)
-    image_svg = buffer.getvalue()
-    # from trepan.api import debug; debug()
-    return image_svg
-    # graph = base64.b64encode(image_svg)
-    # graph = graph.decode('utf-8')
-    # buffer.close()
-    # return graph
+    graph_svg = buffer.getvalue()
+    buffer.close()
+
+    # TODO: In the future if probably want to base64 encode.
+    # Use: base64.b64encode(some peice of image_svg)
+    return graph_svg.decode("utf-8")

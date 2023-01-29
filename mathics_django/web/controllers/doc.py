@@ -2,24 +2,35 @@
 Controllers related to showing Mathics documentation inside Django
 """
 
+from copy import copy
 from typing import Union
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import Http404, HttpResponse
 from django.shortcuts import render
+from mathics.core.pymathics import pymathics_modules
 
 from mathics_django.doc import documentation
 from mathics_django.doc.django_doc import (
     DjangoDocChapter,
     DjangoDocPart,
     DjangoDocSection,
+    MathicsMainDocumentation,
 )
 from mathics_django.web.views import JsonResponse
 
 DocResponse = Union[HttpResponse, JsonResponse]
 
 
+def check_for_pymathics_load():
+    if seen_pymathics_modules != pymathics_modules:
+        # print("XXX refresh pymathics doc")
+        global documentation
+        documentation = MathicsMainDocumentation()
+
+
 def doc(request: WSGIRequest, ajax: bool = False) -> DocResponse:
+    check_for_pymathics_load()
     return render_doc(
         request,
         "overview.html",
@@ -37,6 +48,7 @@ def doc_chapter(request: WSGIRequest, part, chapter, ajax: bool = False) -> DocR
     * Introduction (in part Manual)
     * Procedural Programming (in part Reference of Built-in Symbols)
     """
+    check_for_pymathics_load()
     chapter = documentation.get_chapter(part, chapter)
     if not chapter:
         raise Http404
@@ -59,6 +71,7 @@ def doc_part(request: WSGIRequest, part, ajax: bool = False) -> DocResponse:
     * Manual
     * Reference of Built-in Symbols
     """
+    check_for_pymathics_load()
     part = documentation.get_part(part)
     if not part:
         raise Http404
@@ -74,7 +87,11 @@ def doc_part(request: WSGIRequest, part, ajax: bool = False) -> DocResponse:
     )
 
 
+seen_pymathics_modules = copy(pymathics_modules)
+
+
 def doc_search(request: WSGIRequest) -> DocResponse:
+    check_for_pymathics_load()
     query = request.GET.get("query", "")
     result = documentation.search(query)
     if len([item for exact, item in result if exact]) <= 1:
@@ -131,6 +148,7 @@ def doc_section(
     * A list of builtin-functions under a Guide Section. For example: Color Directives.
       The guide section here would be Colors.
     """
+    check_for_pymathics_load()
     section_obj = documentation.get_section(part, chapter, section)
     if not section_obj:
         raise Http404
@@ -164,6 +182,7 @@ def doc_subsection(
     organized in a guide section are tagged as a section rather than a
     subsection.)
     """
+    check_for_pymathics_load()
     subsection_obj = documentation.get_subsection(part, chapter, section, subsection)
     if not subsection_obj:
         raise Http404
@@ -196,6 +215,7 @@ def render_doc(
 
     If ``ajax`` is True the should the ajax URI prefix, e.g. " it we pass the result
     """
+    check_for_pymathics_load()
     object = context.get("object")
     context.update(
         {
