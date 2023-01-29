@@ -263,13 +263,27 @@ def query(request: WSGIRequest) -> JsonResponse:
         query_log.save()
 
     evaluation = get_session_evaluation(request.session)
-    feeder = MathicsMultiLineFeeder(input, "<notebook>")
+    feeder = MathicsMultiLineFeeder(input, "Django-cell-input")
     results = []
     try:
         while not feeder.empty():
-            expr = evaluation.parse_feeder(feeder)
-            if expr is None:
-                # Syntax or Parse errors
+            (
+                expr,
+                source_code,
+                messages,
+            ) = evaluation.parse_feeder_returning_code_and_messages(feeder)
+            if expr is None or len(messages) > 0 and messages[0].tag in ["sntxf"]:
+                # Syntax or Parse errors.
+
+                # For simplicity, when there is an error there will be just one
+                # error shown and we will use a dictionary for that rather than
+                # an array of dictionaries. This simplifies Javascript, formatting
+                # because at the top level we don't need a list element.
+
+                # Strip quotes from messages.
+                message = evaluation.out[0]
+                if message.text.startswith('"') and message.text.endswith('"'):
+                    message.text = message.text[1:-1]
                 results.append(
                     Result(
                         out=evaluation.out,
