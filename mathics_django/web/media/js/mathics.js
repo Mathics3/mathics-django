@@ -415,15 +415,15 @@ function setResult(list, results) {
         bold.innerText = first_out.prefix + ": " + first_out.text[0];
         resultList.appendChild(bold);
 
-        // Not add Traceback lines. Start at index 1.
+        // Now add Traceback lines. Start at index 1.
 
         // FIXME: redo with better formatting, (a table?) with parsed entries.
-        const p = document.createElement('p');
+        const pre = document.createElement('pre');
         // Last line repeats information from the first line;
         // first line was included above.
-        p.innerText = result.out.text.slice(1, -1).join("\n");
+        pre.innerHTML = result.out[0].text.slice(1, -1).join("");
 
-        resultList.appendChild(p);
+        resultList.appendChild(pre);
         resultList.style.display = 'block';
         li.appendChild(resultList);
         list.appendChild(li);
@@ -446,7 +446,7 @@ function setResult(list, results) {
         // Next populate warning or error message...
         const pre = document.createElement('p');
         // Remove gratuitous surrounding quotes.
-        pre.innerText = first_out.text.slice(1, -1);
+        pre.innerHTML = first_out.text.slice(1, -1);
         resultList.appendChild(pre);
 
         // Finally include the returned result.

@@ -11,6 +11,9 @@ from django.http import (
 )
 from django.shortcuts import render
 from django.template import loader
+from pygments import highlight
+from pygments.formatters import HtmlFormatter
+from pygments.lexers import PythonTracebackLexer
 
 try:
     import ujson as json
@@ -27,6 +30,8 @@ from mathics.settings import TIMEOUT, default_pymathics_modules
 
 from mathics_django.web.forms import LoginForm, SaveForm
 from mathics_django.web.models import Query, Worksheet, get_session_evaluation
+
+html_formatter = HtmlFormatter(noclasses=True)
 
 if settings.DEBUG:
     JSON_CONTENT_TYPE = "text/html"
@@ -314,6 +319,10 @@ def query(request: WSGIRequest) -> JsonResponse:
 
     except Exception as exc:
 
+        def html_format_traceback_line(tb_line: str) -> str:
+            tb = highlight(tb_line, PythonTracebackLexer(), html_formatter)
+            return f'<p style="white-space: pre-wrap; word-wrap: break-word;">{tb}</p>'
+
         # Should we show the Python exception details back to the user?
         if settings.DEBUG and settings.DISPLAY_EXCEPTIONS:
             call_stack = traceback.format_exception(exc)
@@ -321,12 +330,27 @@ def query(request: WSGIRequest) -> JsonResponse:
             #       like splitting up lines. Encapsulate the below and put
             #       in a function.
             # FIXME: allow the the stack limit to be user settable
+
+            html_formatted_callstack = []
             if len(call_stack) > 18:
-                call_stack = call_stack[:9] + ["..."] + call_stack[-9:]
+                html_formatted_callstack = [html_format_traceback_line(call_stack[0])]
+                html_formatted_callstack += [
+                    html_format_traceback_line(tb_line) for tb_line in call_stack[1:9]
+                ]
+                html_formatted_callstack.append("<p>...</p>")
+                html_formatted_callstack += [
+                    html_format_traceback_line(tb_line) for tb_line in call_stack[-9:]
+                ]
+            else:
+                html_formatted_callstack = [
+                    html_format_traceback_line(tb_line) for tb_line in call_stack
+                ]
 
             except_head = f"Exception raised: {exc}"
             message = Message(
-                "Python Exception", tag="exception", text=[except_head] + call_stack
+                "Python Exception",
+                tag="exception",
+                text=[except_head] + html_formatted_callstack,
             )
             results.append(
                 Result(

@@ -70,6 +70,7 @@ INSTALL_REQUIRES += [
     "Mathics3 >5.0.2,<6.1.0",
     "django >= 3.2",  # After Python 3.6 is removed, we can bump min version to 4.1
     "networkx >= 2.5",  # Used in format, should disappear though
+    "pygments",  # For colorized Python tracebacks
     "requests",
 ]
 
