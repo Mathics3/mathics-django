@@ -388,13 +388,13 @@ function setResult(list, results) {
         // Create and populate message's classification part...
         const bold = document.createElement('b');
         bold.className = "message"
-        bold.innerHTML = first_out.prefix
+        bold.innerText = first_out.prefix
         resultList.appendChild(bold);
 
 
         // Create and populate warning or error message...
         const p = document.createElement('p');
-        p.innerHTML = first_out.text;
+        p.innerText = first_out.text;
 
         // Add warnning or error message to a list element in a block (which is CSS styled with a nice
         // frame around it).
@@ -412,7 +412,7 @@ function setResult(list, results) {
         const bold = document.createElement('b');
         bold.className = "message";
 
-        bold.innerHTML = first_out.prefix + ": " + first_out.text[0];
+        bold.innerText = first_out.prefix + ": " + first_out.text[0];
         resultList.appendChild(bold);
 
         // Not add Traceback lines. Start at index 1.
@@ -421,7 +421,7 @@ function setResult(list, results) {
         const p = document.createElement('p');
         // Last line repeats information from the first line;
         // first line was included above.
-        p.innerHTML = result.out.text.slice(1, -1).join("\n");
+        p.innerText = result.out.text.slice(1, -1).join("\n");
 
         resultList.appendChild(p);
         resultList.style.display = 'block';
@@ -440,13 +440,13 @@ function setResult(list, results) {
         // First the message classification line
         const bold = document.createElement('b');
         bold.className = "message";
-        bold.innerHTML = first_out.symbol + ": " + first_out.tag;
+        bold.innerText = first_out.symbol + ": " + first_out.tag;
         resultList.appendChild(bold);
 
         // Next populate warning or error message...
         const pre = document.createElement('p');
         // Remove gratuitous surrounding quotes.
-        pre.innerHTML = first_out.text.slice(1, -1);
+        pre.innerText = first_out.text.slice(1, -1);
         resultList.appendChild(pre);
 
         // Finally include the returned result.
@@ -470,7 +470,7 @@ function setResult(list, results) {
                 li.className = out.message ? 'message' : 'print';
 
                 if (out.message) {
-                    li.innerHTML += out.prefix + ': ';
+                    li.innerText += out.prefix + ': ';
                 }
 
                 li.appendChild(createLine(out.text));
