@@ -14,22 +14,18 @@ import os.path as osp
 import pickle
 import re
 import sys
-
 from argparse import ArgumentParser
 from datetime import datetime
 
 import mathics
-
+from mathics import version_string
+from mathics.builtin import builtins_dict
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Output
 from mathics.core.parser import MathicsSingleLineFeeder
-from mathics.doc.common_doc import MathicsMainDocumentation
-from mathics.builtin import builtins_dict
 
-from mathics import version_string
-
+from mathics_django.doc import MathicsDjangoDocumentation
 from mathics_django.settings import get_doc_html_data_path
-
 
 builtins = builtins_dict()
 
@@ -339,7 +335,7 @@ def test_all(
         total = failed = skipped = 0
         failed_symbols = set()
         output_data = {}
-        for tests in documentation.get_tests(want_sorting=want_sorting):
+        for tests in documentation.get_tests():
             sub_total, sub_failed, sub_skipped, symbols, index = test_tests(
                 tests,
                 index,
@@ -564,7 +560,7 @@ def main():
         logfile = open(args.logfilename, "wt")
 
     global documentation
-    documentation = MathicsMainDocumentation(want_sorting=args.want_sorting)
+    documentation = MathicsDjangoDocumentation(want_sorting=args.want_sorting)
     if args.sections:
         sections = set(args.sections.split(","))
         if args.pymathics:  # in case the section is in a pymathics module...

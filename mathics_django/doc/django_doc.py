@@ -4,34 +4,23 @@ This code is the Django-specific part of the homegrown sphinx documentation.
 FIXME: Ditch this and hook into sphinx
 """
 
-import importlib
-import os.path as osp
 import pickle
 import re
-from os import listdir
-from types import ModuleType
 
 from django.utils.safestring import mark_safe
-from mathics import builtin, settings
-from mathics.core.util import IS_PYPY
+from mathics import settings
+
 from mathics.doc.common_doc import (
-    CHAPTER_RE,
-    SECTION_RE,
-    SUBSECTION_RE,
     DocChapter,
     DocGuideSection,
     DocTest,
     DocTests,
+    DocText,
     Documentation,
     Tests,
     XMLDoc,
-    filter_comments,
     gather_tests,
-    get_doc_name_from_module,
-    get_module_doc,
     get_results_by_test,
-    skip_doc,
-    skip_module_doc,
     sorted_chapters,
 )
 from mathics.doc.utils import slugify
@@ -183,291 +172,21 @@ class DjangoDocumentation(Documentation, DjangoDocElement):
         return sorted_results
 
 
-class MathicsMainDocumentation(DjangoDocumentation):
+class MathicsDjangoDocumentation(DjangoDocumentation):
     def __init__(self, want_sorting=True):
+
+        self.doc_chapter_fn = DjangoDocChapter
         self.doc_dir = settings.DOC_DIR
+        self.doc_fn = DjangoDoc
+        self.doc_guide_section_fn = DjangoDocGuideSection
+        self.doc_part_fn = DjangoDocPart
+        self.doc_section_fn = DjangoDocSection
+        self.doc_subsection_fn = DjangoDocSubsection
         self.parts = []
         self.parts_by_slug = {}
-        self.pymathics_doc_loaded = False
         self.title = "Overview"
-        files = listdir(self.doc_dir)
-        files.sort()
-        appendix = []
 
-        for file in files:
-            part_title = file[2:]
-            if part_title.endswith(".mdoc"):
-                part_title = part_title[: -len(".mdoc")]
-                part = DjangoDocPart(self, part_title)
-                text = open(osp.join(self.doc_dir, file), "rb").read().decode("utf8")
-                text = filter_comments(text)
-                chapters = CHAPTER_RE.findall(text)
-                for title, text in chapters:
-                    chapter = DjangoDocChapter(part, title)
-                    text += '<section title=""></section>'
-                    sections = SECTION_RE.findall(text)
-                    for pre_text, title, text in sections:
-                        if title:
-                            section = DjangoDocSection(
-                                chapter, title, text, operator=None, installed=True
-                            )
-                            chapter.sections.append(section)
-                            subsections = SUBSECTION_RE.findall(text)
-                            for subsection_title in subsections:
-                                subsection = DjangoDocSubsection(
-                                    chapter,
-                                    section,
-                                    subsection_title,
-                                    text,
-                                )
-                                section.subsections.append(subsection)
-                                pass
-                            pass
-                        else:
-                            section = None
-                        if not chapter.doc:
-                            chapter.doc = DjangoDoc(pre_text, title, section)
-                        pass
-
-                    part.chapters.append(chapter)
-                if file[0].isdigit():
-                    self.parts.append(part)
-                else:
-                    part.is_appendix = True
-                    appendix.append(part)
-
-        for title, modules, builtins_by_module, start in [
-            (
-                "Reference of Built-in Symbols",
-                builtin.modules,
-                builtin.builtins_by_module,
-                True,
-            )
-        ]:
-            self.doc_part(title, modules, builtins_by_module, start, want_sorting)
-
-        for title, modules, builtins_by_module, start in [
-            (
-                "PyMathics3 Modules",
-                pymathics_modules,
-                pymathics_builtins_by_module,
-                True,
-            )
-        ]:
-            self.doc_part(title, modules, builtins_by_module, start, want_sorting)
-
-        for part in appendix:
-            self.parts.append(part)
-
-        # set keys of tests
-        for tests in self.get_tests():
-            for test in tests.tests:
-                test.key = (tests.part, tests.chapter, tests.section, test.index)
-
-    def add_section(
-        self,
-        chapter: "DjangoDocChapter",
-        section_name: str,
-        section_object,
-        operator,
-        is_guide: bool = False,
-        in_guide: bool = False,
-    ):
-        """
-        Appends a DjangoDocSection or DjangoDocGuideSection
-        object to ``chapter``, a DjangoDocChapter object.
-        "section_object" is either a Python module or a Class object instance.
-        """
-        summary_text = (
-            section_object.summary_text
-            if hasattr(section_object, "summary_text")
-            else ""
-        )
-
-        installed = True
-        for package in getattr(section_object, "requires", []):
-            try:
-                importlib.import_module(package)
-            except ImportError:
-                installed = False
-                break
-
-        # FIXME add an additional mechanism in the module
-        # to allow a docstring and indicate it is not to go in the
-        # user manual
-        if not section_object.__doc__:
-            return
-
-        if is_guide:
-            section = DjangoDocGuideSection(
-                chapter,
-                section_name,
-                section_object.__doc__,
-                section_object,
-                installed=installed,
-            )
-            chapter.guide_sections.append(section)
-
-        else:
-            section = DjangoDocSection(
-                chapter,
-                section_name,
-                section_object.__doc__,
-                operator=operator,
-                installed=installed,
-                in_guide=in_guide,
-                summary_text=summary_text,
-            )
-            chapter.sections.append(section)
-
-        return section
-
-    def add_subsection(
-        self,
-        chapter,
-        section,
-        subsection_name: str,
-        instance,
-        operator=None,
-        in_guide=False,
-    ):
-        """
-        Append a Django subsection for ``instance`` into ``section.subsections``
-        """
-        installed = True
-        for package in getattr(instance, "requires", []):
-            try:
-                importlib.import_module(package)
-            except ImportError:
-                installed = False
-                break
-
-        # FIXME add an additional mechanism in the module
-        # to allow a docstring and indicate it is not to go in the
-        # user manual
-        if not instance.__doc__:
-            return
-        summary_text = (
-            instance.summary_text if hasattr(instance, "summary_text") else ""
-        )
-        subsection = DjangoDocSubsection(
-            chapter,
-            section,
-            subsection_name,
-            instance.__doc__,
-            operator=operator,
-            installed=installed,
-            in_guide=in_guide,
-            summary_text=summary_text,
-        )
-        section.subsections.append(subsection)
-
-    def doc_part(self, title, modules, builtins_by_module, start, want_sorting):
-        """
-        Produce documentation for a "Part" - reference section or
-        possibly Pymathics modules
-        """
-        builtin_part = DjangoDocPart(self, title, is_reference=start)
-        modules_seen = set([])
-
-        if want_sorting:
-            module_collection_fn = lambda x: sorted(
-                modules,
-                key=lambda module: module.sort_order
-                if hasattr(module, "sort_order")
-                else module.__name__,
-            )
-        else:
-            module_collection_fn = lambda x: x
-        for module in module_collection_fn(modules):
-            if skip_module_doc(module, modules_seen):
-                continue
-            title, text = get_module_doc(module)
-            chapter = DjangoDocChapter(
-                builtin_part, title, DjangoDoc(text, title, None)
-            )
-            builtins = builtins_by_module[module.__name__]
-            sections = [
-                builtin for builtin in builtins if not skip_doc(builtin.__class__)
-            ]
-
-            if module.__file__.endswith("__init__.py"):
-                # We have a Guide Section.
-                name = get_doc_name_from_module(module)
-                self.add_section(chapter, name, module, operator=None, is_guide=True)
-                submodules = [
-                    value
-                    for value in module.__dict__.values()
-                    if isinstance(value, ModuleType)
-                ]
-
-                sorted_submodule = lambda x: sorted(
-                    submodules,
-                    key=lambda submodule: submodule.sort_order
-                    if hasattr(submodule, "sort_order")
-                    else submodule.__name__,
-                )
-
-                # Add sections in the guide section...
-                for submodule in sorted_submodule(submodules):
-                    # FIXME add an additional mechanism in the module
-                    # to allow a docstring and indicate it is not to go in the
-                    # user manual
-
-                    if skip_module_doc(submodule, modules_seen):
-                        continue
-                    elif IS_PYPY and submodule.__name__ == "builtins":
-                        # PyPy seems to add this module on its own,
-                        # but it is not something that can be importable
-                        continue
-
-                    submodule_name = get_doc_name_from_module(submodule)
-                    section = self.add_section(
-                        chapter,
-                        submodule_name,
-                        submodule,
-                        operator=None,
-                        is_guide=False,
-                    )
-                    modules_seen.add(submodule)
-
-                    builtins = builtins_by_module.get(submodule.__name__, [])
-                    subsections = [builtin for builtin in builtins]
-                    for instance in subsections:
-                        if hasattr(instance, "no_doc") and instance.no_doc:
-                            continue
-
-                        modules_seen.add(instance)
-                        name = instance.get_name(short=True)
-
-                        self.add_subsection(
-                            chapter,
-                            section,
-                            instance.get_name(short=True),
-                            instance,
-                            instance.get_operator(),
-                            in_guide=False,
-                        )
-            else:
-                self.doc_sections(sections, modules_seen, chapter)
-            builtin_part.chapters.append(chapter)
-        self.parts.append(builtin_part)
-
-    def doc_sections(self, sections, modules_seen, chapter):
-        for instance in sections:
-            if instance not in modules_seen and (
-                not hasattr(instance, "no_doc") or not instance.no_doc
-            ):
-                name = instance.get_name(short=True)
-                self.add_section(
-                    chapter,
-                    name,
-                    instance,
-                    instance.get_operator(),
-                    is_guide=False,
-                    in_guide=False,
-                )
-                modules_seen.add(instance)
+        self.gather_doc_data(want_sorting)
 
 
 class DjangoDoc(XMLDoc):
@@ -498,7 +217,7 @@ class DjangoDoc(XMLDoc):
 
     def html(self):
         counters = {}
-        items = [item for item in self.items if not item.is_private()]
+        items = [item for item in self.items]
         title_line = self.title + "\n"
         if len(items) and items[0].text.startswith(title_line):
             # In module-style docstring tagging, the first line of the docstring is the section title.
@@ -506,7 +225,7 @@ class DjangoDoc(XMLDoc):
             # Or that is the intent. This code is a bit hacky.
             items[0].text = items[0].text[len(title_line) :]
 
-        text = "\n".join(item.html(counters) for item in items if not item.is_private())
+        text = "\n".join(item.html(counters) for item in items)
         if text == "":
             # HACK ALERT if text is "" we may have missed some test markup.
             return mark_safe(escape_html(self.rawdoc))
@@ -794,10 +513,6 @@ class DjangoDocTest(DocTest):
 
 
 class DjangoDocTests(DocTests):
-    def __init__(self):
-        self.tests = []
-        self.text = ""
-
     def html(self, counters=None):
         if len(self.tests) == 0:
             return "\n"
@@ -807,26 +522,8 @@ class DjangoDocTests(DocTests):
             )
         )
 
-    def test_indices(self):
-        return [test.index for test in self.tests]
 
-
-class DjangoDocText(object):
-    def __init__(self, text):
-        self.text = text
-
-    def get_tests(self) -> list:
-        return []
-
-    def is_private(self) -> bool:
-        return False
-
-    def __str__(self):
-        return self.text
-
+class DjangoDocText(DocText):
     def html(self, counters=None) -> str:
         result = escape_html(self.text, counters=counters)
         return result
-
-    def test_indices(self):
-        return []

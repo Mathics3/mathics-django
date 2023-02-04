@@ -15,7 +15,7 @@ from mathics_django.doc.django_doc import (
     DjangoDocChapter,
     DjangoDocPart,
     DjangoDocSection,
-    MathicsMainDocumentation,
+    MathicsDjangoDocumentation,
 )
 from mathics_django.web.views import JsonResponse
 
@@ -26,7 +26,7 @@ def check_for_pymathics_load():
     if seen_pymathics_modules != pymathics_modules:
         # print("XXX refresh pymathics doc")
         global documentation
-        documentation = MathicsMainDocumentation()
+        documentation = MathicsDjangoDocumentation()
 
 
 def doc(request: WSGIRequest, ajax: bool = False) -> DocResponse:
