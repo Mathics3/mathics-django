@@ -8,7 +8,7 @@ from typing import Union
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import Http404, HttpResponse
 from django.shortcuts import render
-from mathics.core.pymathics import pymathics_modules
+from mathics.eval.pymathics import pymathics_modules
 
 from mathics_django.doc import documentation
 from mathics_django.doc.django_doc import (

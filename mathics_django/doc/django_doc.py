@@ -13,7 +13,6 @@ from types import ModuleType
 
 from django.utils.safestring import mark_safe
 from mathics import builtin, settings
-from mathics.core.pymathics import pymathics_builtins_by_module, pymathics_modules
 from mathics.core.util import IS_PYPY
 from mathics.doc.common_doc import (
     CHAPTER_RE,
@@ -36,6 +35,7 @@ from mathics.doc.common_doc import (
     sorted_chapters,
 )
 from mathics.doc.utils import slugify
+from mathics.eval.pymathics import pymathics_builtins_by_module, pymathics_modules
 
 from mathics_django.doc.utils import escape_html
 from mathics_django.settings import get_doc_html_data_path
