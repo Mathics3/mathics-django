@@ -425,6 +425,7 @@ class DjangoDocSubsection(DjangoDocElement):
         self.section = section
         self.slug = slugify(title)
         self.title = title
+
         if section:
             chapter = section.chapter
             part = chapter.part
@@ -437,7 +438,7 @@ class DjangoDocSubsection(DjangoDocElement):
             # Tests haven't been picked out yet from the doc string yet.
             # Gather them here.
             self.items = gather_tests(
-                self.text, DjangoDocTests, DjangoDocTest, DjangoDocText, key_prefix
+                text, DjangoDocTests, DjangoDocTest, DjangoDocText, key_prefix
             )
         else:
             self.items = []

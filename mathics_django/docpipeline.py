@@ -23,6 +23,7 @@ from mathics.builtin import builtins_dict
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Output
 from mathics.core.parser import MathicsSingleLineFeeder
+from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 
 from mathics_django.doc import MathicsDjangoDocumentation
 from mathics_django.settings import get_doc_html_data_path
@@ -561,10 +562,24 @@ def main():
 
     global documentation
     documentation = MathicsDjangoDocumentation(want_sorting=args.want_sorting)
+
+    # LoadModule Mathics3 modules
+    if args.pymathics:
+        for module_name in args.pymathics.split(","):
+            try:
+                eval_LoadModule(module_name, definitions)
+            except PyMathicsLoadException:
+                print(f"Python module {module_name} is not a Mathics3 module.")
+
+            except ImportError:
+                print(f"Python module {module_name} does not exist")
+            else:
+                print(f"Mathics3 Module {module_name} loaded")
+
+    documentation.gather_doc_data()
+
     if args.sections:
         sections = set(args.sections.split(","))
-        if args.pymathics:  # in case the section is in a pymathics module...
-            documentation.load_pymathics_doc()
 
         test_sections(
             sections,
@@ -574,18 +589,12 @@ def main():
         )
     elif args.chapters:
         chapters = set(args.chapters.split(","))
-        if args.pymathics:  # in case the section is in a pymathics module...
-            documentation.load_pymathics_doc()
 
         test_chapters(
             chapters, stop_on_failure=args.stop_on_failure, reload=args.reload
         )
     else:
-        # if we want to check also the pymathics modules
-        if args.pymathics:
-            print("Building pymathics documentation object")
-            documentation.load_pymathics_doc(want_sorting=args.want_sorting)
-        elif args.doc_only:
+        if args.doc_only:
             extract_doc_from_source(
                 quiet=args.quiet,
                 reload=args.reload,
