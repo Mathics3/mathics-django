@@ -215,7 +215,7 @@ class DjangoDoc(XMLDoc):
 
     def html(self):
         counters = {}
-        items = [item for item in self.items]
+        items = [item for item in self.items if not item.is_private()]
         title_line = self.title + "\n"
         if len(items) and items[0].text.startswith(title_line):
             # In module-style docstring tagging, the first line of the docstring is the section title.
@@ -223,7 +223,7 @@ class DjangoDoc(XMLDoc):
             # Or that is the intent. This code is a bit hacky.
             items[0].text = items[0].text[len(title_line) :]
 
-        text = "\n".join(item.html(counters) for item in items)
+        text = "\n".join(item.html(counters) for item in items if not item.is_private())
         if text == "":
             # HACK ALERT if text is "" we may have missed some test markup.
             return mark_safe(escape_html(self.rawdoc))
