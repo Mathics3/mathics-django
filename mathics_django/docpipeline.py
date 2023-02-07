@@ -336,7 +336,7 @@ def test_all(
         total = failed = skipped = 0
         failed_symbols = set()
         output_data = {}
-        for tests in documentation.get_tests(want_sorting=want_sorting):
+        for tests in documentation.get_tests():
             sub_total, sub_failed, sub_skipped, symbols, index = test_tests(
                 tests,
                 index,
