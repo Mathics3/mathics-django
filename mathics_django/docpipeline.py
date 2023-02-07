@@ -278,7 +278,7 @@ def test_sections(
     sections |= {"$" + s for s in sections}
     output_data = load_doc_data() if reload else {}
     prev_key = []
-    for tests in documentation.get_tests(want_sorting=want_sorting):
+    for tests in documentation.get_tests():
         if tests.section in sections:
             for test in tests.tests:
                 key = list(test.key)[1:-1]
