@@ -20,7 +20,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install OS dependencies
       run: |
-        sudo apt-get update -qq && sudo apt-get install -qq liblapack-dev llvm-dev remake nodejs npm tesseract-ocr
+        sudo apt-get update -qq && sudo apt-get install -qq liblapack-dev llvm-dev nodejs npm tesseract-ocr
         python -m pip install --upgrade pip
     - name: Install Python dependencies
       run: |
@@ -35,7 +35,7 @@ jobs:
         pip install pytest pexpect
         npm install
         python -m pip install -e .[full]
-        remake -x develop
+        make develop
     - name: Test mathics-django
       run: |
-        remake -x check
+        make check

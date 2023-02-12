@@ -4,6 +4,6 @@ Module for handling Mathics-style documentation inside Mathics Django.
 """
 
 # FIXME: should we really do this here?
-from mathics_django.doc.django_doc import MathicsMainDocumentation
+from mathics_django.doc.django_doc import MathicsDjangoDocumentation
 
-documentation = MathicsMainDocumentation()
+documentation = MathicsDjangoDocumentation()

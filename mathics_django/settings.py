@@ -63,10 +63,6 @@ MATHICS_BACKEND_THREEJS_JSON_PATH = os.path.join(
 
 REQUIRE_LOGIN = False
 
-# Rocky: this is probably a hack. LoadModule[] needs to handle
-# whatever it is that setting this thing did.
-default_pymathics_modules = []
-
 # Location of internal document data. Currently this is in Python
 # Pickle form, but storing this in JSON if possible would be preferable and faster
 
