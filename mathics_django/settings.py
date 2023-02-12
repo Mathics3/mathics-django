@@ -68,8 +68,8 @@ REQUIRE_LOGIN = False
 
 # We need two versions, one in the user space which is updated with
 # local packages installed and is user writable.
-DOC_USER_HTML_DATA_PATH = os.environ.get(
-    "DOC_USER_HTML_DATA_PATH", osp.join(DATA_DIR, "doc_html_data.pcl")
+DOCTEST_USER_HTML_DATA_PATH = os.environ.get(
+    "DOCTEST_USER_HTML_DATA_PATH", osp.join(DATA_DIR, "doc_html_data.pcl")
 )
 
 # We need another version as a fallback, and that is distributed with the
@@ -79,26 +79,26 @@ DOC_SYSTEM_HTML_DATA_PATH = os.environ.get(
 )
 
 
-def get_doc_html_data_path(should_be_readable=False, create_parent=False) -> str:
+def get_doctest_html_data_path(should_be_readable=False, create_parent=False) -> str:
     """Returns a string path where we can find Python Pickle data for HTML
     processing.
 
     If `should_be_readable` is True, the we will check to see whether this file is
     readable (which also means it exists). If not, we'll return the `DOC_SYSTEM_DATA_PATH`.
     """
-    doc_user_html_data_path = Path(DOC_USER_HTML_DATA_PATH)
+    doc_user_html_data_path = Path(DOCTEST_USER_HTML_DATA_PATH)
     base_config_dir = doc_user_html_data_path.parent
     if not base_config_dir.is_dir() and create_parent:
         Path("base_config_dir").mkdir(parents=True, exist_ok=True)
 
     if should_be_readable:
         return (
-            DOC_USER_HTML_DATA_PATH
+            DOCTEST_USER_HTML_DATA_PATH
             if doc_user_html_data_path.is_file()
             else DOC_SYSTEM_HTML_DATA_PATH
         )
     else:
-        return DOC_USER_HTML_DATA_PATH
+        return DOCTEST_USER_HTML_DATA_PATH
 
 
 #########################################################
