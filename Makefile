@@ -10,12 +10,14 @@ PYTHON ?= python
 PIP ?= pip3
 RM  ?= rm
 
+MATHICS3_MODULE_OPTION ?= --load-module pymathics.graph,pymathics.natlang
+
 .PHONY: all build \
 	check clean \
 	develop \
         dist \
         doc \
-        doc-data \
+        doctest-data \
         djangotest \
         docker \
 	gstest pytest \
@@ -69,9 +71,9 @@ doctest-workaround:
 doctest: $(THREEJS)
 	MATHICS_CHARACTER_ENCODING=$(MATHICS_CHARACTER_ENCODING) SANDBOX=$(SANDBOX) $(PYTHON) mathics_django/docpipeline.py $o
 
-#: Make Python Pickle-format document data.
-doc-data:
-	$(PYTHON) mathics_django/docpipeline.py -o --want-sorting
+#: Create doctest test data and test results that is used in online documentation
+doctest-data:
+	$(PYTHON) mathics_django/docpipeline.py --output --keep-going $(MATHICS3_MODULE_OPTION)
 
 #: Install Mathics-Django
 install: $(THREEJS)

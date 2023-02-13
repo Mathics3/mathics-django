@@ -17,7 +17,7 @@ from mathics import optional_software, version_info as mathics_version_info
 from mathics.core.evaluation import Evaluation
 from mathics.system_info import mathics_system_info
 
-from mathics_django.settings import DOC_USER_HTML_DATA_PATH, MATHICS_DJANGO_DB_PATH
+from mathics_django.settings import DOCTEST_USER_HTML_DATA_PATH, MATHICS_DJANGO_DB_PATH
 from mathics_django.version import __version__
 from mathics_django.web.models import get_session_evaluation
 
@@ -38,7 +38,7 @@ def about_page(request):
         {
             "BaseDirectory": system_info["$BaseDirectory"],
             "DB_PATH": MATHICS_DJANGO_DB_PATH,
-            "DOC_DATA_PATH": DOC_USER_HTML_DATA_PATH,
+            "DOCTEST_DATA_PATH": DOCTEST_USER_HTML_DATA_PATH,
             "HTTP_USER_AGENT": request.META.get("HTTP_USER_AGENT", ""),
             "HomeDirectory": system_info["$HomeDirectory"],
             "InstallationDirectory": system_info["$InstallationDirectory"],

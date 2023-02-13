@@ -26,7 +26,7 @@ from mathics.core.parser import MathicsSingleLineFeeder
 from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 
 from mathics_django.doc import MathicsDjangoDocumentation
-from mathics_django.settings import get_doc_html_data_path
+from mathics_django.settings import get_doctest_html_data_path
 
 builtins = builtins_dict()
 
@@ -304,7 +304,7 @@ def test_sections(
     else:
         print_and_log("All tests passed.")
     if generate_output and (failed == 0):
-        save_doc_data(output_data)
+        save_doctest_data(output_data)
 
 
 def open_ensure_dir(f, *args, **kwargs):
@@ -381,7 +381,7 @@ def test_all(
             print_and_log("  - %s in %s / %s" % (section, part, chapter))
 
     if generate_output and (failed == 0 or doc_even_if_error):
-        save_doc_data(output_data)
+        save_doctest_data(output_data)
         return True
 
     if failed == 0:
@@ -392,22 +392,35 @@ def test_all(
 
 
 def load_doc_data():
-    doc_html_data_path = get_doc_html_data_path(should_be_readable=True)
+    doc_html_data_path = get_doctest_html_data_path(should_be_readable=True)
     print(f"Loading internal document data from {doc_html_data_path}")
     with open_ensure_dir(doc_html_data_path, "rb") as doc_data_file:
         return pickle.load(doc_data_file)
 
 
-def save_doc_data(output_data):
-    doc_html_data_path = get_doc_html_data_path(
+def save_doctest_data(output_data):
+    """
+    Save doctest tests and test results to a Python PCL file.
+
+    ``output_data`` is a dictionary of test results. The key is a tuple
+    of:
+    * Part name,
+    * Chapter name,
+    * [Guide Section name],
+    * Section name,
+    * Subsection name,
+    * test number
+    and the value is a dictionary of a Result.getdata() dictionary.
+    """
+    doctest_html_data_path = get_doctest_html_data_path(
         should_be_readable=False, create_parent=True
     )
-    print(f"Writing internal document data to {doc_html_data_path}")
-    with open_ensure_dir(doc_html_data_path, "wb") as output_file:
+    print(f"Writing internal document data to {doctest_html_data_path}")
+    with open_ensure_dir(doctest_html_data_path, "wb") as output_file:
         pickle.dump(output_data, output_file, 4)
 
 
-def extract_doc_from_source(quiet=False, reload=False, want_source=False):
+def write_doctest_data(quiet=False, reload=False, want_source=False):
     """
     Write internal (pickled) doc files and example data in docstrings.
     """
@@ -424,7 +437,7 @@ def extract_doc_from_source(quiet=False, reload=False, want_source=False):
         return
 
     print("done.\n")
-    save_doc_data(output_data)
+    save_doctest_data(output_data)
 
 
 def main():
@@ -465,18 +478,20 @@ def main():
         "You can list multiple sections by adding a comma (and no space) in between section names.",
     )
     parser.add_argument(
+        "--load-module",
+        "-l",
+        dest="pymathics",
+        metavar="MATHIC3-MODULES",
+        help="load Mathics3 module MATHICS3-MODULES. "
+        "You can list multiple Mathics3 Modules by adding a comma (and no space) in between "
+        "module names.",
+    )
+    parser.add_argument(
         "--logfile",
         "-f",
         dest="logfilename",
         metavar="LOGFILENAME",
         help="stores the output in [logfilename]. ",
-    )
-    parser.add_argument(
-        "--pymathics",
-        "-l",
-        dest="pymathics",
-        action="store_true",
-        help="also checks pymathics modules.",
     )
     parser.add_argument(
         "--time-each",
@@ -576,7 +591,7 @@ def main():
             else:
                 print(f"Mathics3 Module {module_name} loaded")
 
-    documentation.gather_doc_data()
+    documentation.gather_doctest_data()
 
     if args.sections:
         sections = set(args.sections.split(","))
@@ -595,7 +610,7 @@ def main():
         )
     else:
         if args.doc_only:
-            extract_doc_from_source(
+            write_doctest_data(
                 quiet=args.quiet,
                 reload=args.reload,
                 want_sorting=args.want_sorting,

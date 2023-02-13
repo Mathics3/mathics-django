@@ -25,15 +25,15 @@ from mathics.doc.common_doc import (
 from mathics.doc.utils import slugify
 
 from mathics_django.doc.utils import escape_html
-from mathics_django.settings import get_doc_html_data_path
+from mathics_django.settings import get_doctest_html_data_path
 
 # FIXME: remove globalness
 try:
-    doc_data_path = get_doc_html_data_path(should_be_readable=True)
-    with open(doc_data_path, "rb") as doc_data_file:
-        doc_data = pickle.load(doc_data_file)
+    doctest_html_data_path = get_doctest_html_data_path(should_be_readable=True)
+    with open(doctest_html_data_path, "rb") as doctest_html_data_file:
+        doc_data = pickle.load(doctest_html_data_file)
 except IOError:
-    print(f"Trouble reading Doc file {doc_data_path}")
+    print(f"Trouble reading Doc file {doctest_html_data_path}")
     doc_data = {}
 
 
@@ -184,7 +184,7 @@ class MathicsDjangoDocumentation(DjangoDocumentation):
         self.parts_by_slug = {}
         self.title = "Overview"
 
-        self.gather_doc_data()
+        self.gather_doctest_data()
 
 
 class DjangoDoc(XMLDoc):
