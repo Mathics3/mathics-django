@@ -361,6 +361,16 @@ Graphics3D[Table[Point[{x, y, z}], {x, 5}, {y, 5}, {z, 5}]]',
 	'Needs["DiscreteMath`CombinatoricaV0.9`"]',
 	'ShowGraph[K[6,6,6]]',
 	'ShowGraph[ CirculantGraph[20, RandomSubset[Range[10]]] ]',
-	'FerrersDiagram[RandomInteger[{0, 3}, 50]]'
+	'FerrersDiagram[RandomInteger[{0, 3}, 50]]',
+
+	'(**** Mathics3 Graph Module - this may fail if your system does not have pymathics.graph ****)',
+	'LoadModule["pymathics.graph"]',
+	'BinomialTree[3, DirectedEdges->True]',
+	'BalancedTree[3, 3]',
+	'g = Graph[{1 -> 2, 2 -> 3, 3 <-> 4}, VertexLabels->True]',
+	'ConnectedComponents[g]',
+	'WeaklyConnectedComponents[g]',
+	'GraphDistance[g, 1, 4]',
+	'GraphDistance[g, 3, 2]',
     ]);
 }
