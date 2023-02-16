@@ -124,12 +124,12 @@ def escape_html(text, verbatim_mode=False, counters=None, single_line=False):
             content = match.group("content")
             #
             # Sometimes it happens that the URL does not
-            # fit in 80 characters. Then, to avoid that 
+            # fit in 80 characters. Then, to avoid that
             # flake8 complains, and also to have a
             # nice and readable ASCII representation,
             # we would like to split the URL in several,
             # lines, having indentation spaces.
-            # 
+            #
             # The following line removes these extra
             # characters, which would spoil the URL,
             # producing a single line, space-free string.
