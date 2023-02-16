@@ -122,6 +122,7 @@ def escape_html(text, verbatim_mode=False, counters=None, single_line=False):
         def repl_hypertext(match):
             tag = match.group("tag")
             content = match.group("content")
+            content = content.replace(" ", "").replace("\n", "")
             if tag == "em":
                 return r"<em>%s</em>" % content
             elif tag == "url":
