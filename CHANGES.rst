@@ -15,6 +15,9 @@ CHANGES
   - Python Implementation (CPython, PyPy, Pyston) explicitly is shown
   - Optional Python packages are also shown along with their version
 
+* In documentation, ``<url>...</url>`` admits now to be splitted in
+  several indented lines.
+
 5.0.0
 -----
 
