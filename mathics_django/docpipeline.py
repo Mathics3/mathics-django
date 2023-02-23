@@ -32,7 +32,7 @@ builtins = builtins_dict()
 
 
 class TestOutput(Output):
-    def max_stored_size(self, settings):
+    def max_stored_size(self):
         return None
 
 
@@ -230,6 +230,9 @@ def test_chapters(
     reload=False,
     want_sorting=False,
 ):
+    if documentation is None:
+        print_and_log("documentation is not loaded.")
+        return
     failed = 0
     index = 0
     chapter_names = ", ".join(chapters)
@@ -258,7 +261,8 @@ def test_chapters(
     if index == 0:
         print_and_log(f"No chapters found named {chapter_names}.")
     elif failed > 0:
-        print_and_log("%d test%s failed." % (failed, "s" if failed != 1 else ""))
+        if not (keep_going and format == "xml"):
+            print_and_log("%d test%s failed." % (failed, "s" if failed != 1 else ""))
     else:
         print_and_log("All tests passed.")
 
@@ -271,6 +275,9 @@ def test_sections(
     reload=False,
     want_sorting=False,
 ):
+    if documentation is None:
+        print_and_log("documentation is not loaded.")
+        return
     failed = 0
     index = 0
     section_names = ", ".join(sections)
@@ -300,10 +307,11 @@ def test_sections(
     if index == 0:
         print_and_log(f"No sections found named {section_names}.")
     elif failed > 0:
-        print_and_log("%d test%s failed." % (failed, "s" if failed != 1 else ""))
+        if not (keep_going and format == "xml"):
+            print_and_log("%d test%s failed." % (failed, "s" if failed != 1 else ""))
     else:
         print_and_log("All tests passed.")
-    if generate_output and (failed == 0):
+    if generate_output and (failed == 0 or keep_going):
         save_doctest_data(output_data)
 
 
@@ -330,6 +338,10 @@ def test_all(
 ):
     if not quiet:
         print(f"Testing {version_string}")
+
+    if documentation is None:
+        print_and_log("documentation is not loaded.")
+        return
 
     try:
         index = 0
@@ -420,17 +432,21 @@ def save_doctest_data(output_data):
         pickle.dump(output_data, output_file, 4)
 
 
-def write_doctest_data(quiet=False, reload=False, want_source=False):
+def write_doctest_data(quiet=False, reload=False):
     """
     Write internal (pickled) doc files and example data in docstrings.
     """
+    if documentation is None:
+        print_and_log("documentation is not loaded.")
+        return
+
     if not quiet:
         print(f"Extracting internal doc data for {version_string}")
         print("This may take a while...")
 
     try:
         output_data = load_doc_data() if reload else {}
-        for tests in documentation.get_tests(want_source=want_source):
+        for tests in documentation.get_tests():
             create_output(tests, output_data)
     except KeyboardInterrupt:
         print("\nAborted.\n")
@@ -576,7 +592,7 @@ def main():
         logfile = open(args.logfilename, "wt")
 
     global documentation
-    documentation = MathicsDjangoDocumentation(want_sorting=args.want_sorting)
+    documentation = MathicsDjangoDocumentation()
 
     # LoadModule Mathics3 modules
     if args.pymathics:
