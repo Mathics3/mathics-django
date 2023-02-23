@@ -367,10 +367,17 @@ Graphics3D[Table[Point[{x, y, z}], {x, 5}, {y, 5}, {z, 5}]]',
 	'LoadModule["pymathics.graph"]',
 	'BinomialTree[3, DirectedEdges->True]',
 	'BalancedTree[3, 3]',
-	'g = Graph[{1 -> 2, 2 -> 3, 3 <-> 4}, VertexLabels->True]',
+	/*
+         There may be a a contention for UndirectedEdge here by combinatorica.
+         'g = Graph[{1 -> 2, 2 -> 3, 3 <-> 4}, VertexLabels->True]',
 	'ConnectedComponents[g]',
-	'WeaklyConnectedComponents[g]',
-	'GraphDistance[g, 1, 4]',
-	'GraphDistance[g, 3, 2]',
+        */
+	'(**** Mathics3 Natural Language Module - this may fail if your system does not have pymathics.natlang ****)',
+	'LoadModule["pymathics.natlang"]',
+	'Pluralize["try"]',
+	'LanguageIdentify["eins zwei drei"]',
+	'WordFrequency["Apple Tree and apple", "apple", IgnoreCase -> True]',
+	'TextCases["Anne, Peter and Mr Johnes say hello.", "Person", 3]',
+	'DeleteStopwords["There was an Old Man of Apulia, whose conduct was very peculiar"]'
     ]);
 }

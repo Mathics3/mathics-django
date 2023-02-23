@@ -73,7 +73,7 @@ doctest: $(THREEJS)
 
 #: Create doctest test data and test results that is used in online documentation
 doctest-data:
-	$(PYTHON) mathics_django/docpipeline.py --output --keep-going $(MATHICS3_MODULE_OPTION)
+	MATHICS_CHARACTER_ENCODING="UTF-8"  $(PYTHON) mathics_django/docpipeline.py --output --keep-going $(MATHICS3_MODULE_OPTION)
 
 #: Install Mathics-Django
 install: $(THREEJS)

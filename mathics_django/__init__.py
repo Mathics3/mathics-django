@@ -2,6 +2,7 @@
 
 import django
 from mathics import version_info
+from mathics.version import __version__
 
 version_info["django"] = django.__version__
 
