@@ -29,8 +29,8 @@ function getLetterWidth(element) {
 
 function refreshInputSize(textarea) {
     const letterWidth = getLetterWidth(textarea),
-          width = textarea.clientWidth,
-          lines = textarea.value.split('\n');
+        width = textarea.clientWidth,
+        lines = textarea.value.split('\n');
 
     let lineCount = 0;
 
@@ -70,17 +70,24 @@ function getDimensions(math, callback) {
     MathJax.Hub.Queue(['Typeset', MathJax.Hub, container]);
     MathJax.Hub.Queue(() => {
         const containerOffsetLeft = container.offsetLeft,
-              containerOffsetTop = container.offsetTop,
-              nextOffsetLeft = all.querySelector('.calc_next').offsetLeft,
-              belowOffsetTop = all.querySelector('.calc_below').offsetTop;
+            containerOffsetTop = container.offsetTop,
+            nextOffsetLeft = all.querySelector('.calc_next').offsetLeft,
+            belowOffsetTop = all.querySelector('.calc_below').offsetTop;
 
         const width = nextOffsetLeft - containerOffsetLeft + 4,
-              height = belowOffsetTop - containerOffsetTop + 20;
+            height = belowOffsetTop - containerOffsetTop + 20;
 
         all.remove();
 
         callback(width, height);
     });
+}
+
+function createMessageClassificationHeader(resultList, text) {
+    const bold = document.createElement("strong");
+    bold.className = "message";
+    bold.innerText = text;
+    resultList.appendChild(bold);
 }
 
 function createMathNode(nodeName) {
@@ -132,7 +139,7 @@ function translateDOMElement(element, svg) {
             op === '}' ||
             op === String.fromCharCode(12314) ||
             op === String.fromCharCode(12315)
-           ) {
+        ) {
             dom.setAttribute('maxsize', '3');
         }
     }
@@ -141,7 +148,7 @@ function translateDOMElement(element, svg) {
 
     if (nodeName === 'graphics3d') {
         const data = JSON.parse(element.getAttribute('data')),
-              div = document.createElement('div');
+            div = document.createElement('div');
 
         drawGraphics3d(div, data);
 
@@ -209,7 +216,7 @@ function translateDOMElement(element, svg) {
 
         rows.forEach((row) => {
             const mtr = createMathNode('mtr'),
-                  mtd = createMathNode('mtd');
+                mtd = createMathNode('mtd');
 
             mtr.setAttribute('style', nospace);
             mtd.setAttribute('style', nospace);
@@ -330,12 +337,12 @@ function afterProcessResult(list, command) {
                 if (command === 'Typeset') {
                     // recalculate positions of insets based on ox/oy properties
                     const foreignObject = math.parentNode.parentNode.parentNode,
-                          dimensions = math.getDimensions();
+                        dimensions = math.getDimensions();
 
                     const ox = parseFloat(foreignObject.getAttribute('ox')),
-                          oy = parseFloat(foreignObject.getAttribute('oy')),
-                          width = dimensions.width + 4,
-                          height = dimensions.height + 4;
+                        oy = parseFloat(foreignObject.getAttribute('oy')),
+                        width = dimensions.width + 4,
+                        height = dimensions.height + 4;
 
                     let x = parseFloat(foreignObject.getAttribute('x').substr()),
                         y = parseFloat(foreignObject.getAttribute('y'));
@@ -379,18 +386,12 @@ function setResult(list, results) {
     }
     if (format == "Syntax Error") {
 
-        /*
-          Handle a Syntax error.
+        // Handle a Syntax error.
 
-          FIXME: turn this function. It is used for other messages as well
-        */
-
-        // Create and populate message's classification part...
-        const bold = document.createElement('b');
-        bold.className = "message"
-        bold.innerText = first_out.prefix
-        resultList.appendChild(bold);
-
+        createMessageClassificationHeader(
+            resultList,
+            first_out.prefix,
+        );
 
         // Create and populate warning or error message...
         const p = document.createElement('p');
@@ -405,15 +406,10 @@ function setResult(list, results) {
 
     } else if (format == "Python Exception") {
 
-        /* Format a Python Exception. DRY with Syntax error.
-           Note that here, first_out.text is an Array of traceback lines.
-        */
-        // Create and populate the message classification part.
-        const bold = document.createElement('b');
-        bold.className = "message";
-
-        bold.innerText = first_out.prefix + ": " + first_out.text[0];
-        resultList.appendChild(bold);
+        createMessageClassificationHeader(
+            resultList,
+            first_out.prefix + ": " + first_out.text[0],
+        );
 
         // Now add Traceback lines. Start at index 1.
 
@@ -433,20 +429,17 @@ function setResult(list, results) {
         /* There was some sort of warning or error message produced.
            There could be output (in "result") as well. Often this the same
            as the input.
-
-           DRY this with the other messages above.
         */
 
-        // First the message classification line
-        const bold = document.createElement('b');
-        bold.className = "message";
-        bold.innerText = first_out.symbol + ": " + first_out.tag;
-        resultList.appendChild(bold);
+        createMessageClassificationHeader(
+            resultList,
+            first_out.symbol + ": " + first_out.tag,
+        );
 
         // Next populate warning or error message...
         const pre = document.createElement('p');
         // Remove gratuitous surrounding quotes.
-        pre.innerHTML = first_out.text.slice(1, -1);
+        pre.innerText = first_out.text.slice(1, -1);
         resultList.appendChild(pre);
 
         // Finally include the returned result.
@@ -660,7 +653,7 @@ function onBlur() {
         this.li != movedItem &&
         isEmpty(this) &&
         document.getElementById('queries').childElementCount > 1
-       ) {
+    ) {
         this.li.display = 'none';
 
         if (this == lastFocus) {
@@ -842,31 +835,31 @@ function isGlobalKey(event) {
 function globalKeyUp(event) {
     if (!popup && event.ctrlKey) {
         switch (event.keyCode) {
-        case 68: // D
-            showDoc();
-            document.getElementById('search').select();
-            event.stop();
+            case 68: // D
+                showDoc();
+                document.getElementById('search').select();
+                event.stop();
 
-            break;
-        // case 67: // C
-        //      focusLast();
-        //      event.stop();
-        //
-        //      break;
-        case 83: // S
-            event.stop();
-            event.stopPropagation();
-            event.preventDefault();
-            showSave();
+                break;
+            // case 67: // C
+            //      focusLast();
+            //      event.stop();
+            //
+            //      break;
+            case 83: // S
+                event.stop();
+                event.stopPropagation();
+                event.preventDefault();
+                showSave();
 
-            break;
-        case 79: // O
-            event.stop();
-            event.stopPropagation();
-            event.preventDefault();
-            showOpen();
+                break;
+            case 79: // O
+                event.stop();
+                event.stopPropagation();
+                event.preventDefault();
+                showOpen();
 
-            break;
+                break;
         }
     }
 }
@@ -902,7 +895,7 @@ function domLoaded() {
 
     if (queriesContainer) {
         const queries = document.createElement('ul'),
-              documentElement = document.getElementById('document');
+            documentElement = document.getElementById('document');
 
         queries.id = 'queries';
 
