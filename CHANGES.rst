@@ -1,22 +1,31 @@
 CHANGES
 =======
 
-5.1.0.dev
+6.0.0
 -----
 
+* Use the latest mathics_threejs_backend: 1.3.1
 * Environment variables which change Django settings (also shown under Settings)
   - ``MATHICS_DJANGO_ALLOWED_HOSTS`` sets Django ``ALLOWED_HOST``; use semicolon to separate entries
   - ``MATHICS_DJANGO_DEBUG_HOSTS`` sets Django ``DEBUG``
-  - ``MATHICS_DJANGO_DDISPLAY_EXCEPTIONS_HOSTS`` sets Django ``DISPLAY_EXCEPTIONS``
-
-* Adjust for Mathics3 core 5.0.3 API
-
+  - ``MATHICS_DJANGO_DISPLAY_EXCEPTIONS_HOSTS`` sets Django ``DISPLAY_EXCEPTIONS``
+* Adjust for Mathics3 core 6.0.0 API
 * "About" page:
   - Python Implementation (CPython, PyPy, Pyston) explicitly is shown
   - Optional Python packages are also shown along with their version
+* Long ``<url>`` lines in documentation split into several lines.
+* Gallery examples now include image manipulation and Mathics3 Graph and NLP modules
+* Mathics3 errors are displayed better showing error tags, messages, and output more visible distinct.
+* Python tracebacks shown in the browser as formatted nicer; use ``make runserverg-debug`` to have Python tracebacks included in browser, in addition to the backend console.
+* Menubar entries add for:
+  - running gallery examples
+  - going to github repository for Mathics-Django
+  - getting to the information page
+* Split out controllers into separate files
+* Upgrade to fontawesome 6.2.1
 
-* In documentation, ``<url>...</url>`` admits now to be splitted in
-  several indented lines.
+We have gradually been rolling in more Python type annotations and have been using current Python practices. Tools such as using ``isort``, ``black`` and ``flake8`` are used as well.
+
 
 5.0.0
 -----
