@@ -67,7 +67,7 @@ if sys.platform == "darwin":
 INSTALL_REQUIRES += [
     "Mathics-Scanner >=1.2.2,<1.3.1",
     # "Mathics3 @ http://github.com/Mathics3/mathics-core/archive/master.zip",
-    "Mathics3 >5.0.2,<6.1.0",
+    "Mathics3 >=6.0.0,<6.1.0",
     "django >= 3.2",  # After Python 3.6 is removed, we can bump min version to 4.1
     "networkx >= 2.5",  # Used in format, should disappear though
     "pygments",  # For colorized Python tracebacks
@@ -180,9 +180,9 @@ setup(
     # don't pack Mathics in egg because of media files, etc.
     zip_safe=False,
     # metadata for upload to PyPI
-    maintainer="Mathics Group",
+    maintainer="Mathics3 Group",
     maintainer_email="mathics-devel@googlegroups.com",
-    description="A Django front end for Mathics.",
+    description="A Django front end for Mathics3.",
     license="GPL",
     url="https://mathics.org/",
     keywords=["Mathematica", "Wolfram", "Interpreter", "Shell", "Math", "CAS"],
