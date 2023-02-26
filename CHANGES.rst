@@ -16,7 +16,7 @@ CHANGES
 * Long ``<url>`` lines in documentation split into several lines.
 * Gallery examples now include image manipulation and Mathics3 Graph and NLP modules
 * Mathics3 errors are displayed better showing error tags, messages, and output more visible distinct.
-* Python tracebacks shown in the browser as formatted nicer; use ``make runserverg-debug`` to have Python tracebacks included in browser, in addition to the backend console.
+* Python tracebacks shown in the browser as formatted nicer; use ``make runserver-debug`` to have Python tracebacks included in browser, in addition to the backend console.
 * Menubar entries add for:
   - running gallery examples
   - going to github repository for Mathics-Django

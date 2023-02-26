@@ -5,7 +5,7 @@ Welcome to Mathics-Django
 
 |Packaging status|
 
-This is the Django front-end to `Mathics <https://mathics.org>`_.
+This is the Django front-end to `Mathics3 <https://mathics.org>`_.
 
 .. contents::
    :depth: 1
