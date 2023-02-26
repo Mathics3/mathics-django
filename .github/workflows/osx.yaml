@@ -30,7 +30,7 @@ jobs:
         # git clone https://github.com/Mathics3/mathics-core
         # (cd mathics-core && make)
         # (cd mathics-core && python -m pip install -e .[full])
-        pip install Mathics[full]
+        pip install Mathics3[full]
     - name: Install Mathics3 Django
       run: |
         npm install
