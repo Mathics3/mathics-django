@@ -359,7 +359,8 @@ Graphics3D[Table[Point[{x, y, z}], {x, 5}, {y, 5}, {z, 5}]]',
 
 	'(**** Combinatorica: for Implementing Discrete Mathematics. ****)',
 	'Needs["DiscreteMath`CombinatoricaV0.9`"]',
-	'ShowGraph[K[6,6,6]]',
+	'ShowGraph[ LineGraph K[5] ]',
+	'ShowGraph[ GraphComplement[ LineGraph[K[5]] ] ]',
 	'ShowGraph[ CirculantGraph[20, RandomSubset[Range[10]]] ]',
 	'FerrersDiagram[RandomInteger[{0, 3}, 50]]',
 
