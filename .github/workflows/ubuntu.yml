@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-version: ['3.7', '3.8', '3.9']
+        python-version: ['3.7', '3.8', '3.9', '3.10']
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -26,6 +26,7 @@ jobs:
       run: |
         # Can adjust when next Mathics is released
         # python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
+        # For testing 3.11 we need to do something like the below until the next Mathics3 is released
         # git clone https://github.com/Mathics3/mathics-core
         # (cd mathics-core && make)
         # (cd mathics-core && python -m pip install -e .[full])
