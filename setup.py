@@ -68,8 +68,8 @@ INSTALL_REQUIRES += [
     "Mathics-Scanner >=1.2.2,<1.3.1",
     # "Mathics3 @ http://github.com/Mathics3/mathics-core/archive/master.zip",
     "Mathics3 >=6.0.0,<6.1.0",
-    "django >= 3.2",  # After Python 3.6 is removed, we can bump min version to 4.1
-    "networkx >= 2.5",  # Used in format, should disappear though
+    "django >= 3.2",  # After Python 3.7 is removed, we can bump min version to 4.1
+    "networkx >= 2.6",  # Used in format, should disappear though. After 3.7 can bump to 3.x
     "pygments",  # For colorized Python tracebacks
     "requests",
 ]
@@ -191,11 +191,11 @@ setup(
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: Implementation :: CPython",
         "Programming Language :: Python :: Implementation :: PyPy",
         "Topic :: Scientific/Engineering",
