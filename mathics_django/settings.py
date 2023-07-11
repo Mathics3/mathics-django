@@ -64,7 +64,8 @@ MATHICS_BACKEND_THREEJS_JSON_PATH = os.path.join(
 REQUIRE_LOGIN = False
 
 # Location of internal document data. Currently this is in Python
-# Pickle form, but storing this in JSON if possible would be preferable and faster
+# Pickle form, but storing this in JSON if possible would be
+# preferable and faster
 
 # We need two versions, one in the user space which is updated with
 # local packages installed and is user writable.
