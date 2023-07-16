@@ -1,11 +1,9 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import re
 import unicodedata
 
 from django.utils.html import linebreaks
-
 from mathics.doc.common_doc import (
     ALLOWED_TAGS,
     ALLOWED_TAGS_RE,
@@ -13,21 +11,20 @@ from mathics.doc.common_doc import (
     DL_ITEM_RE,
     DL_RE,
     HYPERTEXT_RE,
+    IMG_PNG_RE,
+    IMG_RE,
     LATEX_RE,
     LIST_ITEM_RE,
     LIST_RE,
     MATHICS_RE,
-    post_sub,
-    pre_sub,
-    IMG_PNG_RE,
-    IMG_RE,
-    REF_RE,
     PYTHON_RE,
     QUOTATIONS_RE,
+    REF_RE,
     SPECIAL_COMMANDS,
     SUBSECTION_END_RE,
     SUBSECTION_RE,
-    _replace_all,
+    post_sub,
+    pre_sub,
 )
 
 
@@ -92,7 +89,7 @@ def escape_html(text, verbatim_mode=False, counters=None, single_line=False):
                 return "'"
 
         def repl_allowed(match):
-            content = _replace_all(
+            content = replace_all(
                 match.group(1), [("&ldquo;", '"'), ("&rdquo;", '"'), ("&quot;", '"')]
             )
             return "<%s>" % content
@@ -213,4 +210,10 @@ def escape_html(text, verbatim_mode=False, counters=None, single_line=False):
 
     text = text.replace("<p><pre>", "<pre>").replace("</pre></p>", "</pre>")
 
+    return text
+
+
+def replace_all(text, pairs):
+    for i, j in pairs:
+        text = text.replace(i, j)
     return text

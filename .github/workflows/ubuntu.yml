@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         python-version: ['3.7', '3.8', '3.9', '3.10']
@@ -27,10 +27,11 @@ jobs:
         # Can adjust when next Mathics is released
         # python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
         # For testing 3.11 we need to do something like the below until the next Mathics3 is released
-        # git clone https://github.com/Mathics3/mathics-core
-        # (cd mathics-core && make)
-        # (cd mathics-core && python -m pip install -e .[full])
-        pip install Mathics3[full]
+        git clone https://github.com/Mathics3/mathics-core
+        # python -m pip install -e git+https://github.com/Mathics3/mathics-core#egg=Mathics3[full]
+        (cd mathics-core && make)
+        (cd mathics-core && python -m pip install -e .[full])
+        # pip install Mathics3[full]
     - name: Install Mathics3 Django
       run: |
         pip install pytest pexpect

@@ -15,7 +15,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install OS dependencies
@@ -27,10 +27,10 @@ jobs:
       run: |
         # Can comment out when next Mathics is released
         # python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
-        # git clone https://github.com/Mathics3/mathics-core
-        # (cd mathics-core && make)
+        git clone https://github.com/Mathics3/mathics-core
+        (cd src/mathics3 && make)
         # (cd mathics-core && python -m pip install -e .[full])
-        pip install Mathics3[full]
+        # pip install Mathics3[full]
     - name: Install Mathics3 Django
       run: |
         npm install
