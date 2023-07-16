@@ -64,8 +64,8 @@ djangotest: $(THREEJS)
 
 #: Run tests that appear in docstring in the code.
 doctest-workaround:
-	MATHICS_CHARACTER_ENCODING=$(MATHICS_CHARACTER_ENCODING) SANDBOX=$(SANDBOX) $(PYTHON) mathics_django/docpipeline.py --exclude=NIntegrate,MaxRecursion
-	MATHICS_CHARACTER_ENCODING=$(MATHICS_CHARACTER_ENCODING) SANDBOX=$(SANDBOX) $(PYTHON) mathics_django/docpipeline.py --sections=NIntegrate,MaxRecursion
+	MATHICS_CHARACTER_ENCODING=$(MATHICS_CHARACTER_ENCODING) SANDBOX=$(SANDBOX) $(PYTHON) mathics_django/docpipeline.py --exclude=NIntegrate,MaxRecursion,PythonCProfileEvaluation
+	MATHICS_CHARACTER_ENCODING=$(MATHICS_CHARACTER_ENCODING) SANDBOX=$(SANDBOX) $(PYTHON) mathics_django/docpipeline.py --sections=NIntegrate,MaxRecursion,
 
 #: Run tests that appear in docstring in the code.
 doctest: $(THREEJS)

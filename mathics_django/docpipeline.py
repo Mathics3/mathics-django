@@ -5,7 +5,8 @@
 Does 2 things which can either be done independently or
 as a pipeline:
 
-1. Extracts tests and runs them from static mdoc files and docstrings from Mathics built-in functions
+1. Extracts tests and runs them from static mdoc files and docstrings from Mathics
+   built-in functions
 2. Creates/updates internal documentation data
 """
 
@@ -19,16 +20,20 @@ from datetime import datetime
 
 import mathics
 from mathics import version_string
-from mathics.builtin import builtins_dict
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Output
+from mathics.core.load_builtin import (
+    builtins_by_module,
+    builtins_dict,
+    import_and_load_builtins,
+)
 from mathics.core.parser import MathicsSingleLineFeeder
 from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 
 from mathics_django.doc import MathicsDjangoDocumentation
 from mathics_django.settings import get_doctest_html_data_path
 
-builtins = builtins_dict()
+builtins = builtins_dict(builtins_by_module)
 
 
 class TestOutput(Output):
@@ -459,6 +464,8 @@ def write_doctest_data(quiet=False, reload=False):
 def main():
     global check_partial_enlapsed_time
     global definitions
+
+    import_and_load_builtins()
     definitions = Definitions(add_builtin=True)
 
     parser = ArgumentParser(description="Mathics test suite.", add_help=False)

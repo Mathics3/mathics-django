@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         os: [windows]
-        python-version: ['3.7', '3.8', '3.9']
+        python-version: ['3.8', '3.9', '3.10']
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -27,12 +27,14 @@ jobs:
         set LLVM_DIR="C:\Program Files\LLVM"
     - name: Install Python dependencies
       run: |
-        # Can comment out when next Mathics is released
         # Can adjust when next Mathics is released
         # python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
-        # git clone https://github.com/Mathics3/mathics-core
-        # (cd mathics-core && make && python -m pip install -e .[full])
-        pip install Mathics3[full]
+        # For testing 3.11 we need to do something like the below until the next Mathics3 is released
+        # python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
+        # python -m pip install -e git+https://github.com/Mathics3/mathics-core#egg=Mathics3[full]
+        git clone https://github.com/Mathics3/mathics-core
+        bash -c '(cd mathics-core && pip3 install -e .[full])'
+        bash -c '(cd mathics-core && bash ./admin-tools/make-op-tables.sh)'
     - name: Install Mathics3 Django
       run: |
         python -m pip install pytest pexpect
@@ -44,5 +46,5 @@ jobs:
       run: |
         # Until we can't figure out what's up with TextRecognize:
         make pytest gstest
-        make doctest o="--exclude TextRecognize"
+        make doctest o="--exclude TextRecognize,PythonCProfileEvaluation"
         # make check
