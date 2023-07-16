@@ -27,11 +27,11 @@ jobs:
         # Can adjust when next Mathics is released
         # python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
         # For testing 3.11 we need to do something like the below until the next Mathics3 is released
-        git clone https://github.com/Mathics3/mathics-core
+        # python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
         # python -m pip install -e git+https://github.com/Mathics3/mathics-core#egg=Mathics3[full]
-        (cd mathics-core && make)
-        (cd mathics-core && python -m pip install -e .[full])
-        # pip install Mathics3[full]
+        git clone https://github.com/Mathics3/mathics-core
+        (cd mathics-core && pip3 install -e .[full])
+        (cd mathics-core && bash ./admin-tools/make-op-tables.sh)
     - name: Install Mathics3 Django
       run: |
         pip install pytest pexpect
@@ -40,4 +40,6 @@ jobs:
         make develop
     - name: Test mathics-django
       run: |
+        make pytest gstest
+        make doctest o="--exclude TextRecognize,PythonCProfileEvaluation"
         make check

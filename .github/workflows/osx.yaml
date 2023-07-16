@@ -25,12 +25,14 @@ jobs:
         LLVM_CONFIG=/usr/local/Cellar/llvm@11/11.1.0/bin/llvm-config pip install llvmlite
     - name: Install Python dependencies
       run: |
-        # Can comment out when next Mathics is released
+        # Can adjust when next Mathics is released
         # python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
+        # For testing 3.11 we need to do something like the below until the next Mathics3 is released
+        # python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
+        # python -m pip install -e git+https://github.com/Mathics3/mathics-core#egg=Mathics3[full]
         git clone https://github.com/Mathics3/mathics-core
-        (cd src/mathics3 && make)
-        # (cd mathics-core && python -m pip install -e .[full])
-        # pip install Mathics3[full]
+        (cd mathics-core && pip3 install -e .[full])
+        (cd mathics-core && bash ./admin-tools/make-op-tables.sh)
     - name: Install Mathics3 Django
       run: |
         npm install
