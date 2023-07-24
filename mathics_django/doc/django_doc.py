@@ -79,10 +79,14 @@ class DjangoDocumentation(Documentation, DjangoDocElement):
                         if isinstance(section, DocGuideSection):
                             for docsection in section.subsections:
                                 for docsubsection in docsection.subsections:
-                                    # FIXME: Something is weird here where tests for subsection items
-                                    # appear not as a collection but individually and need to be
-                                    # iterated below. Probably some other code is faulty and
-                                    # when fixed the below loop and collection into doctest_list[]
+                                    # FIXME: Something is weird here
+                                    # where tests for subsection items
+                                    # appear not as a collection but
+                                    # individually and need to be
+                                    # iterated below. Probably some
+                                    # other code is faulty and when
+                                    # fixed the below loop and
+                                    # collection into doctest_list[]
                                     # will be removed.
                                     doctest_list = []
                                     index = 1
@@ -318,7 +322,8 @@ class DjangoDocSection(DjangoDocElement):
         return f"== {self.title} ==\n{self.doc}"
 
     def get_collection(self):
-        """Return a list of subsections for this sectione chapter this section belongs to."""
+        """Return a list of subsections for this section that this section belongs
+        to."""
         return self.chapter.sections
 
     def html_data(self):
@@ -407,9 +412,10 @@ class DjangoDocSubsection(DjangoDocElement):
         Some of the subsections are contained in a grouping module and need special work to
         get the grouping module name correct.
 
-        For example the Chapter "Colors" is a module so the docstring text for it is in
-        mathics/builtin/colors/__init__.py . In mathics/builtin/colors/named-colors.py we have
-        the "section" name for the class Read (the subsection) inside it.
+        For example the Chapter "Colors" is a module so the docstring
+        text for it is in mathics/builtin/colors/__init__.py . In
+        mathics/builtin/colors/named-colors.py we have the "section"
+        name for the class Read (the subsection) inside it.
         """
 
         title_summary_text = re.split(" -- ", title)
@@ -470,7 +476,10 @@ class DjangoDocSubsection(DjangoDocElement):
 
     def get_uri(self) -> str:
         """Return the URI of this subsection."""
-        return f"/{self.chapter.part.slug}/{self.chapter.slug}/{self.section.slug}/{self.slug}/"
+        return (
+            f"/{self.chapter.part.slug}/{self.chapter.slug}/{self.section.slug}/"
+            f"{self.slug}/"
+        )
 
 
 class DjangoDocTest(DocTest):

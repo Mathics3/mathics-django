@@ -1,5 +1,5 @@
 """
-Controllers related to showing Mathics documentation inside Django
+Controllers related to showing Mathics3 documentation inside Django
 """
 
 from copy import copy
@@ -210,10 +210,13 @@ def render_doc(
     ajax: bool = False,
 ) -> DocResponse:
     """
-    Call this routine is called to render documentation. ``template_name`` is the Jinja documentation template
-    that is used for creating the HTML result, and ``context`` contains the variables used in that template.
+    Call this routine is called to render
+    documentation. ``template_name`` is the Jinja documentation
+    template that is used for creating the HTML result, and
+    ``context`` contains the variables used in that template.
 
     If ``ajax`` is True the should the ajax URI prefix, e.g. " it we pass the result
+
     """
     check_for_pymathics_load()
     object = context.get("object")
