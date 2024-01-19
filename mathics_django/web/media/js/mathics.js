@@ -282,7 +282,7 @@ function createLine(value) {
 
         return container;
     } else {
-        const lines = container.innerHTML.split('\n');
+        const lines = container.innerText.split('\n');
 
         const p = document.createElement('p');
         p.className = 'string';
