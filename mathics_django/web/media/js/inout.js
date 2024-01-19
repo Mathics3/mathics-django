@@ -350,6 +350,9 @@ function showGallery() {
         '(**** 3D Plots and Graphics ****)',
 
         'Graphics3D[Arrow[{{1, 1, -1}, {2, 2, 0}, {3, 3, -1}, {4, 4, 0}}]]',
+	'Graphics3D[Arrow[' +
+            '{{1, 1, -1}, {2, 2, 0}, {3, 3, -1}, {4, 4, 0}}],' +
+	    'Background->RGBColor[0.4, 0.8, 1.0]]',
         'Graphics3D[{Darker[Yellow], Sphere[{{-1, 0, 0}, {1, 0, 0}, {0, 0, Sqrt[3.]}}, 1]}]',
         'Graphics3D[Octahedron[{{0,0,0}, {1,1,1}}, 2]]',
         'Graphics3D[{ Cylinder[{{1,1,1}, {10,10,10}}], Cylinder[{{-1,-1,-1}, {-10,-10,-10}}] }]',
