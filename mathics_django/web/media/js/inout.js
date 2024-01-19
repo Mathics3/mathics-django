@@ -361,7 +361,7 @@ function showGallery() {
 Orient so the long diagonal becomes a point to see the kinds of difficulties visualizing a 3D lattice in 2D: *)\n\
 Graphics3D[Table[Point[{x, y, z}], {x, 5}, {y, 5}, {z, 5}]]',
         'Plot3D[Sin[x y], {x, -2, 2}, {y, -2, 2}, Mesh->Full, PlotPoints->21, TicksStyle->{Darker[Magenta], Darker[Blue]}]',
-        'Plot3D[ Abs[Zeta[x + I y] ], {x, -1, 2}, {y, 2, 20}, PlotPoints->30]',
+	'Plot3D[ Abs[Zeta[x + I y] ], {x, -1, 2}, {y, 2, 20}, PlotPoints->30]',
 
         '(**** Combinatorica: for Implementing Discrete Mathematics. ****)',
         'Needs["DiscreteMath`CombinatoricaV0.9`"]',
