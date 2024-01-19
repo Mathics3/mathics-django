@@ -266,8 +266,12 @@ function createLine(value) {
         return translateDOMElement(container.firstChild);
     } else if (container?.firstElementChild?.tagName === 'GRAPHICS3D') {
         const div = document.createElement('div');
-
-        drawGraphics3d(div, JSON.parse(container.firstElementChild.attributes.data.value));
+	var json_data_value = JSON.parse(container.firstElementChild.attributes.data.value);
+	div.style.backgroundColor = json_data_value["background_color"];
+	if ("tooltip_text" in json_data_value){
+	    div.title = json_data_value["tooltip_text"];
+	}
+        drawGraphics3d(div, json_data_value);
 
         div.style.overflow = 'hidden';
         div.style.position = 'relative';
