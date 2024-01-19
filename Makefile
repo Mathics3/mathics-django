@@ -64,8 +64,8 @@ djangotest: $(THREEJS)
 
 #: Run tests that appear in docstring in the code.
 doctest-workaround:
-	MATHICS_CHARACTER_ENCODING=$(MATHICS_CHARACTER_ENCODING) SANDBOX=$(SANDBOX) $(PYTHON) mathics_django/docpipeline.py --exclude=NIntegrate,MaxRecursion
-	MATHICS_CHARACTER_ENCODING=$(MATHICS_CHARACTER_ENCODING) SANDBOX=$(SANDBOX) $(PYTHON) mathics_django/docpipeline.py --sections=NIntegrate,MaxRecursion
+	MATHICS_CHARACTER_ENCODING=$(MATHICS_CHARACTER_ENCODING) SANDBOX=$(SANDBOX) $(PYTHON) mathics_django/docpipeline.py --exclude=NIntegrate,MaxRecursion,PythonCProfileEvaluation
+	MATHICS_CHARACTER_ENCODING=$(MATHICS_CHARACTER_ENCODING) SANDBOX=$(SANDBOX) $(PYTHON) mathics_django/docpipeline.py --sections=NIntegrate,MaxRecursion,
 
 #: Run tests that appear in docstring in the code.
 doctest: $(THREEJS)
@@ -73,7 +73,7 @@ doctest: $(THREEJS)
 
 #: Create doctest test data and test results that is used in online documentation
 doctest-data:
-	$(PYTHON) mathics_django/docpipeline.py --output --keep-going $(MATHICS3_MODULE_OPTION)
+	MATHICS_CHARACTER_ENCODING="UTF-8"  $(PYTHON) mathics_django/docpipeline.py --output --keep-going $(MATHICS3_MODULE_OPTION)
 
 #: Install Mathics-Django
 install: $(THREEJS)
@@ -104,10 +104,8 @@ node_modules/\@mathicsorg/mathics-threejs-backend/package.json node_modules/@mat
 
 #: Install mathics-threejs-backend with npm and copy the necessary files to the right place.
 build_mathics-threejs-backend: node_modules/\@mathicsorg/mathics-threejs-backend/package.json
-	cp mathics_django/web/media/js/mathics-threejs-backend/index-no-custom-shader.js mathics_django/web/media/js/mathics-threejs-backend/index.js; \
-	cp mathics_django/web/media/js/mathics-threejs-backend/version-no-custom-shader.js mathics_django/web/media/js/mathics-threejs-backend/version.json
-# 	cp node_modules/\@mathicsorg/mathics-threejs-backend/docs/build.js mathics_django/web/media/js/mathics-threejs-backend/index.js; \
-# 	cp node_modules/\@mathicsorg/mathics-threejs-backend/package.json mathics_django/web/media/js/mathics-threejs-backend/version.json
+	cp node_modules/\@mathicsorg/mathics-threejs-backend/docs/build.js mathics_django/web/media/js/mathics-threejs-backend/index.js; \
+	cp node_modules/\@mathicsorg/mathics-threejs-backend/package.json mathics_django/web/media/js/mathics-threejs-backend/version.json
 
 
 $(THREEJS): node_modules/@mathicsorg/mathics-threejs-backend/package.json package.json

@@ -46,6 +46,9 @@ def about_page(request):
             "MachineName": system_info["$MachineName"],
             "MachinePrecision": system_info["MachinePrecision"],
             "MathJax_version": get_MathJax_version(),
+            "MaximumDigitsInString": system_info["MaximumDigitsInString"]
+            if system_info["MaximumDigitsInString"] != -1
+            else "unlimited",
             "MemoryAvailable": system_info["MemoryAvailable[]"],
             "ProcessID": system_info["$ProcessID"],
             "ProcessorType": system_info["$ProcessorType"],
@@ -56,9 +59,11 @@ def about_page(request):
             "REMOTE_USER": request.META.get("REMOTE_USER", ""),
             "RootDirectory": system_info["$RootDirectory"],
             "SystemID": system_info["$SystemID"],
+            "SystemCharacterEncoding": system_info["SystemCharacterEncoding"],
             "SystemMemory": system_info["$SystemMemory"],
-            "SystemTimeZone": system_info["$SystemTimeZone"],
+            "SystemTimeZone": f'{system_info["$SystemTimeZone"]} hours from UTC',
             "TemporaryDirectory": system_info["$TemporaryDirectory"],
+            "Time12Hour": system_info["Time12Hour"],
             "UserName": system_info["$UserName"],
             "django_version": django_version,
             "mathics_django_version": __version__,
@@ -106,7 +111,7 @@ def get_mathics_threejs_backend_data():
                 settings.MATHICS_BACKEND_THREEJS_JSON_PATH, "rb"
             ) as version_json_fp:
                 mathics_threejs_backend_data = json.load(version_json_fp)
-        except:
+        except Exception:
             pass
     return mathics_threejs_backend_data
 

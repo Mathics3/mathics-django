@@ -5,7 +5,7 @@ Welcome to Mathics-Django
 
 |Packaging status|
 
-This is the Django front-end to `Mathics <https://mathics.org>`_.
+This is the Django front-end to `Mathics3 <https://mathics.org>`_.
 
 .. contents::
    :depth: 1
@@ -119,7 +119,7 @@ take into account plugins that have been added.
 Contributing
 ------------
 
-Please feel encouraged to contribute to Mathics! Create your own fork, make the desired changes, commit, and make a pull request.
+Please feel encouraged to contribute to Mathics3! Create your own fork, make the desired changes, commit, and make a pull request.
 
 
 License
