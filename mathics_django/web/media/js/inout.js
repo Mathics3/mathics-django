@@ -303,7 +303,7 @@ function showGallery() {
             'TranslationTransform[{Sqrt[3] (i - j/2), 3 j/2}]' +
 	    '/@ {{Sqrt[3]/2, -1/2}, {0, 1}, {-Sqrt[3]/2, -1/2}}], ' +
             '{i, 7}, {j, i}]],' +
-            'Background->Orange]',
+            'Background->Red]',
 
         '(* Charts: *)',
         'BarChart[{{1, 2, 3}, {2, 3, 4}}]',
