@@ -7,6 +7,7 @@ from django.db import models
 from django.db.models.signals import pre_delete
 from mathics.core.definitions import Definitions, autoload_files
 from mathics.core.evaluation import Evaluation, Output
+from mathics.core.load_builtin import import_and_load_builtins
 
 from mathics_django.settings import ROOT_DIR
 from mathics_django.web.format import format_output
@@ -22,6 +23,7 @@ _evaluations = {}
 def get_session_evaluation(session):
     evaluation = _evaluations.get(session.session_key)
     if evaluation is None:
+        import_and_load_builtins()
         session.create()
         definitions = Definitions(add_builtin=True)
         # We set the formatter to "unformatted" so that we can use

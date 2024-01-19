@@ -5,7 +5,8 @@
 Does 2 things which can either be done independently or
 as a pipeline:
 
-1. Extracts tests and runs them from static mdoc files and docstrings from Mathics built-in functions
+1. Extracts tests and runs them from static mdoc files and docstrings from Mathics
+   built-in functions
 2. Creates/updates internal documentation data
 """
 
@@ -19,20 +20,24 @@ from datetime import datetime
 
 import mathics
 from mathics import version_string
-from mathics.builtin import builtins_dict
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Output
+from mathics.core.load_builtin import (
+    builtins_by_module,
+    builtins_dict,
+    import_and_load_builtins,
+)
 from mathics.core.parser import MathicsSingleLineFeeder
 from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 
 from mathics_django.doc import MathicsDjangoDocumentation
 from mathics_django.settings import get_doctest_html_data_path
 
-builtins = builtins_dict()
+builtins = builtins_dict(builtins_by_module)
 
 
 class TestOutput(Output):
-    def max_stored_size(self, settings):
+    def max_stored_size(self):
         return None
 
 
@@ -230,6 +235,9 @@ def test_chapters(
     reload=False,
     want_sorting=False,
 ):
+    if documentation is None:
+        print_and_log("documentation is not loaded.")
+        return
     failed = 0
     index = 0
     chapter_names = ", ".join(chapters)
@@ -258,7 +266,8 @@ def test_chapters(
     if index == 0:
         print_and_log(f"No chapters found named {chapter_names}.")
     elif failed > 0:
-        print_and_log("%d test%s failed." % (failed, "s" if failed != 1 else ""))
+        if not (keep_going and format == "xml"):
+            print_and_log("%d test%s failed." % (failed, "s" if failed != 1 else ""))
     else:
         print_and_log("All tests passed.")
 
@@ -271,6 +280,9 @@ def test_sections(
     reload=False,
     want_sorting=False,
 ):
+    if documentation is None:
+        print_and_log("documentation is not loaded.")
+        return
     failed = 0
     index = 0
     section_names = ", ".join(sections)
@@ -300,10 +312,11 @@ def test_sections(
     if index == 0:
         print_and_log(f"No sections found named {section_names}.")
     elif failed > 0:
-        print_and_log("%d test%s failed." % (failed, "s" if failed != 1 else ""))
+        if not (keep_going and format == "xml"):
+            print_and_log("%d test%s failed." % (failed, "s" if failed != 1 else ""))
     else:
         print_and_log("All tests passed.")
-    if generate_output and (failed == 0):
+    if generate_output and (failed == 0 or keep_going):
         save_doctest_data(output_data)
 
 
@@ -330,6 +343,10 @@ def test_all(
 ):
     if not quiet:
         print(f"Testing {version_string}")
+
+    if documentation is None:
+        print_and_log("documentation is not loaded.")
+        return
 
     try:
         index = 0
@@ -420,17 +437,21 @@ def save_doctest_data(output_data):
         pickle.dump(output_data, output_file, 4)
 
 
-def write_doctest_data(quiet=False, reload=False, want_source=False):
+def write_doctest_data(quiet=False, reload=False):
     """
     Write internal (pickled) doc files and example data in docstrings.
     """
+    if documentation is None:
+        print_and_log("documentation is not loaded.")
+        return
+
     if not quiet:
         print(f"Extracting internal doc data for {version_string}")
         print("This may take a while...")
 
     try:
         output_data = load_doc_data() if reload else {}
-        for tests in documentation.get_tests(want_source=want_source):
+        for tests in documentation.get_tests():
             create_output(tests, output_data)
     except KeyboardInterrupt:
         print("\nAborted.\n")
@@ -443,6 +464,8 @@ def write_doctest_data(quiet=False, reload=False, want_source=False):
 def main():
     global check_partial_enlapsed_time
     global definitions
+
+    import_and_load_builtins()
     definitions = Definitions(add_builtin=True)
 
     parser = ArgumentParser(description="Mathics test suite.", add_help=False)
@@ -576,7 +599,7 @@ def main():
         logfile = open(args.logfilename, "wt")
 
     global documentation
-    documentation = MathicsDjangoDocumentation(want_sorting=args.want_sorting)
+    documentation = MathicsDjangoDocumentation()
 
     # LoadModule Mathics3 modules
     if args.pymathics:

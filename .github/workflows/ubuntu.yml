@@ -8,14 +8,14 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        python-version: ['3.7', '3.8', '3.9', '3.10']
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install OS dependencies
@@ -25,12 +25,14 @@ jobs:
     - name: Install Python dependencies
       run: |
         # Can adjust when next Mathics is released
-        python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
+        # python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
+        # For testing 3.11 we need to do something like the below until the next Mathics3 is released
+        # python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
+        # python -m pip install -e git+https://github.com/Mathics3/mathics-core#egg=Mathics3[full]
         git clone https://github.com/Mathics3/mathics-core
-        (cd mathics-core && make)
-        (cd mathics-core && python -m pip install -e .[full])
-        # pip install Mathics3[full]
-    - name: Install Mathics Django
+        (cd mathics-core && pip3 install -e .[full])
+        (cd mathics-core && bash ./admin-tools/make-op-tables.sh)
+    - name: Install Mathics3 Django
       run: |
         pip install pytest pexpect
         npm install
@@ -38,4 +40,6 @@ jobs:
         make develop
     - name: Test mathics-django
       run: |
+        make pytest gstest
+        make doctest o="--exclude TextRecognize,PythonCProfileEvaluation"
         make check
