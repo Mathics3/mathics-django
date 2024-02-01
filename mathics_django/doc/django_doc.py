@@ -6,20 +6,23 @@ FIXME: Ditch this and hook into sphinx
 
 import pickle
 import re
+from typing import Optional
 
 from django.utils.safestring import mark_safe
 from mathics import settings
 from mathics.doc.common_doc import (
     DocChapter,
     DocGuideSection,
+    DocSection,
+    DocSubsection,
     DocTest,
     DocTests,
     DocText,
-    Documentation,
+    DocumentationEntry,
+    MathicsMainDocumentation,
     Tests,
-    XMLDoc,
-    gather_tests,
     get_results_by_test,
+    parse_docstring_to_DocumentationEntry_items,
     sorted_chapters,
 )
 from mathics.doc.utils import slugify
@@ -37,7 +40,7 @@ except IOError:
     doc_data = {}
 
 
-class DjangoDocElement(object):
+class DjangoDocElement:
     def href(self, ajax=False):
         if ajax:
             return "javascript:loadDoc('%s')" % self.get_uri()
@@ -64,11 +67,11 @@ class DjangoDocElement(object):
         return mark_safe(escape_html(self.title, single_line=True))
 
 
-class DjangoDocumentation(Documentation, DjangoDocElement):
+class DjangoDocumentationMixin(DjangoDocElement):
     def __str__(self):
         return "\n\n\n".join(str(part) for part in self.parts)
 
-    def get_tests(self):
+    def ___get_tests(self):
         for part in self.parts:
             for chapter in sorted_chapters(part.chapters):
                 tests = chapter.doc.get_tests()
@@ -117,6 +120,23 @@ class DjangoDocumentation(Documentation, DjangoDocElement):
             pass
         return
 
+
+class MathicsDjangoDocumentation(MathicsMainDocumentation, DjangoDocElement):
+    def __init__(self, want_sorting=True):
+
+        self.chapter_class = DjangoDocChapter
+        self.doc_dir = settings.DOC_DIR
+        self.doc_class = DjangoDocumentationEntry
+        self.guide_section_class = DjangoDocGuideSection
+        self.part_class = DjangoDocPart
+        self.section_class = DjangoDocSection
+        self.subsection_class = DjangoDocSubsection
+        # Initialize the superclass
+        super().__init__(want_sorting)
+        # Now, let's load the documentation
+        self.load_documentation_sources()
+        self.title = "Mathics Documentation"
+
     def get_uri(self) -> str:
         return "/"
 
@@ -161,7 +181,7 @@ class DjangoDocumentation(Documentation, DjangoDocElement):
             for chapter in sorted_chapters(part.chapters):
                 if matches(chapter.title):
                     result.append((False, chapter))
-                for section in chapter.sections:
+                for section in chapter.all_sections:
                     if matches(section.title):
                         if not isinstance(section, DjangoDocGuideSection):
                             result.append((section.title == query, section))
@@ -174,39 +194,13 @@ class DjangoDocumentation(Documentation, DjangoDocElement):
         return sorted_results
 
 
-class MathicsDjangoDocumentation(DjangoDocumentation):
-    def __init__(self, want_sorting=True):
 
-        self.doc_chapter_fn = DjangoDocChapter
-        self.doc_dir = settings.DOC_DIR
-        self.doc_fn = DjangoDoc
-        self.doc_guide_section_fn = DjangoDocGuideSection
-        self.doc_part_fn = DjangoDocPart
-        self.doc_section_fn = DjangoDocSection
-        self.doc_subsection_fn = DjangoDocSubsection
-        self.parts = []
-        self.parts_by_slug = {}
-        self.title = "Overview"
-
-        self.gather_doctest_data()
-
-
-class DjangoDoc(XMLDoc):
-    def __init__(self, doc, title, section):
-        self.title = title
-        if section:
-            chapter = section.chapter
-            part = chapter.part
-            # Note: we elide section.title
-            key_prefix = (part.title, chapter.title, title)
-        else:
-            key_prefix = None
-
-        self.rawdoc = doc
-        self.items = gather_tests(
-            self.rawdoc, DjangoDocTests, DjangoDocTest, DjangoDocText, key_prefix
-        )
-        return
+class DjangoDocumentationEntry(DocumentationEntry):
+    def __init__(self, doc_str:str, title:str, section:Optional["DjangoDocSection"]):
+        self.docTest_collection_class = DjangoDocTests
+        self.docTest_class = DjangoDocTest
+        self.docText_class = DjangoDocText
+        super().__init__(doc_str, title, section)
 
     def __str__(self):
         return "\n".join(str(item) for item in self.items)
@@ -281,7 +275,7 @@ class DjangoDocPart(DjangoDocElement):
         return f"/{self.slug}/"
 
 
-class DjangoDocSection(DjangoDocElement):
+class DjangoDocSection(DocSection, DjangoDocElement):
     """An object for a Django Documented Section.
     A Section is part of a Chapter. It can contain subsections.
     """
@@ -313,8 +307,8 @@ class DjangoDocSection(DjangoDocElement):
             )
 
         # Needs to come after self.chapter is initialized since
-        # XMLDoc uses self.chapter.
-        self.doc = DjangoDoc(text, title, self)
+        # DocumentationEntry uses self.chapter.
+        self.doc = DjangoDocumentationEntry(text, title, self)
 
         chapter.sections_by_slug[self.slug] = self
 
@@ -324,7 +318,7 @@ class DjangoDocSection(DjangoDocElement):
     def get_collection(self):
         """Return a list of subsections for this section that this section belongs
         to."""
-        return self.chapter.sections
+        return self.chapter.all_sections
 
     def html_data(self):
         indices = set()
@@ -353,7 +347,7 @@ class DjangoDocGuideSection(DjangoDocSection):
         self, chapter: str, title: str, text: str, submodule, installed: bool = True
     ):
         self.chapter = chapter
-        self.doc = DjangoDoc(text, title, None)
+        self.doc = DjangoDocumentationEntry(text, title, None)
         self.in_guide = False
         self.installed = installed
         self.slug = slugify(title)
@@ -381,7 +375,7 @@ class DjangoDocGuideSection(DjangoDocSection):
         return f"/{self.chapter.part.slug}/{self.chapter.slug}/guide/"
 
 
-class DjangoDocSubsection(DjangoDocElement):
+class DjangoDocSubsection(DocSubsection, DjangoDocElement):
     """An object for a Django Documented Subsection.
     A Subsection is part of a Section.
     """
@@ -417,13 +411,18 @@ class DjangoDocSubsection(DjangoDocElement):
         mathics/builtin/colors/named-colors.py we have the "section"
         name for the class Read (the subsection) inside it.
         """
-
+        super().__init__(
+            chapter, section, title, text, operator, installed, in_guide, summary_text
+        )
+        self.doc = DjangoDocumentationEntry(text, title, section)
+        return
+        # Check if any of this is actually needed.
         title_summary_text = re.split(" -- ", title)
         n = len(title_summary_text)
         self.title = title_summary_text[0] if n > 0 else ""
         self.summary_text = title_summary_text[1] if n > 1 else summary_text
 
-        self.doc = DjangoDoc(text, title, section)
+        self.doc = DjangoDocumentationEntry(text, title, section)
         self.chapter = chapter
         self.installed = installed
         self.operator = operator
