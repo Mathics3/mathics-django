@@ -598,8 +598,6 @@ def main():
     if args.logfilename:
         logfile = open(args.logfilename, "wt")
 
-    global documentation
-    documentation = MathicsDjangoDocumentation()
 
     # LoadModule Mathics3 modules
     if args.pymathics:
@@ -614,7 +612,11 @@ def main():
             else:
                 print(f"Mathics3 Module {module_name} loaded")
 
-    documentation.gather_doctest_data()
+    # MathicsDjangoDocumentation load the documentation automatically.
+    # It must be loaded after loading modules.
+    global documentation
+    documentation = MathicsDjangoDocumentation()
+
 
     if args.sections:
         sections = set(args.sections.split(","))
