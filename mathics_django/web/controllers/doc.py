@@ -8,7 +8,8 @@ from typing import Union
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import Http404, HttpResponse
 from django.shortcuts import render
-from mathics.eval.pymathics import pymathics_modules
+from mathics.doc.common_doc import get_module_doc
+from mathics.eval.pymathics import pymathics_builtins_by_module, pymathics_modules
 
 from mathics_django.doc import documentation
 from mathics_django.doc.django_doc import (
@@ -21,12 +22,47 @@ from mathics_django.web.views import JsonResponse
 
 DocResponse = Union[HttpResponse, JsonResponse]
 
+seen_pymathics_modules = copy(pymathics_modules)
+
+
 
 def check_for_pymathics_load():
+    global seen_pymathics_modules
     if seen_pymathics_modules != pymathics_modules:
-        # print("XXX refresh pymathics doc")
-        global documentation
-        documentation = MathicsDjangoDocumentation()
+        print("XXX refresh pymathics doc", pymathics_modules)
+        new_modules = pymathics_modules - seen_pymathics_modules
+        for new_module in new_modules:
+            title, _ = get_module_doc(new_module)
+            mathics3_module_part = documentation.parts_by_slug.get("Mathics3 Modules", None)
+            # If this is the first loaded module, we need to create the Part
+            if mathics3_module_part is None:
+                mathics3_module_part = self.doc_part(
+                    "Mathics3 Modules", pymathics_modules, pymathics_builtins_by_module, True
+                )
+                seen_pymathics_modules = copy(pymathics_modules)
+                return
+
+            # The part already exists. Lets add the new chapter.
+
+            chapter = mathics3_module_part.doc.gather_chapter_doc_fn(
+                mathics3_module_part,
+                title,
+                mathics3_module_part.doc,
+            )
+            from trepan.api import debug
+
+            debug()
+            submodule_names_seen = set()
+            chapter.doc.doc_chapter(
+                new_module,
+                mathics3_module_part,
+                pymathics_builtins_by_module,
+                seen_pymathics_modules,
+                submodule_names_seen,
+            )
+            chapter.get_tests()
+        seen_pymathics_modules = copy(pymathics_modules)
+        pass
 
 
 def doc(request: WSGIRequest, ajax: bool = False) -> DocResponse:
@@ -44,7 +80,9 @@ def doc(request: WSGIRequest, ajax: bool = False) -> DocResponse:
 
 def doc_chapter(request: WSGIRequest, part, chapter, ajax: bool = False) -> DocResponse:
     """
-    Produces HTML via jinja templating for a chapter. Some examples of Chapters:
+    Produces HTML via jinja templating for a chapter. Some examples of
+    Chapters:
+
     * Introduction (in part Manual)
     * Procedural Programming (in part Reference of Built-in Symbols)
     """
@@ -85,9 +123,6 @@ def doc_part(request: WSGIRequest, part, ajax: bool = False) -> DocResponse:
         },
         ajax=ajax,
     )
-
-
-seen_pymathics_modules = copy(pymathics_modules)
 
 
 def doc_search(request: WSGIRequest) -> DocResponse:

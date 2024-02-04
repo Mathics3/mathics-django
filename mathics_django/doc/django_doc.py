@@ -31,8 +31,8 @@ from mathics_django.doc.utils import escape_html
 from mathics_django.settings import get_doctest_html_data_path
 
 # FIXME: remove globalness
+doctest_html_data_path = get_doctest_html_data_path(should_be_readable=True)
 try:
-    doctest_html_data_path = get_doctest_html_data_path(should_be_readable=True)
     with open(doctest_html_data_path, "rb") as doctest_html_data_file:
         doc_data = pickle.load(doctest_html_data_file)
 except IOError:
@@ -43,9 +43,9 @@ except IOError:
 class DjangoDocElement:
     def href(self, ajax=False):
         if ajax:
-            return "javascript:loadDoc('%s')" % self.get_uri()
+            return f"javascript:loadDoc('{self.get_uri()}')"
         else:
-            return "/doc%s" % self.get_uri()
+            return f"/doc{self.get_uri()}"
 
     def get_prev(self):
         return self.get_prev_next()[0]
@@ -212,7 +212,6 @@ class DjangoDocumentationEntry(DocumentationEntry):
         return tests
 
     def html(self):
-        counters = {}
         items = [item for item in self.items if not item.is_private()]
         title_line = self.title + "\n"
         if len(items) and items[0].text.startswith(title_line):
@@ -221,7 +220,7 @@ class DjangoDocumentationEntry(DocumentationEntry):
             # Or that is the intent. This code is a bit hacky.
             items[0].text = items[0].text[len(title_line) :]
 
-        text = "\n".join(item.html(counters) for item in items if not item.is_private())
+        text = "\n".join(item.html() for item in items if not item.is_private())
         if text == "":
             # HACK ALERT if text is "" we may have missed some test markup.
             return mark_safe(escape_html(self.rawdoc))
@@ -262,7 +261,7 @@ class DjangoDocPart(DjangoDocElement):
         """Return a list of parts in this doc"""
         return self.doc.parts
 
-    def html(self, counters=None):
+    def html(self):
         if len(self.tests) == 0:
             return "\n"
         return '<ul class="tests">%s</ul>' % (
@@ -302,8 +301,7 @@ class DjangoDocSection(DocSection, DjangoDocElement):
 
         if text.count("<dl>") != text.count("</dl>"):
             raise ValueError(
-                "Missing opening or closing <dl> tag in "
-                "{} documentation".format(title)
+                f"Missing opening or closing <dl> tag in {title} documentation"
             )
 
         # Needs to come after self.chapter is initialized since
@@ -364,8 +362,7 @@ class DjangoDocGuideSection(DjangoDocSection):
 
         if text.count("<dl>") != text.count("</dl>"):
             raise ValueError(
-                "Missing opening or closing <dl> tag in "
-                "{} documentation".format(title)
+                f"Missing opening or closing <dl> tag in {title} documentation"
             )
         # print("YYY Adding section", title)
         chapter.sections_by_slug[self.slug] = self
@@ -450,8 +447,7 @@ class DjangoDocSubsection(DocSubsection, DjangoDocElement):
 
         if text.count("<dl>") != text.count("</dl>"):
             raise ValueError(
-                "Missing opening or closing <dl> tag in "
-                "{} documentation".format(title)
+                f"Missing opening or closing <dl> tag in {title} documentation"
             )
         self.section.subsections_by_slug[self.slug] = self
 
@@ -520,7 +516,7 @@ class DjangoDocTest(DocTest):
 
 
 class DjangoDocTests(DocTests):
-    def html(self, counters=None):
+    def html(self):
         if len(self.tests) == 0:
             return "\n"
         return '<ul class="tests">%s</ul>' % (
@@ -531,6 +527,6 @@ class DjangoDocTests(DocTests):
 
 
 class DjangoDocText(DocText):
-    def html(self, counters=None) -> str:
-        result = escape_html(self.text, counters=counters)
+    def html(self) -> str:
+        result = escape_html(self.text)
         return result
