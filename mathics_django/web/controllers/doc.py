@@ -33,7 +33,7 @@ def check_for_pymathics_load():
         new_modules = pymathics_modules - seen_pymathics_modules
         for new_module in new_modules:
             title, _ = get_module_doc(new_module)
-            mathics3_module_part = documentation.parts_by_slug.get("Mathics3 Modules", None)
+            mathics3_module_part = documentation.parts_by_slug.get("mathics3-modules", None)
             # If this is the first loaded module, we need to create the Part
             if mathics3_module_part is None:
                 mathics3_module_part = self.doc_part(
