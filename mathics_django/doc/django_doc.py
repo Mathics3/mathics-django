@@ -194,9 +194,8 @@ class MathicsDjangoDocumentation(MathicsMainDocumentation, DjangoDocElement):
         return sorted_results
 
 
-
 class DjangoDocumentationEntry(DocumentationEntry):
-    def __init__(self, doc_str:str, title:str, section:Optional["DjangoDocSection"]):
+    def __init__(self, doc_str: str, title: str, section: Optional["DjangoDocSection"]):
         self.docTest_collection_class = DjangoDocTests
         self.docTest_class = DjangoDocTest
         self.docText_class = DjangoDocText

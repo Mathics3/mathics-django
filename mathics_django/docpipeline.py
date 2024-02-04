@@ -598,7 +598,6 @@ def main():
     if args.logfilename:
         logfile = open(args.logfilename, "wt")
 
-
     # LoadModule Mathics3 modules
     if args.pymathics:
         for module_name in args.pymathics.split(","):
@@ -616,7 +615,6 @@ def main():
     # It must be loaded after loading modules.
     global documentation
     documentation = MathicsDjangoDocumentation()
-
 
     if args.sections:
         sections = set(args.sections.split(","))
