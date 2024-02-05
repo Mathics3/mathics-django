@@ -31,7 +31,6 @@ def check_for_pymathics_load():
         print("XXX refresh pymathics doc", pymathics_modules)
         new_modules = pymathics_modules - seen_pymathics_modules
         for new_module in new_modules:
-            title, _ = get_module_doc(new_module)
             mathics3_module_part = documentation.parts_by_slug.get(
                 "mathics3-modules", None
             )
@@ -46,25 +45,14 @@ def check_for_pymathics_load():
                 seen_pymathics_modules = copy(pymathics_modules)
                 return
 
-            # The part already exists. Lets add the new chapter.
-
-            chapter = mathics3_module_part.doc.gather_chapter_doc_fn(
-                mathics3_module_part,
-                title,
-                mathics3_module_part.doc,
-            )
-            from trepan.api import debug
-
-            debug()
-            submodule_names_seen = set()
-            chapter.doc.doc_chapter(
+            # The "Mathics3 modules" part already exists. Lets add the new chapter.
+            chapter = documentation.doc_chapter(
                 new_module,
                 mathics3_module_part,
-                pymathics_builtins_by_module,
-                seen_pymathics_modules,
-                submodule_names_seen,
+                pymathics_builtins_by_module
             )
-            chapter.get_tests()
+            mathics3_module_part.chapters.append(chapter)
+
         seen_pymathics_modules = copy(pymathics_modules)
         pass
 
