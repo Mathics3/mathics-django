@@ -47,9 +47,7 @@ def check_for_pymathics_load():
 
             # The "Mathics3 modules" part already exists. Lets add the new chapter.
             chapter = documentation.doc_chapter(
-                new_module,
-                mathics3_module_part,
-                pymathics_builtins_by_module
+                new_module, mathics3_module_part, pymathics_builtins_by_module
             )
             mathics3_module_part.chapters.append(chapter)
 
