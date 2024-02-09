@@ -18,7 +18,7 @@ from mathics.doc.common_doc import (
     DocTests,
     DocText,
     Documentation,
-    XMLDoc,
+    DocumentationEntry,
     gather_tests,
     get_results_by_test,
     sorted_chapters,
@@ -80,7 +80,7 @@ class DjangoDocumentation(Documentation, DjangoDocElement):
         self.section_class = DjangoDocSection
         self.subsection_class = DjangoDocSubsection
 
-        self.gather_doctest_data()
+        self.load_documentation_sources()
         self.doctest_latex_pcl_path = settings.DOCTEST_LATEX_DATA_PCL
         self.pymathics_doc_loaded = False
         self.doc_data_file = settings.get_doctest_latex_data_path(
@@ -148,7 +148,7 @@ class DjangoDocumentation(Documentation, DjangoDocElement):
         return sorted_results
 
 
-class DjangoDoc(XMLDoc):
+class DjangoDoc(DocumentationEntry):
     def __init__(self, doc, title, section, key_prefix=None):
         self.title = title
         if key_prefix is None:

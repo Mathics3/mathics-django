@@ -17,16 +17,10 @@ from datetime import datetime
 import mathics
 import mathics.docpipeline as md
 from mathics.core.definitions import Definitions
-from mathics.core.load_builtin import (
-    builtins_by_module,
-    builtins_dict,
-    import_and_load_builtins,
-)
+from mathics.core.load_builtin import import_and_load_builtins
+from mathics.doc.utils import open_ensure_dir
 from mathics.docpipeline import (
     MAX_TESTS,
-    create_output,
-    open_ensure_dir,
-    print_and_log,
     test_all,
     test_chapters,
     test_sections,
@@ -36,13 +30,6 @@ from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 
 from mathics_django.doc import DjangoDocumentation
 from mathics_django.settings import get_doctest_html_data_path
-
-
-def load_doc_data():
-    doc_html_data_path = get_doctest_html_data_path(should_be_readable=True)
-    print(f"Loading internal document data from {doc_html_data_path}")
-    with open_ensure_dir(doc_html_data_path, "rb") as doc_data_file:
-        return pickle.load(doc_data_file)
 
 
 def save_doctest_data(output_data):
@@ -207,7 +194,7 @@ def main():
             else:
                 print(f"Mathics3 Module {module_name} loaded")
 
-    md.DOCUMENTATION.gather_doctest_data()
+    # md.DOCUMENTATION.load_documentation_sources()
 
     start_time = None
     total = 0
@@ -244,7 +231,6 @@ def main():
                 generate_output=args.output,
                 stop_on_failure=args.stop_on_failure,
                 start_at=start_at,
-                count=args.count,
                 doc_even_if_error=args.keep_going,
                 excludes=excludes,
             )

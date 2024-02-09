@@ -8,7 +8,8 @@ from typing import Union
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import Http404, HttpResponse
 from django.shortcuts import render
-from mathics.doc.common_doc import get_module_doc, mathics3_module_part
+from mathics.doc.common_doc import MATHICS3_MODULES_TITLE
+from mathics.doc.utils import slugify
 from mathics.eval.pymathics import pymathics_builtins_by_module, pymathics_modules
 
 from mathics_django.doc import documentation
@@ -23,37 +24,38 @@ DocResponse = Union[HttpResponse, JsonResponse]
 
 seen_pymathics_modules = copy(pymathics_modules)
 
+MATHICS3_MODULES_SLUG = slugify(MATHICS3_MODULES_TITLE)
 
-def check_for_pymathics_load():
+
+def check_for_new_load_modules():
+    """
+    See if we have laoded any new Mathics3 modules since the last time
+    we checked. If so get an add the documenation for that.
+    """
     global seen_pymathics_modules
     if seen_pymathics_modules != pymathics_modules:
-        print("XXX refresh pymathics doc", pymathics_modules)
-        new_modules = pymathics_modules - seen_pymathics_modules
-        for new_module in new_modules:
-            title, _ = get_module_doc(new_module)
-            chapter = mathics3_module_part.doc.gather_chapter_doc_fn(
-                mathics3_module_part,
-                title,
-                mathics3_module_part.doc,
-            )
-            from trepan.api import debug
-
-            debug()
-            submodule_names_seen = set()
-            chapter.doc.doc_chapter(
-                new_module,
-                mathics3_module_part,
-                pymathics_builtins_by_module,
-                seen_pymathics_modules,
-                submodule_names_seen,
-            )
-            chapter.get_tests()
+        mathics3_module_part = documentation.parts_by_slug.get(
+            MATHICS3_MODULES_SLUG, None
+        )
+        if mathics3_module_part is None:
+            print("Something is wrong: mathics3_module variable should not be None")
+            return
+        else:
+            # The "Mathics3 modules" part already exists; add the new chapters.
+            new_modules = pymathics_modules - seen_pymathics_modules
+            for new_module in new_modules:
+                chapter = documentation.doc_chapter(
+                    new_module, mathics3_module_part, pymathics_builtins_by_module
+                )
+                mathics3_module_part.chapters.append(chapter)
+                pass
+            pass
         seen_pymathics_modules = copy(pymathics_modules)
-        pass
+    return
 
 
 def doc(request: WSGIRequest, ajax: bool = False) -> DocResponse:
-    check_for_pymathics_load()
+    check_for_new_load_modules()
     return render_doc(
         request,
         "overview.html",
@@ -73,7 +75,7 @@ def doc_chapter(request: WSGIRequest, part, chapter, ajax: bool = False) -> DocR
     * Introduction (in part Manual)
     * Procedural Programming (in part Reference of Built-in Symbols)
     """
-    check_for_pymathics_load()
+    check_for_new_load_modules()
     chapter = documentation.get_chapter(part, chapter)
     if not chapter:
         raise Http404
@@ -96,7 +98,7 @@ def doc_part(request: WSGIRequest, part, ajax: bool = False) -> DocResponse:
     * Manual
     * Reference of Built-in Symbols
     """
-    check_for_pymathics_load()
+    check_for_new_load_modules()
     part = documentation.get_part(part)
     if not part:
         raise Http404
@@ -113,7 +115,7 @@ def doc_part(request: WSGIRequest, part, ajax: bool = False) -> DocResponse:
 
 
 def doc_search(request: WSGIRequest) -> DocResponse:
-    check_for_pymathics_load()
+    check_for_new_load_modules()
     query = request.GET.get("query", "")
     result = documentation.search(query)
     if len([item for exact, item in result if exact]) <= 1:
@@ -170,7 +172,7 @@ def doc_section(
     * A list of builtin-functions under a Guide Section. For example: Color Directives.
       The guide section here would be Colors.
     """
-    check_for_pymathics_load()
+    check_for_new_load_modules()
     section_obj = documentation.get_section(part, chapter, section)
     if not section_obj:
         raise Http404
@@ -204,7 +206,7 @@ def doc_subsection(
     organized in a guide section are tagged as a section rather than a
     subsection.)
     """
-    check_for_pymathics_load()
+    check_for_new_load_modules()
     subsection_obj = documentation.get_subsection(part, chapter, section, subsection)
     if not subsection_obj:
         raise Http404
@@ -240,7 +242,7 @@ def render_doc(
     If ``ajax`` is True the should the ajax URI prefix, e.g. " it we pass the result
 
     """
-    check_for_pymathics_load()
+    check_for_new_load_modules()
     object = context.get("object")
     context.update(
         {
