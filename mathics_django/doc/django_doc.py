@@ -205,9 +205,17 @@ class DjangoDocChapter(DocChapter, DjangoDocElement):
 
 
 class DjangoDocPart(DocPart, DjangoDocElement):
+    """
+    Represents one of the main parts of the document customized for Django. Parts
+    can be loaded from a mdoc file, generated automatically from
+    the docstrings of Builtin objects under `mathics.builtin`, or loaded
+    as a Mathics3 module.
+    """
+
+    chapter_class = DjangoDocChapter
+
     def __init__(self, doc, title, is_reference=False):
         super(DjangoDocPart, self).__init__(doc, title, is_reference)
-        self.chapter_class = DjangoDocChapter
 
     def get_collection(self):
         """Return a list of parts in this doc"""
