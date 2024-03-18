@@ -211,7 +211,7 @@ class DjangoDocPart(DocPart, DjangoDocElement):
 
     def get_collection(self):
         """Return a list of parts in this doc"""
-        return self.doc.parts
+        return self.documentation.parts
 
     def html(self):
         if len(self.tests) == 0:
@@ -268,7 +268,7 @@ class DjangoDocSection(DocSection, DjangoDocElement):
     def get_collection(self):
         """Return a list of subsections for this section that this section belongs
         to."""
-        return self.chapter.sections
+        return self.chapter.all_sections
 
     def html_data(self):
         indices = set()
@@ -321,7 +321,7 @@ class DjangoDocGuideSection(DjangoDocSection, DjangoDocElement):
 
     def get_uri(self) -> str:
         """Return the URI of this section."""
-        return f"/{self.chapter.part.slug}/{self.chapter.slug}/guide/"
+        return f"/{self.chapter.part.slug}/{self.chapter.slug}/{self.slug}"
 
 
 class DjangoDocSubsection(DocSubsection, DjangoDocElement):

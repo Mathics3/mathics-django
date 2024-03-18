@@ -11,7 +11,7 @@
 	{{ chapter.doc.html }}
 
 	<ul>
-		{% for section in chapter.sections %}
+		{% for section in chapter.all_sections %}
 		  {% if section.summary_text %}
             <li>{{ section|link:ajax }} &mdash; <i>{{section.summary_text}}</i></li>
           {% else %}
