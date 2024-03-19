@@ -89,7 +89,7 @@ class DjangoDocumentation(Documentation, DjangoDocElement):
         self.part_class = DjangoDocPart
         self.section_class = DjangoDocSection
         self.subsection_class = DjangoDocSubsection
-        
+
     def __str__(self):
         return "\n\n\n".join(str(part) for part in self.parts)
 
@@ -197,12 +197,13 @@ class DjangoDocChapter(DocChapter, DjangoDocElement):
     """An object for a Django Documentation Chapter.
     A Chapter is part of a Part and contains Sections.
     """
+
     @property
     def guide_or_symbol_sections(self):
         if self.guide_sections:
             return self.guide_sections
         return self.sections
-    
+
     def get_collection(self):
         """Return a list of chapters in the part of this chapter."""
         return self.part.chapters
