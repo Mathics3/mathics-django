@@ -151,23 +151,16 @@ class DjangoDocumentation(Documentation, DjangoDocElement):
 
 
 class DjangoDoc(DocumentationEntry):
-    def __init__(self, doc, title, section, key_prefix=None):
-        self.title = title
-        if key_prefix is None:
-            if section is not None:
-                chapter = section.chapter
-                part = chapter.part
-                # Note: we elide section.title
-                key_prefix = (part.title, chapter.title, title)
-            else:
-                key_prefix = None
+    def _set_classes(self):
+        """
+        Tells to the initializator the classes to be used to build the items.
+        This must be overloaded by the daughter classes.
+        """
+        self.docTest_collection_class = DjangoDocTests
+        self.docTest_class = DjangoDocTest
+        self.docText_class = DjangoDocText
 
-        self.rawdoc = doc
-        self.items = gather_tests(
-            self.rawdoc, DjangoDocTests, DjangoDocTest, DjangoDocText, key_prefix
-        )
-        return
-
+    
     def __str__(self):
         return "\n".join(str(item) for item in self.items)
 
@@ -238,38 +231,6 @@ class DjangoDocSection(DocSection, DjangoDocElement):
     """An object for a Django Documented Section.
     A Section is part of a Chapter. It can contain subsections.
     """
-
-    def __init__(
-        self,
-        chapter,
-        title: str,
-        text: str,
-        operator,
-        installed=True,
-        in_guide=False,
-        summary_text="",
-    ):
-        self.chapter = chapter
-        self.in_guide = in_guide
-        self.installed = installed
-        self.operator = operator
-        self.slug = slugify(title)
-        self.subsections = []
-        self.subsections_by_slug = {}
-        self.summary_text = summary_text
-        self.title = title
-
-        if text.count("<dl>") != text.count("</dl>"):
-            raise ValueError(
-                f"Missing opening or closing <dl> tag in {title} documentation"
-            )
-
-        # Needs to come after self.chapter is initialized since
-        # XMLDoc uses self.chapter.
-        self.doc = DjangoDoc(text, title, self)
-
-        chapter.sections_by_slug[self.slug] = self
-
     def __str__(self):
         return f"== {self.title} ==\n{self.doc}"
 
@@ -301,31 +262,6 @@ class DjangoDocGuideSection(DjangoDocSection, DjangoDocElement):
     like NamedColors or Orthogonal Polynomials.
     """
 
-    def __init__(
-        self, chapter: str, title: str, text: str, submodule, installed: bool = True
-    ):
-        self.chapter = chapter
-        self.doc = DjangoDoc(text, title, None)
-        self.in_guide = False
-        self.installed = installed
-        self.slug = slugify(title)
-        self.section = submodule
-        self.slug = slugify(title)
-        self.subsections = []
-        self.subsections_by_slug = {}
-        self.title = title
-
-        # FIXME: Sections never are operators. Subsections can have
-        # operators though.  Fix up the view and searching code not to
-        # look for the operator field of a section.
-        self.operator = False
-
-        if text.count("<dl>") != text.count("</dl>"):
-            raise ValueError(
-                f"Missing opening or closing <dl> tag in {title} documentation"
-            )
-        # print("YYY Adding section", title)
-        chapter.sections_by_slug[self.slug] = self
 
     def get_uri(self) -> str:
         """Return the URI of this section."""
@@ -336,76 +272,6 @@ class DjangoDocSubsection(DocSubsection, DjangoDocElement):
     """An object for a Django Documented Subsection.
     A Subsection is part of a Section.
     """
-
-    def __init__(
-        self,
-        chapter,
-        section,
-        title,
-        text,
-        operator=None,
-        installed=True,
-        in_guide=False,
-        summary_text="",
-    ):
-        """
-        Information that goes into a subsection object. This can be a written text, or
-        text extracted from the docstring of a builtin module or class.
-
-        About some of the parameters...
-
-        Some built-in classes are Operators. These are documented in a
-        slightly special way.
-
-        Some built-in require special libraries. When those libraries are not available,
-        parameter "installed" is False.
-
-        Some of the subsections are contained in a grouping module and need special work to
-        get the grouping module name correct.
-
-        For example the Chapter "Colors" is a module so the docstring
-        text for it is in mathics/builtin/colors/__init__.py . In
-        mathics/builtin/colors/named-colors.py we have the "section"
-        name for the class Read (the subsection) inside it.
-        """
-
-        title_summary_text = re.split(" -- ", title)
-        n = len(title_summary_text)
-        self.title = title_summary_text[0] if n > 0 else ""
-        self.summary_text = title_summary_text[1] if n > 1 else summary_text
-
-        self.doc = DjangoDoc(text, title, section)
-        self.chapter = chapter
-        self.installed = installed
-        self.operator = operator
-
-        self.section = section
-        self.slug = slugify(title)
-        self.title = title
-
-        if section:
-            chapter = section.chapter
-            part = chapter.part
-            # Note: we elide section.title
-            key_prefix = (part.title, chapter.title, title)
-        else:
-            key_prefix = None
-
-        if in_guide:
-            # Tests haven't been picked out yet from the doc string yet.
-            # Gather them here.
-            self.items = gather_tests(
-                text, DjangoDocTests, DjangoDocTest, DjangoDocText, key_prefix
-            )
-        else:
-            self.items = []
-
-        if text.count("<dl>") != text.count("</dl>"):
-            raise ValueError(
-                f"Missing opening or closing <dl> tag in {title} documentation"
-            )
-        self.section.subsections_by_slug[self.slug] = self
-
     def __str__(self):
         return f"=== {self.title} ===\n{self.doc}"
 
