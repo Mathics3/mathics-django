@@ -72,13 +72,7 @@ class DjangoDocElement:
 class DjangoDocumentation(Documentation, DjangoDocElement):
     def __init__(self):
         super(DjangoDocumentation, self).__init__()
-        self.doc_class = DjangoDoc
         self.doc_dir = settings.DOC_DIR
-        self.chapter_class = DjangoDocChapter
-        self.guide_section_class = DjangoDocGuideSection
-        self.part_class = DjangoDocPart
-        self.section_class = DjangoDocSection
-        self.subsection_class = DjangoDocSubsection
 
         self.load_documentation_sources()
         self.doctest_latex_pcl_path = settings.DOCTEST_LATEX_DATA_PCL
@@ -88,6 +82,14 @@ class DjangoDocumentation(Documentation, DjangoDocElement):
         )
         self.title = "Overview"
 
+    def _set_classes(self):
+        self.doc_class = DjangoDoc
+        self.chapter_class = DjangoDocChapter
+        self.guide_section_class = DjangoDocGuideSection
+        self.part_class = DjangoDocPart
+        self.section_class = DjangoDocSection
+        self.subsection_class = DjangoDocSubsection
+        
     def __str__(self):
         return "\n\n\n".join(str(part) for part in self.parts)
 
@@ -195,7 +197,12 @@ class DjangoDocChapter(DocChapter, DjangoDocElement):
     """An object for a Django Documentation Chapter.
     A Chapter is part of a Part and contains Sections.
     """
-
+    @property
+    def guide_or_symbol_sections(self):
+        if self.guide_sections:
+            return self.guide_sections
+        return self.sections
+    
     def get_collection(self):
         """Return a list of chapters in the part of this chapter."""
         return self.part.chapters
