@@ -160,7 +160,6 @@ class DjangoDoc(DocumentationEntry):
         self.docTest_class = DjangoDocTest
         self.docText_class = DjangoDocText
 
-    
     def __str__(self):
         return "\n".join(str(item) for item in self.items)
 
@@ -231,6 +230,7 @@ class DjangoDocSection(DocSection, DjangoDocElement):
     """An object for a Django Documented Section.
     A Section is part of a Chapter. It can contain subsections.
     """
+
     def __str__(self):
         return f"== {self.title} ==\n{self.doc}"
 
@@ -262,7 +262,6 @@ class DjangoDocGuideSection(DjangoDocSection, DjangoDocElement):
     like NamedColors or Orthogonal Polynomials.
     """
 
-
     def get_uri(self) -> str:
         """Return the URI of this section."""
         return f"/{self.chapter.part.slug}/{self.chapter.slug}/{self.slug}"
@@ -272,6 +271,7 @@ class DjangoDocSubsection(DocSubsection, DjangoDocElement):
     """An object for a Django Documented Subsection.
     A Subsection is part of a Section.
     """
+
     def __str__(self):
         return f"=== {self.title} ===\n{self.doc}"
 
