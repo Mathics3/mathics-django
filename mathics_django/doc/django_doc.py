@@ -261,6 +261,7 @@ class DjangoDocGuideSection(DjangoDocSection, DjangoDocElement):
     are examples of Guide Sections, and each contains a number of Sections.
     like NamedColors or Orthogonal Polynomials.
     """
+
     def __init__(
         self,
         chapter: DocChapter,
@@ -271,7 +272,6 @@ class DjangoDocGuideSection(DjangoDocSection, DjangoDocElement):
     ):
         super().__init__(chapter, title, text, None, installed, False)
         self.section = submodule
-
 
     def get_uri(self) -> str:
         """Return the URI of this section."""
