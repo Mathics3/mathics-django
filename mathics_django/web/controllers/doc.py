@@ -9,6 +9,7 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.http import Http404, HttpResponse
 from django.shortcuts import render
 from mathics.doc.common_doc import MATHICS3_MODULES_TITLE
+from mathics.doc.gather import doc_chapter as gather_doc_chapter
 from mathics.doc.utils import slugify
 from mathics.eval.pymathics import pymathics_builtins_by_module, pymathics_modules
 
@@ -44,7 +45,7 @@ def check_for_new_load_modules():
             # The "Mathics3 modules" part already exists; add the new chapters.
             new_modules = pymathics_modules - seen_pymathics_modules
             for new_module in new_modules:
-                chapter = documentation.doc_chapter(
+                chapter = gather_doc_chapter(
                     new_module, mathics3_module_part, pymathics_builtins_by_module
                 )
                 mathics3_module_part.chapters.append(chapter)
