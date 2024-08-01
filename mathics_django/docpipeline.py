@@ -20,7 +20,9 @@ from mathics.core.definitions import Definitions
 from mathics.core.load_builtin import import_and_load_builtins
 from mathics.doc.utils import open_ensure_dir
 from mathics.docpipeline import (
+    DocTestPipeline,
     MAX_TESTS,
+    build_arg_parser,
     test_all,
     test_chapters,
     test_sections,
@@ -55,194 +57,48 @@ def save_doctest_data(output_data):
 
 
 def main():
-    import_and_load_builtins()
-    md.DEFINITIONS = Definitions(add_builtin=True)
-
-    parser = ArgumentParser(description="Mathics test suite.", add_help=False)
-    parser.add_argument(
-        "--help", "-h", help="show this help message and exit", action="help"
+    args = build_arg_parser()
+    data_path =  (
+        get_doctest_html_data_path(
+            should_be_readable=False, create_parent=True
+        )
+        if args.output
+        else None
     )
-    parser.add_argument(
-        "--version", "-v", action="version", version="%(prog)s " + mathics.__version__
-    )
-    parser.add_argument(
-        "--chapters",
-        "-c",
-        dest="chapters",
-        metavar="CHAPTER",
-        help="only test CHAPTER(s). "
-        "You can list multiple chapters by adding a comma (and no space) in between chapter names.",
-    )
-    parser.add_argument(
-        "--sections",
-        "-s",
-        dest="sections",
-        metavar="SECTION",
-        help="only test SECTION(s). "
-        "You can list multiple sections by adding a comma (and no space) in between section names.",
-    )
-    parser.add_argument(
-        "--exclude",
-        "-X",
-        default="",
-        dest="exclude",
-        metavar="SECTION",
-        help="exclude SECTION(s). "
-        "You can list multiple sections by adding a comma (and no space) in between section names.",
-    )
-    parser.add_argument(
-        "--load-module",
-        "-l",
-        dest="pymathics",
-        metavar="MATHIC3-MODULES",
-        help="load Mathics3 module MATHICS3-MODULES. "
-        "You can list multiple Mathics3 Modules by adding a comma (and no space) in between "
-        "module names.",
-    )
-    parser.add_argument(
-        "--logfile",
-        "-f",
-        dest="logfilename",
-        metavar="LOGFILENAME",
-        help="stores the output in [logfilename]. ",
-    )
-    parser.add_argument(
-        "--time-each",
-        "-d",
-        dest="elapsed_times",
-        action="store_true",
-        help="check the time that take each test to parse, evaluate and compare.",
-    )
-
-    parser.add_argument(
-        "--output",
-        "-o",
-        dest="output",
-        action="store_true",
-        help="generate pickled internal document data",
-    )
-    parser.add_argument(
-        "--reload",
-        "-r",
-        dest="reload",
-        action="store_true",
-        help="reload pickled internal data, before possibly adding to it",
-    )
-    parser.add_argument(
-        "--doc-only",
-        dest="doc_only",
-        action="store_true",
-        help="reload pickled internal document data, before possibly adding to it",
-    )
-    parser.add_argument(
-        "--quiet", "-q", dest="quiet", action="store_true", help="hide passed tests"
-    )
-    parser.add_argument(
-        "--keep-going",
-        "-k",
-        dest="keep_going",
-        action="store_true",
-        help="create documentation even if there is a test failure",
-    )
-    parser.add_argument(
-        "--stop-on-failure", "-x", action="store_true", help="stop on failure"
-    )
-    parser.add_argument(
-        "--skip",
-        metavar="N",
-        dest="skip",
-        type=int,
-        default=0,
-        help="skip the first N tests",
-    )
-    parser.add_argument(
-        "--count",
-        metavar="N",
-        dest="count",
-        type=int,
-        default=MAX_TESTS,
-        help="run only  N tests",
-    )
-    parser.add_argument(
-        "--show-statistics",
-        action="store_true",
-        help="print cache statistics",
-    )
-    global LOGFILE
-
-    args = parser.parse_args()
-
-    if args.elapsed_times:
-        md.CHECK_PARTIAL_ELAPSED_TIME = True
-    # If a test for a specific section is called
-    # just test it
-    if args.logfilename:
-        md.LOGFILE = open(args.logfilename, "wt")
-
-    md.DOCUMENTATION = DjangoDocumentation()
-
-    # LoadModule Mathics3 modules
-    if args.pymathics:
-        for module_name in args.pymathics.split(","):
-            try:
-                eval_LoadModule(module_name, md.DEFINITIONS)
-            except PyMathicsLoadException:
-                print(f"Python module {module_name} is not a Mathics3 module.")
-
-            except ImportError:
-                print(f"Python module {module_name} does not exist")
-            else:
-                print(f"Mathics3 Module {module_name} loaded")
-
-    # md.DOCUMENTATION.load_documentation_sources()
-
-    start_time = None
-    total = 0
+    test_pipeline = DocTestPipeline(args, output_format="xml", data_path=data_path)
+    test_status = test_pipeline.status
 
     if args.sections:
-        sections = set(args.sections.split(","))
-
+        include_sections = set(args.sections.split(","))
+        exclude_subsections = set(args.exclude.split(","))
         start_time = datetime.now()
-        test_sections(
-            sections,
-            stop_on_failure=args.stop_on_failure,
-            generate_output=args.output,
-            reload=args.reload,
-        )
+        test_sections(test_pipeline, include_sections, exclude_subsections)
     elif args.chapters:
         start_time = datetime.now()
-        chapters = set(args.chapters.split(","))
-
-        total = test_chapters(
-            chapters, stop_on_failure=args.stop_on_failure, reload=args.reload
-        )
+        include_chapters = set(args.chapters.split(","))
+        exclude_sections = set(args.exclude.split(","))
+        test_chapters(test_pipeline, include_chapters, exclude_sections)
     else:
         if args.doc_only:
-            write_doctest_data(
-                quiet=args.quiet,
-                reload=args.reload,
-            )
+            write_doctest_data(test_pipeline)
         else:
             excludes = set(args.exclude.split(","))
-            start_at = args.skip + 1
             start_time = datetime.now()
-            total = test_all(
-                quiet=args.quiet,
-                generate_output=args.output,
-                stop_on_failure=args.stop_on_failure,
-                start_at=start_at,
-                doc_even_if_error=args.keep_going,
-                excludes=excludes,
-            )
-            end_time = datetime.now()
-            print("Tests took ", end_time - start_time)
+            test_all(test_pipeline, excludes=excludes)
 
-    if total > 0 and start_time is not None:
-        end_time = datetime.now()
-        print("Test evalation took ", end_time - start_time)
+    if test_status.total > 0 and start_time is not None:
+        print("Test evaluation took ", datetime.now() - start_time)
 
-    if md.LOGFILE:
-        md.LOGFILE.close()
+    if test_pipeline.logfile:
+        test_pipeline.logfile.close()
+    if args.show_statistics:
+        show_lru_cache_statistics()
+
+    if test_status.failed == 0:
+        print("\nOK")
+    else:
+        print("\nFAILED")
+        sys.exit(1)  # Travis-CI knows the tests have failed
 
 
 if __name__ == "__main__":
