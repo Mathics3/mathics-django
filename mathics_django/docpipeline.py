@@ -58,10 +58,8 @@ def save_doctest_data(output_data):
 
 def main():
     args = build_arg_parser()
-    data_path =  (
-        get_doctest_html_data_path(
-            should_be_readable=False, create_parent=True
-        )
+    data_path = (
+        get_doctest_html_data_path(should_be_readable=False, create_parent=True)
         if args.output
         else None
     )
