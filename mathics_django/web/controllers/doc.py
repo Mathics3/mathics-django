@@ -40,17 +40,14 @@ def check_for_new_load_modules():
         )
         if mathics3_module_part is None:
             print("Something is wrong: mathics3_module variable should not be None")
-            return
-        else:
-            # The "Mathics3 modules" part already exists; add the new chapters.
-            new_modules = pymathics_modules - seen_pymathics_modules
-            for new_module in new_modules:
-                chapter = gather_doc_chapter(
-                    new_module, mathics3_module_part, pymathics_builtins_by_module
-                )
-                mathics3_module_part.chapters.append(chapter)
-                pass
-            pass
+
+        # The "Mathics3 modules" part already exists; add the new chapters.
+        new_modules = pymathics_modules - seen_pymathics_modules
+        for new_module in new_modules:
+            chapter = gather_doc_chapter(
+                new_module, mathics3_module_part, pymathics_builtins_by_module
+            )
+            #  mathics3_module_part.chapters.append(chapter)
         seen_pymathics_modules = copy(pymathics_modules)
     return
 
