@@ -9,28 +9,21 @@ as a pipeline:
    Mathics built-in functions
 2. Creates/updates internal documentation data
 """
-
 import pickle
-from argparse import ArgumentParser
+import sys
 from datetime import datetime
 
-import mathics
-import mathics.docpipeline as md
-from mathics.core.definitions import Definitions
-from mathics.core.load_builtin import import_and_load_builtins
 from mathics.doc.utils import open_ensure_dir
 from mathics.docpipeline import (
     DocTestPipeline,
-    MAX_TESTS,
     build_arg_parser,
     test_all,
     test_chapters,
     test_sections,
     write_doctest_data,
 )
-from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
+from mathics.timing import show_lru_cache_statistics
 
-from mathics_django.doc import DjangoDocumentation
 from mathics_django.settings import get_doctest_html_data_path
 
 
