@@ -20,7 +20,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install OS dependencies
       run: |
-        brew install llvm@11 nodejs npm tesseract
+        brew install llvm nodejs npm tesseract
         python -m pip install --upgrade pip
         LLVM_CONFIG=/usr/local/Cellar/llvm@11/11.1.0/bin/llvm-config pip install llvmlite
     - name: Install Python dependencies
