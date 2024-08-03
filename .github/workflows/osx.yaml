@@ -30,7 +30,7 @@ jobs:
         # For testing 3.11 we need to do something like the below until the next Mathics3 is released
         # python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
         # python -m pip install -e git+https://github.com/Mathics3/mathics-core#egg=Mathics3[full]
-        git clone --branch main https://github.com/Mathics3/mathics-core
+        git clone --branch master https://github.com/Mathics3/mathics-core
         (cd mathics-core && pip3 install -e .[full])
         (cd mathics-core && bash ./admin-tools/make-op-tables.sh)
     - name: Install Mathics3 Django
