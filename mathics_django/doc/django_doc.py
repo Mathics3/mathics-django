@@ -41,6 +41,9 @@ class DjangoDocElement:
     """
 
     def href(self, ajax=False):
+        """Return the URI of the element. If the call is done
+        using ajax, the href is a javascript instruction for loading
+        the documentation from the corresponding uri."""
         if ajax:
             return f"javascript:loadDoc('{self.get_uri()}')"
         else:
@@ -63,6 +66,8 @@ class DjangoDocElement:
         return prev, next
 
     def get_title_html(self):
+        """Get the title of the element."""
+        # used by web/templatetags/doc.py
         return mark_safe(escape_html(self.title, single_line=True))
 
 
@@ -91,6 +96,7 @@ class DjangoDocumentation(Documentation, DjangoDocElement):
         return "\n\n\n".join(str(part) for part in self.parts)
 
     def get_uri(self) -> str:
+        """Return the URI of the documentation root."""
         return "/"
 
     def search(self, query):
@@ -173,7 +179,7 @@ class DjangoDoc(DocumentationEntry):
             # In module-style docstring tagging, the first line of the docstring is the section title.
             # since that is tagged and shown as a title, it is redundant here is the section body.
             # Or that is the intent. This code is a bit hacky.
-            items[0].text = items[0].text[len(title_line):]
+            items[0].text = items[0].text[len(title_line) :]
 
         text = "\n".join(item.html() for item in items if not item.is_private())
         if text == "":
@@ -198,6 +204,7 @@ class DjangoDocChapter(DocChapter, DjangoDocElement):
         return self.part.chapters
 
     def get_uri(self) -> str:
+        """Return the URI of this chapter."""
         return f"/{self.part.slug}/{self.slug}/"
 
 
@@ -220,6 +227,7 @@ class DjangoDocPart(DocPart, DjangoDocElement):
         )
 
     def get_uri(self) -> str:
+        """Return the URI of this part."""
         return f"/{self.slug}/"
 
 

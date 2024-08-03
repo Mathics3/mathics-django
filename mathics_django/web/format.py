@@ -480,7 +480,7 @@ def format_graph(G) -> str:
 
     # pyplot.tight_layout()
     svg_graph_xml = get_graph()
-    svg_str = svg_graph_xml[svg_graph_xml.find("<svg xmlns:xlink"):]
+    svg_str = svg_graph_xml[svg_graph_xml.find("<svg xmlns:xlink") :]
     return svg_str
 
 
