@@ -16,6 +16,7 @@ from mathics.core.systemsymbols import (
     SymbolFullForm,
     SymbolGraphics,
     SymbolGraphics3D,
+    SymbolInputForm,
     SymbolMathMLForm,
     SymbolOutputForm,
     SymbolStandardForm,
@@ -84,14 +85,14 @@ def format_output(obj, expr, format=None):
         result = expr.elements[0].format(obj, expr_type)
         return result.boxes_to_text()
     elif expr_head is SymbolGraphics:
-        result = Expression(SymbolStandardForm, expr).format(obj, "System`MathMLForm")
+        result = Expression(SymbolStandardForm, expr).format(obj, SymbolMathMLForm)
 
     # This part was derived from and the same as evaluation.py format_output.
 
     use_quotes = get_settings_value(obj.definitions, "Settings`$QuotedStrings")
 
     if format == "text":
-        result = expr.format(obj, "System`OutputForm")
+        result = expr.format(obj, SymbolOutputForm)
         result = eval_boxes(result, result.boxes_to_text, obj)
 
         if use_quotes:
@@ -99,16 +100,16 @@ def format_output(obj, expr, format=None):
 
         return result
     elif format == "xml":
-        result = Expression(SymbolStandardForm, expr).format(obj, "System`MathMLForm")
+        result = Expression(SymbolStandardForm, expr).format(obj, SymbolMathMLForm)
     elif format == "tex":
-        result = Expression(SymbolStandardForm, expr).format(obj, "System`TeXForm")
+        result = Expression(SymbolStandardForm, expr).format(obj, SymbolTeXForm)
     elif format == "unformatted":
         if expr_head is PyMathicsGraph and hasattr(expr, "G"):
             return format_graph(expr.G)
         if expr_head is SymbolCompiledFunction:
-            result = expr.format(obj, "System`OutputForm")
+            result = expr.format(obj, SymbolOutputForm)
         elif expr_head is SymbolString:
-            result = expr.format(obj, "System`InputForm")
+            result = expr.format(obj, SymbolInputForm)
             result = result.boxes_to_text()
 
             if not use_quotes:
@@ -118,16 +119,14 @@ def format_output(obj, expr, format=None):
             return result
         elif expr_head is SymbolGraphics3D:
             form_expr = Expression(SymbolStandardForm, expr)
-            result = form_expr.format(obj, "System`StandardForm")
+            result = form_expr.format(obj, SymbolStandardForm)
             return eval_boxes(result, result.boxes_to_js, obj)
         elif expr_head is SymbolGraphics:
             form_expr = Expression(SymbolStandardForm, expr)
-            result = form_expr.format(obj, "System`StandardForm")
+            result = form_expr.format(obj, SymbolStandardForm)
             return eval_boxes(result, result.boxes_to_svg, obj)
         else:
-            result = Expression(SymbolStandardForm, expr).format(
-                obj, "System`MathMLForm"
-            )
+            result = Expression(SymbolStandardForm, expr).format(obj, SymbolMathMLForm)
     else:
         raise ValueError
 
