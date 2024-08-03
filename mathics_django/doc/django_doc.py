@@ -5,7 +5,6 @@ FIXME: Ditch this and hook into sphinx
 """
 
 import pickle
-import re
 
 from django.utils.safestring import mark_safe
 from mathics import settings
@@ -19,11 +18,9 @@ from mathics.doc.common_doc import (
     DocText,
     Documentation,
     DocumentationEntry,
-    gather_tests,
     get_results_by_test,
     sorted_chapters,
 )
-from mathics.doc.utils import slugify
 
 from mathics_django.doc.utils import escape_html
 from mathics_django.settings import get_doctest_html_data_path
@@ -176,7 +173,7 @@ class DjangoDoc(DocumentationEntry):
             # In module-style docstring tagging, the first line of the docstring is the section title.
             # since that is tagged and shown as a title, it is redundant here is the section body.
             # Or that is the intent. This code is a bit hacky.
-            items[0].text = items[0].text[len(title_line) :]
+            items[0].text = items[0].text[len(title_line):]
 
         text = "\n".join(item.html() for item in items if not item.is_private())
         if text == "":

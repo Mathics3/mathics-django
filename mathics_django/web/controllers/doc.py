@@ -30,8 +30,8 @@ MATHICS3_MODULES_SLUG = slugify(MATHICS3_MODULES_TITLE)
 
 def check_for_new_load_modules():
     """
-    See if we have laoded any new Mathics3 modules since the last time
-    we checked. If so get an add the documenation for that.
+    See if we have loaded any new Mathics3 modules since the last time
+    we checked. If so get an add the documentation for that.
     """
     global seen_pymathics_modules
     if seen_pymathics_modules != pymathics_modules:
@@ -198,7 +198,7 @@ def doc_subsection(
     subsection: str,
     ajax: bool = False,
 ) -> DocResponse:
-    """Proceses a document subsection. This is often the bottom-most
+    """Processes a document subsection. This is often the bottom-most
     entity right now.  In particular it contains built-in functions
     which are part of a guide section.  (Those builtings that are not
     organized in a guide section are tagged as a section rather than a

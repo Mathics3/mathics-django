@@ -68,7 +68,7 @@ def format_output(obj, expr, format=None):
         return dict((k, obj.format_output(expr, f)) for k, f in format.items())
 
     # For some expressions, we want formatting to be different.
-    # In particular for FullForm output, we dont' want MathML, we want
+    # In particular for FullForm output, we don't want MathML, we want
     # plain-ol' text so we can cut and paste that.
 
     expr_type = expr.get_head_name()
@@ -142,7 +142,6 @@ cached_pair = None
 def hierarchy_pos(
     G, root=None, width=1.0, vert_gap=0.2, vert_loc=0, leaf_vs_root_factor=0.5
 ):
-
     """Position nodes in tree layout. The root is at the top.
 
     Based on Joel's answer at https://stackoverflow.com/a/29597209/2966723,
@@ -219,7 +218,7 @@ def hierarchy_pos(
         return cached_pair
 
     # These get swapped if tree edge directions point to the root.
-    decendants = nx.descendants
+    descendants = nx.descendants
     out_degree = G.out_degree if hasattr(G, "out_degree") else G.degree
     neighbors = G.neighbors
 
@@ -231,7 +230,7 @@ def hierarchy_pos(
                 # The case where we have a one or two node graph is ambiguous.
                 root = list(nx.topological_sort(G))[-1]
                 # Swap motion functions
-                decendants = nx.ancestors
+                descendants = nx.ancestors
                 out_degree = G.in_degree
                 neighbors = G.predecessors
             else:
@@ -306,7 +305,9 @@ def hierarchy_pos(
 
     xcenter = width / 2.0
     if isinstance(G, nx.DiGraph):
-        leafcount = len([node for node in decendants(G, root) if out_degree(node) == 0])
+        leafcount = len(
+            [node for node in descendants(G, root) if out_degree(node) == 0]
+        )
     elif isinstance(G, nx.Graph):
         leafcount = len(
             [
@@ -397,7 +398,6 @@ DEFAULT_POINT_SIZE = 16
 
 
 def harmonize_parameters(G, draw_options: dict):
-
     global node_size
     graph_layout = G.graph_layout if hasattr(G, "graph_layout") else ""
 
@@ -480,7 +480,7 @@ def format_graph(G) -> str:
 
     # pyplot.tight_layout()
     svg_graph_xml = get_graph()
-    svg_str = svg_graph_xml[svg_graph_xml.find("<svg xmlns:xlink") :]
+    svg_str = svg_graph_xml[svg_graph_xml.find("<svg xmlns:xlink"):]
     return svg_str
 
 
@@ -497,5 +497,5 @@ def get_graph() -> str:
     buffer.close()
 
     # TODO: In the future if probably want to base64 encode.
-    # Use: base64.b64encode(some peice of image_svg)
+    # Use: base64.b64encode(some piece of image_svg)
     return graph_svg.decode("utf-8")
