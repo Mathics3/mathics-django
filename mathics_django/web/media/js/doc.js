@@ -60,7 +60,8 @@ function loadDoc(page) {
 }
 
 function showDoc() {
-	const docLink = document.getElementById('doclink');
+        const docLink = document.getElementById('doclink');
+        loadDoc('');
 
 	document.getElementById('doc').style.display = 'block';
 

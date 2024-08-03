@@ -31,7 +31,7 @@ def check_database():
     manage_file = osp.join(osp.dirname(osp.realpath(__file__)), "manage.py")
     try:
         subprocess.check_call([sys.executable, manage_file, "migrate", "--noinput"])
-        print("\ndatabase initialized sucessfully")
+        print("\ndatabase initialized successfully")
     except subprocess.CalledProcessError:
         print("error: failed to create database")
         sys.exit(1)

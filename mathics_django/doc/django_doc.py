@@ -5,31 +5,29 @@ FIXME: Ditch this and hook into sphinx
 """
 
 import pickle
-import re
 
 from django.utils.safestring import mark_safe
 from mathics import settings
 from mathics.doc.common_doc import (
     DocChapter,
-    DocGuideSection,
+    DocPart,
+    DocSection,
+    DocSubsection,
     DocTest,
     DocTests,
     DocText,
     Documentation,
-    Tests,
-    XMLDoc,
-    gather_tests,
+    DocumentationEntry,
     get_results_by_test,
     sorted_chapters,
 )
-from mathics.doc.utils import slugify
 
 from mathics_django.doc.utils import escape_html
 from mathics_django.settings import get_doctest_html_data_path
 
 # FIXME: remove globalness
+doctest_html_data_path = get_doctest_html_data_path(should_be_readable=True)
 try:
-    doctest_html_data_path = get_doctest_html_data_path(should_be_readable=True)
     with open(doctest_html_data_path, "rb") as doctest_html_data_file:
         doc_data = pickle.load(doctest_html_data_file)
 except IOError:
@@ -37,12 +35,19 @@ except IOError:
     doc_data = {}
 
 
-class DjangoDocElement(object):
+class DjangoDocElement:
+    """
+    Adds some HTML functions onto existing Django Document Elements.
+    """
+
     def href(self, ajax=False):
+        """Return the URI of the element. If the call is done
+        using ajax, the href is a javascript instruction for loading
+        the documentation from the corresponding uri."""
         if ajax:
-            return "javascript:loadDoc('%s')" % self.get_uri()
+            return f"javascript:loadDoc('{self.get_uri()}')"
         else:
-            return "/doc%s" % self.get_uri()
+            return f"/doc{self.get_uri()}"
 
     def get_prev(self):
         return self.get_prev_next()[0]
@@ -61,63 +66,37 @@ class DjangoDocElement(object):
         return prev, next
 
     def get_title_html(self):
+        """Get the title of the element."""
+        # used by web/templatetags/doc.py
         return mark_safe(escape_html(self.title, single_line=True))
 
 
 class DjangoDocumentation(Documentation, DjangoDocElement):
+    def __init__(self):
+        super(DjangoDocumentation, self).__init__()
+        self.doc_dir = settings.DOC_DIR
+
+        self.load_documentation_sources()
+        self.doctest_latex_pcl_path = settings.DOCTEST_LATEX_DATA_PCL
+        self.pymathics_doc_loaded = False
+        self.doc_data_file = settings.get_doctest_latex_data_path(
+            should_be_readable=True
+        )
+        self.title = "Overview"
+
+    def _set_classes(self):
+        self.doc_class = DjangoDoc
+        self.chapter_class = DjangoDocChapter
+        self.guide_section_class = DjangoDocGuideSection
+        self.part_class = DjangoDocPart
+        self.section_class = DjangoDocSection
+        self.subsection_class = DjangoDocSubsection
+
     def __str__(self):
         return "\n\n\n".join(str(part) for part in self.parts)
 
-    def get_tests(self):
-        for part in self.parts:
-            for chapter in sorted_chapters(part.chapters):
-                tests = chapter.doc.get_tests()
-                if tests:
-                    yield Tests(part.title, chapter.title, "", tests)
-                for section in chapter.sections:
-                    if section.installed:
-                        if isinstance(section, DocGuideSection):
-                            for docsection in section.subsections:
-                                for docsubsection in docsection.subsections:
-                                    # FIXME: Something is weird here
-                                    # where tests for subsection items
-                                    # appear not as a collection but
-                                    # individually and need to be
-                                    # iterated below. Probably some
-                                    # other code is faulty and when
-                                    # fixed the below loop and
-                                    # collection into doctest_list[]
-                                    # will be removed.
-                                    doctest_list = []
-                                    index = 1
-                                    for doctests in docsubsection.items:
-                                        doctest_list += list(doctests.get_tests())
-                                        for test in doctest_list:
-                                            test.index = index
-                                            index += 1
-
-                                    if doctest_list:
-                                        yield Tests(
-                                            section.chapter.part.title,
-                                            section.chapter.title,
-                                            docsubsection.title,
-                                            doctest_list,
-                                        )
-                        else:
-                            tests = section.doc.get_tests()
-                            if tests:
-                                yield Tests(
-                                    part.title, chapter.title, section.title, tests
-                                )
-                                pass
-                            pass
-                        pass
-                    pass
-                pass
-            pass
-        return
-
     def get_uri(self) -> str:
+        """Return the URI of the documentation root."""
         return "/"
 
     def search(self, query):
@@ -174,39 +153,15 @@ class DjangoDocumentation(Documentation, DjangoDocElement):
         return sorted_results
 
 
-class MathicsDjangoDocumentation(DjangoDocumentation):
-    def __init__(self, want_sorting=True):
-
-        self.doc_chapter_fn = DjangoDocChapter
-        self.doc_dir = settings.DOC_DIR
-        self.doc_fn = DjangoDoc
-        self.doc_guide_section_fn = DjangoDocGuideSection
-        self.doc_part_fn = DjangoDocPart
-        self.doc_section_fn = DjangoDocSection
-        self.doc_subsection_fn = DjangoDocSubsection
-        self.parts = []
-        self.parts_by_slug = {}
-        self.title = "Overview"
-
-        self.gather_doctest_data()
-
-
-class DjangoDoc(XMLDoc):
-    def __init__(self, doc, title, section):
-        self.title = title
-        if section:
-            chapter = section.chapter
-            part = chapter.part
-            # Note: we elide section.title
-            key_prefix = (part.title, chapter.title, title)
-        else:
-            key_prefix = None
-
-        self.rawdoc = doc
-        self.items = gather_tests(
-            self.rawdoc, DjangoDocTests, DjangoDocTest, DjangoDocText, key_prefix
-        )
-        return
+class DjangoDoc(DocumentationEntry):
+    def _set_classes(self):
+        """
+        Tells to the initializator the classes to be used to build the items.
+        This must be overloaded by the daughter classes.
+        """
+        self.docTest_collection_class = DjangoDocTests
+        self.docTest_class = DjangoDocTest
+        self.docText_class = DjangoDocText
 
     def __str__(self):
         return "\n".join(str(item) for item in self.items)
@@ -218,7 +173,6 @@ class DjangoDoc(XMLDoc):
         return tests
 
     def html(self):
-        counters = {}
         items = [item for item in self.items if not item.is_private()]
         title_line = self.title + "\n"
         if len(items) and items[0].text.startswith(title_line):
@@ -227,7 +181,7 @@ class DjangoDoc(XMLDoc):
             # Or that is the intent. This code is a bit hacky.
             items[0].text = items[0].text[len(title_line) :]
 
-        text = "\n".join(item.html(counters) for item in items if not item.is_private())
+        text = "\n".join(item.html() for item in items if not item.is_private())
         if text == "":
             # HACK ALERT if text is "" we may have missed some test markup.
             return mark_safe(escape_html(self.rawdoc))
@@ -239,36 +193,31 @@ class DjangoDocChapter(DocChapter, DjangoDocElement):
     A Chapter is part of a Part and contains Sections.
     """
 
+    @property
+    def guide_or_symbol_sections(self):
+        if self.guide_sections:
+            return self.guide_sections
+        return self.sections
+
     def get_collection(self):
         """Return a list of chapters in the part of this chapter."""
         return self.part.chapters
 
     def get_uri(self) -> str:
+        """Return the URI of this chapter."""
         return f"/{self.part.slug}/{self.slug}/"
 
 
-class DjangoDocPart(DjangoDocElement):
+class DjangoDocPart(DocPart, DjangoDocElement):
     def __init__(self, doc, title, is_reference=False):
-        self.doc = doc
-        self.title = title
-        self.slug = slugify(title)
-        self.chapters = []
-        self.chapters_by_slug = {}
-        self.is_reference = is_reference
-        self.is_appendix = False
-        doc.parts_by_slug[self.slug] = self
-
-    def __str__(self):
-        return "%s\n\n%s" % (
-            self.title,
-            "\n".join(str(chapter) for chapter in sorted_chapters(self.chapters)),
-        )
+        super(DjangoDocPart, self).__init__(doc, title, is_reference)
+        self.chapter_class = DjangoDocChapter
 
     def get_collection(self):
         """Return a list of parts in this doc"""
-        return self.doc.parts
+        return self.documentation.parts
 
-    def html(self, counters=None):
+    def html(self):
         if len(self.tests) == 0:
             return "\n"
         return '<ul class="tests">%s</ul>' % (
@@ -278,45 +227,14 @@ class DjangoDocPart(DjangoDocElement):
         )
 
     def get_uri(self) -> str:
+        """Return the URI of this part."""
         return f"/{self.slug}/"
 
 
-class DjangoDocSection(DjangoDocElement):
+class DjangoDocSection(DocSection, DjangoDocElement):
     """An object for a Django Documented Section.
     A Section is part of a Chapter. It can contain subsections.
     """
-
-    def __init__(
-        self,
-        chapter,
-        title: str,
-        text: str,
-        operator,
-        installed=True,
-        in_guide=False,
-        summary_text="",
-    ):
-        self.chapter = chapter
-        self.in_guide = in_guide
-        self.installed = installed
-        self.operator = operator
-        self.slug = slugify(title)
-        self.subsections = []
-        self.subsections_by_slug = {}
-        self.summary_text = summary_text
-        self.title = title
-
-        if text.count("<dl>") != text.count("</dl>"):
-            raise ValueError(
-                "Missing opening or closing <dl> tag in "
-                "{} documentation".format(title)
-            )
-
-        # Needs to come after self.chapter is initialized since
-        # XMLDoc uses self.chapter.
-        self.doc = DjangoDoc(text, title, self)
-
-        chapter.sections_by_slug[self.slug] = self
 
     def __str__(self):
         return f"== {self.title} ==\n{self.doc}"
@@ -324,7 +242,7 @@ class DjangoDocSection(DjangoDocElement):
     def get_collection(self):
         """Return a list of subsections for this section that this section belongs
         to."""
-        return self.chapter.sections
+        return self.chapter.all_sections
 
     def html_data(self):
         indices = set()
@@ -342,7 +260,7 @@ class DjangoDocSection(DjangoDocElement):
         return f"/{self.chapter.part.slug}/{self.chapter.slug}/{self.slug}/"
 
 
-class DjangoDocGuideSection(DjangoDocSection):
+class DjangoDocGuideSection(DjangoDocSection, DjangoDocElement):
     """An object for a Django Documented Guide Section.
     A Guide Section is part of a Chapter. "Colors" or "Special Functions"
     are examples of Guide Sections, and each contains a number of Sections.
@@ -350,111 +268,25 @@ class DjangoDocGuideSection(DjangoDocSection):
     """
 
     def __init__(
-        self, chapter: str, title: str, text: str, submodule, installed: bool = True
+        self,
+        chapter: DocChapter,
+        title: str,
+        text: str,
+        submodule,
+        installed: bool = True,
     ):
-        self.chapter = chapter
-        self.doc = DjangoDoc(text, title, None)
-        self.in_guide = False
-        self.installed = installed
-        self.slug = slugify(title)
+        super().__init__(chapter, title, text, None, installed, False)
         self.section = submodule
-        self.slug = slugify(title)
-        self.subsections = []
-        self.subsections_by_slug = {}
-        self.title = title
-
-        # FIXME: Sections never are operators. Subsections can have
-        # operators though.  Fix up the view and searching code not to
-        # look for the operator field of a section.
-        self.operator = False
-
-        if text.count("<dl>") != text.count("</dl>"):
-            raise ValueError(
-                "Missing opening or closing <dl> tag in "
-                "{} documentation".format(title)
-            )
-        # print("YYY Adding section", title)
-        chapter.sections_by_slug[self.slug] = self
 
     def get_uri(self) -> str:
         """Return the URI of this section."""
-        return f"/{self.chapter.part.slug}/{self.chapter.slug}/guide/"
+        return f"/{self.chapter.part.slug}/{self.chapter.slug}/{self.slug}"
 
 
-class DjangoDocSubsection(DjangoDocElement):
+class DjangoDocSubsection(DocSubsection, DjangoDocElement):
     """An object for a Django Documented Subsection.
     A Subsection is part of a Section.
     """
-
-    def __init__(
-        self,
-        chapter,
-        section,
-        title,
-        text,
-        operator=None,
-        installed=True,
-        in_guide=False,
-        summary_text="",
-    ):
-        """
-        Information that goes into a subsection object. This can be a written text, or
-        text extracted from the docstring of a builtin module or class.
-
-        About some of the parameters...
-
-        Some built-in classes are Operators. These are documented in a
-        slightly special way.
-
-        Some built-in require special libraries. When those libraries are not available,
-        parameter "installed" is False.
-
-        Some of the subsections are contained in a grouping module and need special work to
-        get the grouping module name correct.
-
-        For example the Chapter "Colors" is a module so the docstring
-        text for it is in mathics/builtin/colors/__init__.py . In
-        mathics/builtin/colors/named-colors.py we have the "section"
-        name for the class Read (the subsection) inside it.
-        """
-
-        title_summary_text = re.split(" -- ", title)
-        n = len(title_summary_text)
-        self.title = title_summary_text[0] if n > 0 else ""
-        self.summary_text = title_summary_text[1] if n > 1 else summary_text
-
-        self.doc = DjangoDoc(text, title, section)
-        self.chapter = chapter
-        self.installed = installed
-        self.operator = operator
-
-        self.section = section
-        self.slug = slugify(title)
-        self.title = title
-
-        if section:
-            chapter = section.chapter
-            part = chapter.part
-            # Note: we elide section.title
-            key_prefix = (part.title, chapter.title, title)
-        else:
-            key_prefix = None
-
-        if in_guide:
-            # Tests haven't been picked out yet from the doc string yet.
-            # Gather them here.
-            self.items = gather_tests(
-                text, DjangoDocTests, DjangoDocTest, DjangoDocText, key_prefix
-            )
-        else:
-            self.items = []
-
-        if text.count("<dl>") != text.count("</dl>"):
-            raise ValueError(
-                "Missing opening or closing <dl> tag in "
-                "{} documentation".format(title)
-            )
-        self.section.subsections_by_slug[self.slug] = self
 
     def __str__(self):
         return f"=== {self.title} ===\n{self.doc}"
@@ -521,7 +353,7 @@ class DjangoDocTest(DocTest):
 
 
 class DjangoDocTests(DocTests):
-    def html(self, counters=None):
+    def html(self):
         if len(self.tests) == 0:
             return "\n"
         return '<ul class="tests">%s</ul>' % (
@@ -532,6 +364,6 @@ class DjangoDocTests(DocTests):
 
 
 class DjangoDocText(DocText):
-    def html(self, counters=None) -> str:
-        result = escape_html(self.text, counters=counters)
+    def html(self) -> str:
+        result = escape_html(self.text)
         return result

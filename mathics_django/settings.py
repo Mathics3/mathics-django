@@ -74,7 +74,7 @@ DOCTEST_USER_HTML_DATA_PATH = os.environ.get(
 )
 
 # We need another version as a fallback, and that is distributed with the
-# package. It is note user writable and not in the user space.
+# package. It is not user writable and not in the user space.
 DOC_SYSTEM_HTML_DATA_PATH = os.environ.get(
     "DOC_SYSTEM_HTML_DATA_PATH", osp.join(ROOT_DIR, "doc", "doc_html_data.pcl")
 )
