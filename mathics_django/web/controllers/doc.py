@@ -143,6 +143,7 @@ def doc_search(request: WSGIRequest) -> DocResponse:
                     )
 
     result = [item for exact, item in result]
+
     return render_doc(
         request,
         "search.html",
