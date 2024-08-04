@@ -101,7 +101,6 @@ class DjangoDocumentation(Documentation, DjangoDocElement):
 
     def search(self, query):
         """Handles interactive search in browser."""
-
         query = query.strip()
         query_parts = [q.strip().lower() for q in query.split()]
 
