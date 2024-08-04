@@ -25,6 +25,7 @@ jobs:
         python -m pip install wheel
         choco install llvm nodejs
         set LLVM_DIR="C:\Program Files\LLVM"
+
     - name: Install Python dependencies
       run: |
         # Can adjust when next Mathics is released
@@ -44,7 +45,9 @@ jobs:
         cp node_modules/\@mathicsorg/mathics-threejs-backend/package.json mathics_d
     - name: Test Mathics3 Django
       run: |
-        # Until we can't figure out what's up with TextRecognize:
         make pytest gstest
-        make doctest o="--exclude TextRecognize,PythonCProfileEvaluation"
+        # import WordCloud fails with:
+        #    DLL load failed wile importing _c_interal_utils
+        # Until we can't figure out what's up with TextRecognize:
+        make doctest o="--exclude TextRecognize,PythonCProfileEvaluation,WordCloud"
         # make check
