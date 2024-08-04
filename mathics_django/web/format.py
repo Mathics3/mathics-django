@@ -437,6 +437,10 @@ def format_graph(G) -> str:
     global node_size
     global cached_pair
 
+    # Make sure we close any previous graph before starting to create
+    # new graph.
+    pyplot.close()
+
     pyplot.switch_backend("AGG")
     cached_pair = None
 
