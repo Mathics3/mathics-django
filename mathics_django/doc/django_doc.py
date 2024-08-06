@@ -148,6 +148,13 @@ class DjangoDocumentation(Documentation, DjangoDocElement):
                         result.append((True, section))
                         continue
                     search_sections(section, result)
+                for section in chapter.guide_sections:
+                    if matches(section.title):
+                        result.append((section.title == query, section))
+                    elif query == section.operator:
+                        result.append((True, section))
+                        continue
+                    search_sections(section, result)
 
         sorted_results = sorted(result, key=name_compare_goodness)
         return sorted_results
