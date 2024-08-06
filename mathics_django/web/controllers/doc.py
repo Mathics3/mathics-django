@@ -39,15 +39,16 @@ def check_for_new_load_modules():
             MATHICS3_MODULES_SLUG, None
         )
         if mathics3_module_part is None:
-            print("Something is wrong: mathics3_module variable should not be None")
+            print(
+                "Something is wrong: mathics3_module_part variable should not be None"
+            )
 
         # The "Mathics3 modules" part already exists; add the new chapters.
         new_modules = pymathics_modules - seen_pymathics_modules
         for new_module in new_modules:
-            chapter = gather_doc_chapter(
+            gather_doc_chapter(
                 new_module, mathics3_module_part, pymathics_builtins_by_module
             )
-            #  mathics3_module_part.chapters.append(chapter)
         seen_pymathics_modules = copy(pymathics_modules)
     return
 
@@ -65,7 +66,9 @@ def doc(request: WSGIRequest, ajax: bool = False) -> DocResponse:
     )
 
 
-def doc_chapter(request: WSGIRequest, part, chapter, ajax: bool = False) -> DocResponse:
+def doc_chapter(
+    request: WSGIRequest, part: str, chapter: str, ajax: bool = False
+) -> DocResponse:
     """
     Produces HTML via jinja templating for a chapter. Some examples of
     Chapters:
@@ -89,7 +92,7 @@ def doc_chapter(request: WSGIRequest, part, chapter, ajax: bool = False) -> DocR
     )
 
 
-def doc_part(request: WSGIRequest, part, ajax: bool = False) -> DocResponse:
+def doc_part(request: WSGIRequest, part: str, ajax: bool = False) -> DocResponse:
     """
     Produces HTML via jinja templating for a Part - the top-most
     subdivision of the document. Some examples of Parts:
