@@ -17,7 +17,6 @@ from mathics_django.web.controllers.doc import (
     doc_subsection,
 )
 
-
 # These are the callback functions.
 from mathics_django.web.views import (
     delete,

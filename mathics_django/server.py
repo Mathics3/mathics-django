@@ -1,20 +1,23 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 
-import sys
+import argparse
+import errno
 import os
 import os.path as osp
-import argparse
 import socket
-import errno
 import subprocess
+import sys
 
 import mathics
-from mathics_django import server_version_string, license_string
-from mathics_django import settings as mathics_settings  # Prevents UnboundLocalError
-from mathics_django.version import __version__ as django_frontend_version
 from mathics.settings import DATA_DIR
+
+from mathics_django import (  # Prevents UnboundLocalError
+    license_string,
+    server_version_string,
+    settings as mathics_settings,
+)
+from mathics_django.version import __version__ as django_frontend_version
 
 
 def check_database():
@@ -107,7 +110,7 @@ http://localhost:%d\nin Firefox, Chrome, or Safari to use Mathics\n"""
         addr = "127.0.0.1"
 
     try:
-        from django.core.servers.basehttp import run, get_internal_wsgi_application
+        from django.core.servers.basehttp import get_internal_wsgi_application, run
 
         handler = get_internal_wsgi_application()
         run(addr, port, handler)
