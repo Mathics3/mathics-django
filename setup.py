@@ -65,11 +65,11 @@ if sys.platform == "darwin":
 
 # General Requirements
 INSTALL_REQUIRES += [
-    "Mathics-Scanner >=1.2.2,<1.3.1",
+    "Mathics-Scanner >=1.2.2,<1.4",
     # "Mathics3 @ http://github.com/Mathics3/mathics-core/archive/master.zip",
-    "Mathics3 >=6.2.0,<7.1.0",
-    "django >= 3.2",  # After Python 3.7 is removed, we can bump min version to 4.1
-    "networkx >= 2.6",  # Used in format, should disappear though. After 3.7 can bump to 3.x
+    "Mathics3 >=7.0.0.dev0,<7.1.0",
+    "django >= 4.0",
+    "networkx >= 3.0",
     "pygments",  # For colorized Python tracebacks
     "requests",
 ]
@@ -191,7 +191,6 @@ setup(
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
