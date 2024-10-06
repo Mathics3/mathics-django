@@ -69,6 +69,7 @@ INSTALL_REQUIRES += [
     # "Mathics3 @ http://github.com/Mathics3/mathics-core/archive/master.zip",
     "Mathics3 >=7.0.0.dev0,<7.1.0",
     "django >= 4.0",
+    "matplotlib",  # For networkx graphs
     "networkx >= 3.0",
     "pygments",  # For colorized Python tracebacks
     "requests",
