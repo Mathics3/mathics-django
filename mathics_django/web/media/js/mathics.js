@@ -287,6 +287,9 @@ function createLine(value) {
         const lines = container.innerText.split('\n');
         const p = document.createElement('p');
         p.className = 'string';
+	if(lines.length>1){
+	    p.style.textAlign = 'justify';
+	}
 
         for (let i = 0; i < lines.length; i++) {
 	    newline = prepareText(lines[i]);
