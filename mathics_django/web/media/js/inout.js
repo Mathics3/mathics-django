@@ -364,7 +364,7 @@ Graphics3D[Table[Point[{x, y, z}], {x, 5}, {y, 5}, {z, 5}]]',
         'Plot3D[ Abs[Zeta[x + I y] ], {x, -1, 2}, {y, 2, 20}, PlotPoints->30]',
 
         '(**** Combinatorica: for Implementing Discrete Mathematics. ****)',
-        'Needs["DiscreteMath`CombinatoricaV09`"]',
+        'Needs["DiscreteMath`CombinatoricaV091`"]',
         'ShowGraph[ LineGraph K[5] ]',
         'ShowGraph[ GraphComplement[ LineGraph[K[5]] ] ]',
         'ShowGraph[ CirculantGraph[20, RandomSubset[Range[10]]] ]',
