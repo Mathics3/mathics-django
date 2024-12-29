@@ -325,6 +325,18 @@ function showGallery() {
         'points = NestList[.5(vertices[[ RandomInteger[{1,3}] ]] + #) &, {0.,0.}, 600];',
         'Graphics[Point[points], ImageSize->Small]',
 
+	'Nest[Subsuperscript[#,#,#]&,0,5]',
+
+	'lindenmayer[i_, b_, h_, j_, r_, n_] := \n' +
+	    '  (a = h; p = j; s = k = {}; t = Flatten;\n' +
+	    '    (Switch[#,\n' +
+	    '      6, s = {a, p, s},\n' +
+            '      8, {a, p, s} = s,\n' +
+            '      _C, k = {k, Line@{p, p += {Cos@a, Sin@a}}}];\n' +
+            '     If[# < 9, a += I^# b ]) & /@ t@Nest[# /. r &, i, n];\n' +
+            '    Graphics@t@k);\n' +
+            'lindenmayer[{C[1], X}, Pi/2, 0, {0, 0}, {X -> {X, 4, Y, C[1]}, Y -> {C[1], X, 2, Y}}, 10]',
+
         'Graphics[Table[{EdgeForm[{GrayLevel[0, 0.5]}], Hue[(-11+q+10r)/72, 1, 1, 0.6], Disk[(8-r){Cos[2Pi q/12], Sin [2Pi q/12]}, (8-r)/3]}, {r, 6}, {q, 12}]]',
 
         '(* Embedding objects in a Table. *)',
