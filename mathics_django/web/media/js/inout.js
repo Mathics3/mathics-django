@@ -335,7 +335,7 @@ function showGallery() {
             '      _C, k = {k, Line@{p, p += {Cos@a, Sin@a}}}];\n' +
             '     If[# < 9, a += I^# b ]) & /@ t@Nest[# /. r &, i, n];\n' +
             '    Graphics@t@k);\n' +
-            'lindenmayer[{C[1], X}, Pi/2, 0, {0, 0}, {X -> {X, 4, Y, C[1]}, Y -> {C[1], X, 2, Y}}, 10]',
+            'lindenmayer[{C[1], X}, Pi/2, 0, {0, 0}, {X -> {X, 4, Y, C[1]}, Y -> {C[1], X, 2, Y}}, 7]',
 
         'Graphics[Table[{EdgeForm[{GrayLevel[0, 0.5]}], Hue[(-11+q+10r)/72, 1, 1, 0.6], Disk[(8-r){Cos[2Pi q/12], Sin [2Pi q/12]}, (8-r)/3]}, {r, 6}, {q, 12}]]',
 
