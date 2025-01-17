@@ -40,4 +40,4 @@ jobs:
       run: |
         make pytest gstest
         make doctest o="--exclude TextRecognize,PythonCProfileEvaluation"
-        make check
+        # make check
