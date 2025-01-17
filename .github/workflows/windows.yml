@@ -33,7 +33,7 @@ jobs:
         # python -m pip install -e git+https://github.com/Mathics3/mathics-core#egg=Mathics3[full]
         git clone --branch master https://github.com/Mathics3/mathics-core
         bash -c '(cd mathics-core && pip3 install -e .[full])'
-        bash -c '(cd mathics-core && bash ./admin-tools/make-op-tables.sh)'
+        bash -c '(cd mathics-core && bash ./admin-tools/make-JSON-tables.sh)'
     - name: Install Mathics3 Django
       run: |
         python -m pip install pytest pexpect
