@@ -2,13 +2,17 @@
 {% load doc %}
 
 {% block content %}
-	{% if result %}
-		<ul>
-			{% for item in result %}
-				<li>{{ item|link:ajax }}</li>
-			{% endfor %}
-		</ul>
-	{% else %}
-		<p>No items found.</p>
+  {% if result %}
+    <ul>
+      {% for item in result %}
+        {% if item.summary_text %}
+          <li>{{ item|link:ajax }} &mdash; <i>{{item.summary_text}}</i></li>
+        {% else %}
+          <li>{{ item|link:ajax }}</li>
 	{% endif %}
+      {% endfor %}
+    </ul>
+  {% else %}
+     <p>No items found.</p>
+  {% endif %}
 {% endblock content %}
