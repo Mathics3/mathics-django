@@ -104,7 +104,7 @@ def get_doctest_html_data_path(should_be_readable=False, create_parent=False) ->
 
 #########################################################
 # Django-specific settings
-# See https://docs.djangoproject.com/en/3.2/ref/settings/
+# See https://docs.djangoproject.com/en/5.1/ref/settings/
 ##########################################################
 
 AUTHENTICATION_BACKENDS = ("mathics.web.authentication.EmailModelBackend",)
