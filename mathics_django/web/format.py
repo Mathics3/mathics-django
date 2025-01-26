@@ -19,7 +19,6 @@ from mathics.core.systemsymbols import (
 )
 from mathics.session import get_settings_value
 
-
 FORM_TO_FORMAT = {
     "System`MathMLForm": "xml",
     "System`TeXForm": "tex",
@@ -127,4 +126,3 @@ def format_output(obj, expr, format=None):
     if result is None:
         return f"Error in evaluating {expr}"
     return eval_boxes(result, result.boxes_to_text, obj)
-
