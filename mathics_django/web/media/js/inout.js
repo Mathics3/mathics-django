@@ -325,6 +325,18 @@ function showGallery() {
         'points = NestList[.5(vertices[[ RandomInteger[{1,3}] ]] + #) &, {0.,0.}, 600];',
         'Graphics[Point[points], ImageSize->Small]',
 
+	'Nest[Subsuperscript[#,#,#]&,0,5]',
+
+	'lindenmayer[i_, b_, h_, j_, r_, n_] := \n' +
+	    '  (a = h; p = j; s = k = {}; t = Flatten;\n' +
+	    '    (Switch[#,\n' +
+	    '      6, s = {a, p, s},\n' +
+            '      8, {a, p, s} = s,\n' +
+            '      _C, k = {k, Line@{p, p += {Cos@a, Sin@a}}}];\n' +
+            '     If[# < 9, a += I^# b ]) & /@ t@Nest[# /. r &, i, n];\n' +
+            '    Graphics@t@k);\n' +
+            'lindenmayer[{C[1], X}, Pi/2, 0, {0, 0}, {X -> {X, 4, Y, C[1]}, Y -> {C[1], X, 2, Y}}, 7]',
+
         'Graphics[Table[{EdgeForm[{GrayLevel[0, 0.5]}], Hue[(-11+q+10r)/72, 1, 1, 0.6], Disk[(8-r){Cos[2Pi q/12], Sin [2Pi q/12]}, (8-r)/3]}, {r, 6}, {q, 12}]]',
 
         '(* Embedding objects in a Table. *)',
@@ -364,8 +376,12 @@ Graphics3D[Table[Point[{x, y, z}], {x, 5}, {y, 5}, {z, 5}]]',
         'Plot3D[ Abs[Zeta[x + I y] ], {x, -1, 2}, {y, 2, 20}, PlotPoints->30]',
 
         '(**** Combinatorica: for Implementing Discrete Mathematics. ****)',
-        'Needs["DiscreteMath`CombinatoricaV0.9`"]',
-        'ShowGraph[ LineGraph K[5] ]',
+        'Needs["DiscreteMath`CombinatoricaV091`"]',
+	'(* Illustration of overleaf. Pages 127-128. *)',
+	'ShowGraph[ LineGraph[ LineGraph[K[5]] ] ]',
+	'(* The union of two connected graphs has two connected components. *)',
+	'ShowGraph[ GraphUnion[ K[3], K[5,5] ] ]',
+	'(* The complement of the line graph of K[5] is a Petersen graph. *)',
         'ShowGraph[ GraphComplement[ LineGraph[K[5]] ] ]',
         'ShowGraph[ CirculantGraph[20, RandomSubset[Range[10]]] ]',
         'FerrersDiagram[RandomInteger[{0, 3}, 50]]',

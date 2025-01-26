@@ -98,6 +98,7 @@ testserver: $(THREEJS)
 #: Create a ChangeLog from git via git log and git2cl
 ChangeLog: rmChangeLog
 	git log --pretty --numstat --summary | $(GIT2CL) >$@
+	patch ChangeLog < ChangeLog-spell-corrected.diff
 
 node_modules/\@mathicsorg/mathics-threejs-backend/package.json node_modules/@mathicsorg/mathics-threejs-backend/package.json:
 	npm install @mathicsorg/mathics-threejs-backend --loglevel=error

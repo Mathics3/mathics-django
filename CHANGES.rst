@@ -1,6 +1,21 @@
 CHANGES
 =======
 
+7.0.0
+-----
+
+* Adjust for Mathics3 core 7.0.0 API, e.g., add explicit call to load builtins
+* doctest refactored to use more routines common to mathics-core
+* Support newer matplotlib, e.g. 3.9.1
+* Update gallery examples
+* Add background and tooltips to Graphics3D
+* Expand information in /about:
+   - max digits in string
+   - system encoding
+   - time format
+
+
+
 6.0.0
 -----
 

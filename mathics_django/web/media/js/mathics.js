@@ -56,7 +56,7 @@ function isEmpty(textarea) {
 }
 
 function prepareText(text) {
-    return text || String.fromCharCode(160); // non breaking space, like &nbsp;
+    return text.replaceAll(" ", "&nbsp;");
 }
 
 function getDimensions(math, callback) {
@@ -97,7 +97,6 @@ function translateDOMElement(element, svg) {
     if (element.nodeType === 3) {
         return document.createTextNode(element.nodeValue);
     }
-
     const nodeName = element.nodeName;
 
     let dom = null;
@@ -261,7 +260,6 @@ function translateDOMElement(element, svg) {
 function createLine(value) {
     const container = document.createElement('div');
     container.innerHTML = value;
-
     if (container?.firstElementChild?.tagName === 'math') {
         return translateDOMElement(container.firstChild);
     } else if (container?.firstElementChild?.tagName === 'GRAPHICS3D') {
@@ -287,18 +285,20 @@ function createLine(value) {
         return container;
     } else {
         const lines = container.innerText.split('\n');
-
         const p = document.createElement('p');
         p.className = 'string';
+	if(lines.length>1){
+	    p.style.textAlign = 'justify';
+	}
 
         for (let i = 0; i < lines.length; i++) {
-            p.innerText += prepareText(lines[i]);
+	    newline = prepareText(lines[i]);
+            p.innerHTML += newline;
 
             if (i < lines.length - 1) {
                 p.appendChild(document.createElement('br'));
             }
         }
-
         return p;
     }
 }
@@ -477,7 +477,7 @@ function setResult(list, results) {
                     li.innerText += out.prefix + ': ';
                 }
 
-                li.appendChild(createLine(out.text));
+                li.appendChild(createLine(out.text.slice(1,-1)));
 
                 resultList.appendChild(li);
             });

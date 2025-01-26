@@ -6,4 +6,4 @@ if [[ $0 == ${BASH_SOURCE[0]} ]] ; then
 	exit 1
 fi
 
-export PYVERSIONS='3.6.15 3.7.16 3.8.16 3.9.16 3.10.10 pyston-2.3.5'
+export PYVERSIONS='3.8 3.9 3.10 3.11'

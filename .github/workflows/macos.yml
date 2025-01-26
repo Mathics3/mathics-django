@@ -1,4 +1,4 @@
-name: Mathics-Django (OSX)
+name: Mathics-Django (macos)
 
 on:
   push:
@@ -26,13 +26,11 @@ jobs:
     - name: Install Python dependencies
       run: |
         # Can adjust when next Mathics is released
-        # python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
-        # For testing 3.11 we need to do something like the below until the next Mathics3 is released
-        # python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
+        python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
         # python -m pip install -e git+https://github.com/Mathics3/mathics-core#egg=Mathics3[full]
         git clone --branch master https://github.com/Mathics3/mathics-core
         (cd mathics-core && pip3 install -e .[full])
-        (cd mathics-core && bash ./admin-tools/make-op-tables.sh)
+        (cd mathics-core && bash ./admin-tools/make-JSON-tables.sh)
     - name: Install Mathics3 Django
       run: |
         npm install
