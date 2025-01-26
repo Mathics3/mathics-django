@@ -1,52 +1,54 @@
-var authenticated = false;
-
-var loginReason;
-var loginNext;
+let authenticated = false, loginReason, loginNext;
 
 function showLogin(reason, next) {
-	$('passwordSent').hide();
+	document.getElementById('passwordSent').style.display = 'none';
+
+	const loginReasonElement = document.getElementById('loginReason');
+
 	if (reason) {
-		$('loginReason').show();
-		$('loginReason').setText(reason);
-	} else
-		$('loginReason').hide();
-	showPopup($('login'));
+		loginReasonElement.style.display = 'block';
+		loginReasonElement.innerText = reason;
+	} else {
+		loginReasonElement.style.display = 'none';
+	}
+
+	showPopup(document.getElementById('login'));
+
 	loginNext = next;
 }
 
-function cancelLogin() {
-	hidePopup();
-}
-
 function onLogin(username) {
-	$('notAuthenticated').hide();
-	$('authenticated').show();
-	$('username').setText(username);
+	document.getElementById('notAuthenticated').style.display = 'none';
+	document.getElementById('authenticated').style.display = 'block';
+	document.getElementById('username').innerText = username;
+
 	authenticated = true;
 }
 
 function onLogout() {
-	$('authenticated').hide();
-	$('notAuthenticated').show();
-	$('username').setText('');
-	authenticated = false;	
+	document.getElementById('authenticated').style.display = 'none';
+	document.getElementById('notAuthenticated').style.display = 'block';
+	document.getElementById('username').innerText = '';
+
+	authenticated = false;
 }
 
 function login() {
-	submitForm('loginForm', '/ajax/login/', function(response) {
-		var result = response.result;
-		var email = response.form.values.email;
-		if (result == 'ok') {
+	submitForm('loginForm', '/ajax/login/', (response) => {
+		const { email, result } = response.form.values;
+
+		if (result === 'ok') {
 			onLogin(email);
-			cancelLogin();
-			if (loginNext)
+			hidePopup();
+
+			if (loginNext) {
 				loginNext();
+			}
 		} else {
-			$('passwordEmail').setText(email);
-			$('passwordSent').show();
-			$('id_password').activate(); 
+			document.getElementById('passwordEmail').innerText = email;
+			document.getElementById('passwordSent').style.display = 'block';
 		}
-	})
+	});
 }
 
 function logout() {
@@ -58,10 +60,12 @@ function logout() {
 
 function requireLogin(reason, onLogin) {
 	loginReason = reason;
-	if (REQUIRE_LOGIN && !authenticated)
+
+	if (REQUIRE_LOGIN && !authenticated) {
 		showLogin(reason, onLogin);
-	else
+	} else {
 		onLogin();
+	}
 }
 
 function checkLogin(response) {
@@ -69,7 +73,9 @@ function checkLogin(response) {
 		onLogout();
 		hidePopup();
 		showLogin(loginReason, loginNext);
+
 		return false;
-	} else
-		return true;
+	}
+
+	return true;
 }

@@ -8,13 +8,15 @@
 {% endblock head %}
 
 {% block content %}
-
 	{{ chapter.doc.html }}
-	
-	<ul>
-	{% for section in chapter.sections %}
-		<li>{{ section|link:ajax }}</li>
-	{% endfor %}
-	</ul>
 
+	<ul>
+		{% for section in chapter.guide_or_symbol_sections %}
+		  {% if section.summary_text %}
+            <li>{{ section|link:ajax }} &mdash; <i>{{section.summary_text}}</i></li>
+          {% else %}
+			<li>{{ section|link:ajax }}</li>
+	   	  {% endif %}
+		{% endfor %}
+	</ul>
 {% endblock content %}

@@ -1,104 +1,141 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import os
+import os.path as osp
+from pathlib import Path
 
 import pkg_resources
-import sys
-import os
-from os import path
+from mathics.settings import DATA_DIR
+
+# The kinds of strings in an environment variable be interpreted as True.
+ENV_VAR_YES_VALUE = ("true", "t", "1", "yes", "y")
 
 
-DEBUG = True
+def get_bool_from_environment(env_var: str, default_value: str):
+    """
+    Read environment variable ``env_var``, and turn that into a
+    boolean which is returned.
+    ``default_value`` is the value to use if ``env_var`` is not
+    set as an environment variable
+    """
+    env_var_value = os.environ.get(env_var, default_value)
+    return env_var_value in ENV_VAR_YES_VALUE
 
-# set only to True in DEBUG mode
-DEBUG_MAIL = True
-PROPAGATE_EXCEPTIONS = True
-DISPLAY_EXCEPTIONS = True
-DEBUG_PRINT = False
 
+DEBUG = get_bool_from_environment("MATHICS_DJANGO_DEBUG", "true")
+
+# The environment variable MATHICS_DJANGO_ALLOWED_HOSTS is used
+# to set Django's ALLOWED_HOST, which specifies what kinds of
+# host/domain names that Django can serve.
+# See:
+#   https://docs.djangoproject.com/en/4.1/ref/settings/#allowed-hosts
+# for details
+allowed_host_list = os.environ.get("MATHICS_DJANGO_ALLOWED_HOSTS", None)
+if allowed_host_list is not None:
+    ALLOWED_HOSTS = allowed_host_list.split(";")
+else:
+    # Use Django's default value for ALLOWED_HOSTS.
+    ALLOWED_HOSTS = []
+
+DISPLAY_EXCEPTIONS = get_bool_from_environment(
+    "MATHICS_DJANGO_DISPLAY_EXCEPTIONS", DEBUG
+)
+
+# Setting this to True causes Django to freak out. Figure out why and fix.
 LOG_QUERIES = False
 
-# Either None (no timeout) or a positive integer.
-# unix only
-TIMEOUT = None
+# Show on Django console:
+# * evaluation timeout
+# * results
+LOG_ON_CONSOLE = get_bool_from_environment("MATHICS_DJANGO_LOG_ON_CONSOLE", "false")
 
-# specifies a maximum recursion depth is safe for all Python environments
-# without setting a custom thread stack size.
-DEFAULT_MAX_RECURSION_DEPTH = 512
-
-# max pickle.dumps() size for storing results in DB
-# historically 10000 was used on public mathics servers
-MAX_STORED_SIZE = 10000
-
-ADMINS = (
-    ('Admin', 'mail@test.com'),
+MATHICS_DJANGO_DB = os.environ.get("MATHICS_DJANGO_DB", "mathics.sqlite")
+MATHICS_DJANGO_DB_PATH = os.environ.get(
+    "MATHICS_DJANGO_DB_PATH", DATA_DIR + MATHICS_DJANGO_DB
 )
-MANAGERS = ADMINS
 
-ROOT_DIR = pkg_resources.resource_filename('mathics_django', '')
-MATHICS_ROOT_DIR = pkg_resources.resource_filename('mathics', '')
-if sys.platform.startswith('win'):
-    DATA_DIR = os.environ['APPDATA'].replace(os.sep, '/') + '/Python/Mathics/'
-else:
-    DATA_DIR = path.expanduser('~/.local/var/mathics/')
-# if not path.exists(DATA_DIR):
-#    os.makedirs(DATA_DIR)
+ROOT_DIR = pkg_resources.resource_filename("mathics_django", "")
 
-DOC_DIR = os.path.join(MATHICS_ROOT_DIR, 'doc/documentation/')
-DOC_TEX_DATA = os.path.join(MATHICS_ROOT_DIR, 'doc/tex/data')
-DOC_XML_DATA = os.path.join(MATHICS_ROOT_DIR, 'doc/xml/data')
-DOC_LATEX_FILE = os.path.join(MATHICS_ROOT_DIR, 'doc/tex/documentation.tex')
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': DATA_DIR + 'mathics.sqlite'
-    }
-}
+# Location of internal document data.
+MATHICS_BACKEND_THREEJS_JSON_PATH = os.path.join(
+    ROOT_DIR, "web", "media", "js", "mathics-threejs-backend", "version.json"
+)
 
 REQUIRE_LOGIN = False
 
+# Location of internal document data. Currently this is in Python
+# Pickle form, but storing this in JSON if possible would be
+# preferable and faster
+
+# We need two versions, one in the user space which is updated with
+# local packages installed and is user writable.
+DOCTEST_USER_HTML_DATA_PATH = os.environ.get(
+    "DOCTEST_USER_HTML_DATA_PATH", osp.join(DATA_DIR, "doc_html_data.pcl")
+)
+
+# We need another version as a fallback, and that is distributed with the
+# package. It is not user writable and not in the user space.
+DOC_SYSTEM_HTML_DATA_PATH = os.environ.get(
+    "DOC_SYSTEM_HTML_DATA_PATH", osp.join(ROOT_DIR, "doc", "doc_html_data.pcl")
+)
+
+
+def get_doctest_html_data_path(should_be_readable=False, create_parent=False) -> str:
+    """Returns a string path where we can find Python Pickle data for HTML
+    processing.
+
+    If `should_be_readable` is True, the we will check to see whether this file is
+    readable (which also means it exists). If not, we'll return the `DOC_SYSTEM_DATA_PATH`.
+    """
+    doc_user_html_data_path = Path(DOCTEST_USER_HTML_DATA_PATH)
+    base_config_dir = doc_user_html_data_path.parent
+    if not base_config_dir.is_dir() and create_parent:
+        Path("base_config_dir").mkdir(parents=True, exist_ok=True)
+
+    if should_be_readable:
+        return (
+            DOCTEST_USER_HTML_DATA_PATH
+            if doc_user_html_data_path.is_file()
+            else DOC_SYSTEM_HTML_DATA_PATH
+        )
+    else:
+        return DOCTEST_USER_HTML_DATA_PATH
+
+
+#########################################################
+# Django-specific settings
+# See https://docs.djangoproject.com/en/5.1/ref/settings/
+##########################################################
+
+AUTHENTICATION_BACKENDS = ("mathics.web.authentication.EmailModelBackend",)
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": MATHICS_DJANGO_DB_PATH,
+    }
+}
+
+
+DEBUG_PROPAGATE_EXCEPTIONS = True
 
 # if REQUIRE_LOGIN is True be sure to set up an email sender:
-EMAIL_HOST = 'smtp.sendgrid.net'
-EMAIL_HOST_USER = 'mathics'
-EMAIL_HOST_PASSWORD = ''
+EMAIL_HOST = "smtp.sendgrid.net"
+EMAIL_HOST_USER = "mathics"
+EMAIL_HOST_PASSWORD = ""
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
+INSTALLED_APPS = (
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.sites",
+    "mathics_django.web",
+    "mathics_django.web.controllers",
+)
 
-# Local time zone for this installation. Choices can be found here:
-# http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
-# although not all choices may be available on all operating systems.
-# If running in a Windows environment this must be set to the same as your
-# system time zone.
-TIME_ZONE = 'Europe/Vienna'
-
-# Set this True if you prefer 12 hour time to be the default
-TIME_12HOUR = False
-
-# Language code for this installation. All choices can be found here:
-# http://www.i18nguy.com/unicode/language-identifiers.html
-LANGUAGE_CODE = 'en-us'
-
-SITE_ID = 1
-
-# Leave this True unless you have specific reason for not permitting
-# users to access local files
-ENABLE_FILES_MODULE = True
-
-# If you set this to False, Django will make some optimizations so as not
-# to load the internationalization machinery.
-USE_I18N = True
-
-# Absolute path to the directory that holds static files.
-STATIC_ROOT = os.path.join(ROOT_DIR, 'web/media/')
-
-# URL that handles the media served from STATIC_ROOT.
-STATIC_URL = '/media/'
-
-# Make this unique, and don't share it with anybody.
-SECRET_KEY = 'uvbhuiasaeaph6Duh)r@3ex1i@et=0j4h(!p4@!r6s-=a_ev*e'
+LANGUAGE_CODE = "en-us"
 
 # List of callables that know how to import templates from various sources.
 # TEMPLATE_LOADERS = (
@@ -107,35 +144,34 @@ SECRET_KEY = 'uvbhuiasaeaph6Duh)r@3ex1i@et=0j4h(!p4@!r6s-=a_ev*e'
 # )
 
 MIDDLEWARE = [
-    'django.middleware.common.CommonMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    "django.middleware.common.CommonMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
 ]
 
-ROOT_URLCONF = 'mathics_django.urls'
+ROOT_URLCONF = "mathics_django.urls"
 
-# Rocky: this is probably a hack. LoadModule[] needs to handle
-# whatever it is that setting this thing did.
-default_pymathics_modules = []
+# Make this unique, and don't share it with anybody.
+SECRET_KEY = "uvbhuiasaeaph6Duh)r@3ex1i@et=0j4h(!p4@!r6s-=a_ev*e"
+
+SITE_ID = 1
+
+# Absolute path to the directory that holds static files.
+STATIC_ROOT = os.path.join(ROOT_DIR, "web/media/")
+
+# URL that handles the media served from STATIC_ROOT.
+STATIC_URL = "/media/"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [ os.path.join(ROOT_DIR, 'web/templates/') ],
-        'OPTIONS': {
-            'debug': DEBUG,
-        }
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [os.path.join(ROOT_DIR, "web/templates/")],
+        "OPTIONS": {
+            "debug": DEBUG,
+        },
     }
 ]
 
-AUTHENTICATION_BACKENDS = (
-    'mathics.web.authentication.EmailModelBackend',
-)
-
-INSTALLED_APPS = (
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.sites',
-    'mathics_django.web',
-)
+# If you set this to False, Django will make some optimizations so as not
+# to load the internationalization machinery.
+USE_I18N = True

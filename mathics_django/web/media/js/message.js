@@ -1,141 +1,116 @@
-function grayOut(vis, options) {
-  // Pass true to gray out screen, false to ungray
-  // options are optional.  This is a JSON object with the following (optional) properties
-  // opacity:0-100         // Lower number = less grayout higher = more of a blackout 
-  // zindex: #             // HTML elements with a higher zindex appear on top of the gray out
-  // bgcolor: (#xxxxxx)    // Standard RGB Hex color code
-  // grayOut(true, {'zindex':'50', 'bgcolor':'#0000FF', 'opacity':'70'});
-  // Because options is JSON opacity/zindex/bgcolor are all optional and can appear
-  // in any order.  Pass only the properties you need to set.
-  var options = options || {}; 
-  var zindex = options.zindex || 50;
-  var opacity = options.opacity || 70;
-  var opaque = (opacity / 100);
-  var bgcolor = options.bgcolor || '#000000';
-  var dark = $('dark');
-  if (!dark) {
-    // The dark layer doesn't exist, it's never been created.  So we'll
-    // create it here and apply some basic styles.
-    // If you are getting errors in IE see: http://support.microsoft.com/default.aspx/kb/927917
-    var tbody = $$("body")[0];
-    var tnode = new Element('div', {'class': 'dark', 'id': 'dark'}).hide(); // Create the layer.
-    tbody.appendChild(tnode);                            // Add it to the web page
-    dark = tnode;
-  }
-  if (vis) {
-    dark.style.zIndex = zindex;        
-    dark.style.backgroundColor = bgcolor;  
-    dark.setOpacity(opaque);
-    if (navigator.userAgent.indexOf('Konqueror') == -1)
-    	// don't use dark in Konqueror - opacity doesn't seem to work...
-    	dark.show();
-  } else {
-  	dark.hide();
-  }
+let popup, dialogYesCallback;
+
+function grayOut(visible, zindex) {
+	let dark = document.getElementById('dark');
+
+	if (!dark) {
+		// the dark layer  never been created, so we'll create it
+
+		const node = document.createElement('div');
+
+		node.className = 'dark';
+		node.id = 'dark';
+		node.display = 'none';
+
+		document.body.appendChild(node);
+
+		dark = node;
+	}
+
+	if (visible) {
+		dark.style.zIndex = zindex;
+		dark.style.backgroundColor = '#000000';
+		dark.style.opacity = (70 / 100);
+	} else {
+		dark.style.display = 'none';
+	}
 }
 
-var popup;
+function showPopup(element) {
+	const container = document.createElement('div'),
+		div = document.createElement('div'),
+		frameContainer = document.createElement('div'),
+		frame = document.createElement('iframe');
 
-function showPopup(element, options) {
-	options = options || {};
-	var body = $$('body')[0];
-	var container = new Element('div', {'class': 'popupContainer'});
-	var div = new Element('div', {'class': 'popup'});
-	// to fix IE SELECT z-index bug, see http://drupal.org/node/84608
-	var frameContainer = new Element('div', {'class': 'popupFrameContainer'});
-	var frame = new Element('iframe', {'class': 'popupFrame'});
-	element = $(element).show();
+	container.className = 'popupContainer';
+
+	div.className = 'popup';
+
+	frameContainer.className = 'popupFrameContainer';
+
+	frame.className = 'popupFrame';
+
+	element.style.display = 'block';
+
 	div.appendChild(element);
 	container.appendChild(div);
-	Element.insert(body, {'bottom': container});
-	var dimensions = div.getDimensions();
-	frame.setStyle({'width': dimensions.width + 'px', 'height': dimensions.height + 'px'});
-	Element.insert(frameContainer, {'top': frame});
-	if (Prototype.Browser.IE)
-		Element.insert(body, {'bottom': frameContainer});
-	grayOut(true, {zindex: 9});
-	frame.scrollIntoView();
-	
-	var submit = element.select('input.submit, button.submit')[0];
-	var onSubmit = function(event) {
-		if (event.keyCode == Event.KEY_RETURN) {
+	document.body.appendChild(container);
+
+	frame.style.width = div.offsetWidth + 'px';
+	frame.style.height = div.offsetHeight + 'px';
+
+	frameContainer.appendChild(frame);
+
+	grayOut(true, 9);
+
+	window.scrollTo(0, frame.offsetTop);
+
+	const submit = element.querySelector('input.submit, button.submit');
+
+	const onSubmit = (event) => {
+		if (event.key === 'Enter') {
 			submit.onclick();
 		}
-	}.bindAsEventListener(body);
-	if (submit && submit.onclick)
-		$(document).observe('keydown', onSubmit);
-	
-	var cancel = element.select('input.cancel, button.cancel')[0];
-	var onCancel = function(event) {
-		if (event.keyCode == Event.KEY_ESC) {
+	};
+
+	if (submit && submit.onclick) {
+		document.addEventListener('keydown', onSubmit);
+	}
+
+	const cancel = element.querySelector('input.cancel, button.cancel');
+	const onCancel = (event) => {
+		if (event.key === 'Escape') {
 			cancel.onclick();
 		}
-	}.bindAsEventListener(body);
-	if (cancel && cancel.onclick)
-		$(document).observe('keydown', onCancel);
-	
-	var input = element.select('input')[0];
-	if (input)
-		input.activate();
-	
-	popup = [[container, frameContainer], options, onSubmit, onCancel];
-	
+	};
+
+	if (cancel && cancel.onclick) {
+		document.addEventListener('keydown', onCancel);
+	}
+
+	element.querySelector('input')?.focus();
+
+	popup = [[container, frameContainer], onSubmit, onCancel];
+
 	return popup;
 }
 
 function hidePopup() {
-	var containers = popup[0];
-	var options = popup[1];
-	var onSubmit = popup[2];
-	var onCancel = popup[3];
-	
-	containers.each(function(item) {
-		item.select('input, textarea, button').invoke('blur');
-		item.hide();
+	const [containers, onSubmit, onCancel] = popup;
+
+	containers.forEach((item) => {
+		item.style.display = 'none';
 	});
-	
+
 	grayOut(false);
-	$(document).stopObserving('keydown', onSubmit);
-	$(document).stopObserving('keydown', onCancel);
-	
+
+	document.removeEventListener('keydown', onSubmit);
+	document.removeEventListener('keydown', onCancel);
+
 	popup = null;
 }
 
-var dialogYesCallback;
-var dialogNoCallback;
+function showDialog(title, text, yesCaption, noCaption, yesCallback) {
+	const dialog = document.getElementById('dialog');
 
-function dialogYes() {
-	hidePopup();
-	dialogYesCallback();
-}
+	dialog.querySelector('h1').innerText = title;
+	dialog.querySelector('p').innerText = text;
+	dialog.querySelector('input.submit').value = yesCaption;
+	dialog.querySelector('input.cancel').value = noCaption;
 
-function dialogNo() {
-	hidePopup();
-	dialogNoCallback();
-}
-
-function showDialog(title, text, yesCaption, noCaption, yesCallback, noCallback) {
-	if (!noCallback)
-		noCallback = Prototype.emptyFunction;
-	
-	var dialog = $('dialog');
-	dialog.select('h1')[0].setText(title);
-	dialog.select('p')[0].setText(text);
-	dialog.select('input.submit')[0].value = yesCaption;
-	dialog.select('input.cancel')[0].value = noCaption;
 	dialogYesCallback = yesCallback;
-	dialogNoCallback = noCallback;
-	
-	dialogPopup = showPopup(dialog);
-	
-	return dialogPopup;
-}
 
-function askQuestion(title, text, buttons, onYes, onNo) {
-	if (!onNo)
-		onNo = Prototype.emptyFunction;
-	return showDialog(title, text, [
-	  {caption: buttons[0], callback: onYes},
-	  {caption: buttons[1], callback: onNo}
-	]);
+	dialogPopup = showPopup(dialog);
+
+	return dialogPopup;
 }

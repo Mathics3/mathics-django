@@ -1,0 +1,181 @@
+{% extends "base_html.html" %}
+{% load static %}
+
+{% block title %}Mathics Installation Information{% endblock %}
+
+{% block html_head %}
+{% endblock %}
+
+{% block html_body %}
+	<header>
+		<a href="https://mathics.org" style="text-decoration: none">
+			<img id="logo" class="load" src="{% static 'img/logo-heptatom.svg' %}" height="32" alt="Logo" />
+			<img id="logotext" class="load" src="{% static 'img/logo-text.svg' %}" height="26" alt="Mathics" />
+		</a>
+		<div class="menu">
+		  <a href="https://github.com/Mathics3" title="Go to Mathics3 GitHub repository"><i class="fa fa-github"></i></a>
+		</div>
+
+	</header>
+
+	{% block main %}
+		<div id="about">
+
+			<h1>Software Information</h1>
+
+			<h2>Python</h2>
+			<ul>
+				<li>Python: {{PythonVersion}}</li>
+				<li>Implementation: {{PythonImplementation}}</li>
+			</ul>
+
+			<h2>Mathics3 Software</h2>
+			<ul>
+				<li>Mathics3 Django: {{mathics_django_version}}</li>
+				<li>Mathics3: {{mathics_version}}</li>
+			</ul>
+
+			<h2>Web Software</h2>
+			<ul>
+				<li>Django: {{django_version}}</li>
+				<li>mathics-threejs-backend: {{mathics_threejs_backend_version}}</li>
+				<li>three.js: {{three_js_version}}</li>
+				<li>MathJax: {{MathJax_version}}</li>
+			</ul>
+
+			<h2>Numeric Software</h2>
+			<ul>
+				<li>mpmath: {{mpmath_version}}</li>
+				<li>Numpy: {{numpy_version}}</li>
+				<li>Sympy: {{sympy_version}}</li>
+			</ul>
+
+
+			<h2>Optional Software</h2>
+			<ul>
+			{% for package_name, package_version in mathics_version_info.items %}
+				{% if package_name in optional_software %}
+					<li>{{package_name}}: {{package_version}}</li>
+		  		{% endif %}
+
+			{% endfor %}
+			</ul>
+
+
+			<h1>Settings</h1>
+
+			<h2>Django</h2>
+			<ul>
+				<li><code>ALLOWED_HOSTS</code>: <code>{{settings.ALLOWED_HOSTS}}</code></li>
+				<li><code>DEBUG</code>: <code>{{settings.DEBUG}}</code></li>
+				<li><code>DISPLAY_EXCEPTIONS</code>: <code>{{settings.DISPLAY_EXCEPTIONS}}</code></li>
+			</ul>
+
+
+			<h2>Mathics3 Django</h2>
+			<p>
+				<ul>
+				{% for setting, value in user_settings.items %}
+					{% if value.is_boolean %}
+						<li>
+							<label for="{{setting}}">
+								{{setting}}:
+								<input
+									type="checkbox"
+									name="{{setting}}"
+									{% if value.boolean_value %}checked{% endif %}
+									onclick="submitQuery(this, undefined, `${this.name} = ${this.checked ? 'True' : 'False'}`)"
+								/>
+
+								<br />
+
+								{{value.usage}}
+							</label>
+						</li>
+					{% else %}
+						<li>
+							{{setting}}: {{value.value}}
+
+							<br />
+
+							<span>{{value.usage}}</span>
+						</li>
+					{% endif %}
+				{% endfor %}
+				</ul>
+			</p>
+
+			<h1>System information</h1>
+			<p>
+				<ul>
+					<li>User Name: {{UserName}}</li>
+					<li>Process ID: {{ProcessID}}</li>
+					<li>System Time Zone: {{SystemTimeZone}}</li>
+				</ul>
+			</p>
+
+			<h1>File Paths</h1>
+			<p>
+				<ul>
+					<li>Base Directory: <code>{{BaseDirectory}}</code></li>
+					<li>Home Directory: <code>{{HomeDirectory}}</code></li>
+					<li>Installation Directory: <code>{{InstallationDirectory}}</code></li>
+					<li>Root Directory: <code>{{RootDirectory}}</code></li>
+					<li>Temporary Directory: <code>{{TemporaryDirectory}}</code></li>
+					<li>Workspace Database File: <code>{{DB_PATH}}</code></li>
+					<li>Doctest Data: <code>{{DOCTEST_DATA_PATH}}</code></li>
+				</ul>
+			</p>
+
+			<h1>Machine information</h1>
+			<p>
+				<ul>
+					<li>Machine Name: {{MachineName}}</li>
+					<li>Machine: {{Machine}}</li>
+					<li>Processor Type: {{ProcessorType}}</li>
+					<li>Memory Available: {{MemoryAvailable}}</li>
+					<li>System Memory: {{SystemMemory}}</li>
+					<li>Machine Precision: {{MachinePrecision}}</li>
+				</ul>
+			</p>
+
+			<h1>Mathics3 Settings</h1>
+			        <ul>
+					<li>Maximum Digits allowed in a String: {{MaximumDigitsInString}}</li>
+					<li>System Character Encoding: {{SystemCharacterEncoding}}</li>
+					<li>Time format is 12 Hour?: {{Time12Hour}}</li>
+			        </ul>
+
+			</p>
+
+			<h1>Connection Information</h1>
+				<ul>
+					<li>HTTP User Agent: {{HTTP_USER_AGENT}}</li>
+					<li>Remote User: {{REMOTE_USER}}</li>
+					<li>Remote Address: {{REMOTE_ADDR}}</li>
+					<li>Remote Host: {{REMOTE_HOST}}</li>
+				</ul>
+
+		</div>
+
+		<!-- FIXME: figure out how to reuse welcome.html. We can't run ajax from here. -->
+		<div id="welcomeContainerAbout">
+			<div id="welcome">
+			  <p><h1>About Mathics3 in Django!</h1></p>
+
+			  <p>Mathics3 is a general-purpose computer algebra system.</p>
+
+			  <p>Copyright (C) 2021-2025 The Mathics3 Team<p><br>
+
+			  This program comes with ABSOLUTELY NO WARRANTY;
+			    This is free software, and you are welcome to redistribute it
+			    under <a href="doc/license/gnu-general-public-license/">certain conditions</a>.
+			  </p>
+			  <p>See the <a href="/doc">online documentation in fullscreen</a> for
+			    a full list of supported functions, or <a href="/">go
+			      back to the main page</a>.
+			  </p>
+			</div>
+		</div>
+	{% endblock main %}
+{% endblock html_body %}

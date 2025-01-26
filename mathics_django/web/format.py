@@ -1,13 +1,33 @@
 """
-Format Mathics objects
+Format Mathics3 objects
 """
 
-from tempfile import NamedTemporaryFile
-import random
 import math
-import networkx as nx
-import tempfile
+import random
+from io import BytesIO
+from typing import Callable
 
+import networkx as nx
+from mathics.core.atoms import SymbolString
+from mathics.core.expression import BoxError, Expression
+from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import (
+    SymbolCompiledFunction,
+    SymbolFullForm,
+    SymbolGraphics,
+    SymbolGraphics3D,
+    SymbolInputForm,
+    SymbolMathMLForm,
+    SymbolOutputForm,
+    SymbolStandardForm,
+    SymbolTeXForm,
+)
+from mathics.session import get_settings_value
+
+# FIXME handle graphviz as well
+from matplotlib import pyplot
+
+PyMathicsGraph = Symbol("Pymathics`Graph")
 
 FORM_TO_FORMAT = {
     "System`MathMLForm": "xml",
@@ -16,6 +36,7 @@ FORM_TO_FORMAT = {
     "System`OutputForm": "text",
 }
 
+
 def format_output(obj, expr, format=None):
     """
     Handle unformatted output using the *specific* capabilities of mathics-django.
@@ -23,61 +44,95 @@ def format_output(obj, expr, format=None):
     evaluation.py format_output() from which this was derived is similar but
     it can't make use of a front-ends specific capabilities.
     """
+
+    def eval_boxes(result, fn: Callable, obj, **options):
+        options["evaluation"] = obj
+        try:
+            boxes = fn(**options)
+            # print("XXX\n", boxes)
+        except BoxError:
+            boxes = None
+            if not hasattr(obj, "seen_box_error"):
+                obj.seen_box_error = True
+                obj.message(
+                    "General",
+                    "notboxes",
+                    Expression(SymbolFullForm, result).evaluate(obj),
+                )
+
+        return boxes
+
     if format is None:
         format = obj.format
 
     if isinstance(format, dict):
         return dict((k, obj.format_output(expr, f)) for k, f in format.items())
 
-    from mathics.core.expression import Expression, BoxError
-
     # For some expressions, we want formatting to be different.
-    # In particular for FullForm output, we dont' want MathML, we want
+    # In particular for FullForm output, we don't want MathML, we want
     # plain-ol' text so we can cut and paste that.
 
     expr_type = expr.get_head_name()
-    if expr_type in ("System`MathMLForm", "System`TeXForm"):
+    expr_head = expr.get_head()
+    if expr_head in (SymbolMathMLForm, SymbolTeXForm):
         # For these forms, we strip off the outer "Form" part
         format = FORM_TO_FORMAT[expr_type]
-        leaves = expr.get_leaves()
-        if len(leaves) == 1:
-            expr = leaves[0]
+        elements = expr.get_elements()
+        if len(elements) == 1:
+            expr = elements[0]
 
-    if expr_type in ("System`FullForm", "System`OutputForm"):
-        result = Expression("StandardForm", expr).format(obj, expr_type)
-        return str(result)
-    elif expr_type == "System`Graphics":
-        result = Expression("StandardForm", expr).format(obj, "System`MathMLForm")
+    if expr_head in (SymbolFullForm, SymbolOutputForm):
+        result = expr.elements[0].format(obj, expr_type)
+        return result.boxes_to_text()
+    elif expr_head is SymbolGraphics:
+        result = Expression(SymbolStandardForm, expr).format(obj, SymbolMathMLForm)
 
     # This part was derived from and the same as evaluation.py format_output.
 
+    use_quotes = get_settings_value(obj.definitions, "Settings`$QuotedStrings")
+
     if format == "text":
-        result = expr.format(obj, "System`OutputForm")
+        result = expr.format(obj, SymbolOutputForm)
+        result = eval_boxes(result, result.boxes_to_text, obj)
+
+        if use_quotes:
+            result = '"' + result + '"'
+
+        return result
     elif format == "xml":
-        result = Expression("StandardForm", expr).format(obj, "System`MathMLForm")
+        result = Expression(SymbolStandardForm, expr).format(obj, SymbolMathMLForm)
     elif format == "tex":
-        result = Expression("StandardForm", expr).format(obj, "System`TeXForm")
+        result = Expression(SymbolStandardForm, expr).format(obj, SymbolTeXForm)
     elif format == "unformatted":
-        # This part is custom to mathics-django:
-        if str(expr) == "-Graph-" and hasattr(expr, "G"):
+        if expr_head is PyMathicsGraph and hasattr(expr, "G"):
             return format_graph(expr.G)
-        elif str(expr.get_head()) == 'System`CompiledFunction':
-            result = expr.format(obj, "System`OutputForm")
+        if expr_head is SymbolCompiledFunction:
+            result = expr.format(obj, SymbolOutputForm)
+        elif expr_head is SymbolString:
+            result = expr.format(obj, SymbolInputForm)
+            result = result.boxes_to_text()
+
+            if not use_quotes:
+                # Substring without the quotes
+                result = result[1:-1]
+
+            return result
+        elif expr_head is SymbolGraphics3D:
+            form_expr = Expression(SymbolStandardForm, expr)
+            result = form_expr.format(obj, SymbolStandardForm)
+            return eval_boxes(result, result.boxes_to_js, obj)
+        elif expr_head is SymbolGraphics:
+            form_expr = Expression(SymbolStandardForm, expr)
+            result = form_expr.format(obj, SymbolStandardForm)
+            return eval_boxes(result, result.boxes_to_svg, obj)
         else:
-            result = Expression("StandardForm", expr).format(obj, "System`MathMLForm")
+            result = Expression(SymbolStandardForm, expr).format(obj, SymbolMathMLForm)
     else:
         raise ValueError
 
-    try:
-        boxes = result.boxes_to_text(evaluation=obj)
-    except BoxError:
-        boxes = None
-        if not hasattr(obj, "seen_box_error"):
-            obj.seen_box_error = True
-            obj.message(
-                "General", "notboxes", Expression("FullForm", result).evaluate(obj)
-            )
-    return boxes
+    if result is None:
+        return f"Error in evaluating {expr}"
+    return eval_boxes(result, result.boxes_to_text, obj)
 
 
 cached_pair = None
@@ -86,7 +141,6 @@ cached_pair = None
 def hierarchy_pos(
     G, root=None, width=1.0, vert_gap=0.2, vert_loc=0, leaf_vs_root_factor=0.5
 ):
-
     """Position nodes in tree layout. The root is at the top.
 
     Based on Joel's answer at https://stackoverflow.com/a/29597209/2966723,
@@ -163,7 +217,7 @@ def hierarchy_pos(
         return cached_pair
 
     # These get swapped if tree edge directions point to the root.
-    decendants = nx.descendants
+    descendants = nx.descendants
     out_degree = G.out_degree if hasattr(G, "out_degree") else G.degree
     neighbors = G.neighbors
 
@@ -175,7 +229,7 @@ def hierarchy_pos(
                 # The case where we have a one or two node graph is ambiguous.
                 root = list(nx.topological_sort(G))[-1]
                 # Swap motion functions
-                decendants = nx.ancestors
+                descendants = nx.ancestors
                 out_degree = G.in_degree
                 neighbors = G.predecessors
             else:
@@ -250,7 +304,9 @@ def hierarchy_pos(
 
     xcenter = width / 2.0
     if isinstance(G, nx.DiGraph):
-        leafcount = len([node for node in decendants(G, root) if out_degree(node) == 0])
+        leafcount = len(
+            [node for node in descendants(G, root) if out_degree(node) == 0]
+        )
     elif isinstance(G, nx.Graph):
         leafcount = len(
             [
@@ -341,7 +397,6 @@ DEFAULT_POINT_SIZE = 16
 
 
 def harmonize_parameters(G, draw_options: dict):
-
     global node_size
     graph_layout = G.graph_layout if hasattr(G, "graph_layout") else ""
 
@@ -373,16 +428,20 @@ def harmonize_parameters(G, draw_options: dict):
         draw_options["font_size"] = font_size
 
 
-def format_graph(G):
+def format_graph(G) -> str:
     """
-    Format a Graph
+    Format a networkx graph using nx.draw (using matplotlib) and
+    return a SVG string that encodes the graph.
     """
-    # FIXME handle graphviz as well
-    import matplotlib.pyplot as plt
 
     global node_size
     global cached_pair
 
+    # Make sure we close any previous graph before starting to create
+    # new graph.
+    pyplot.close()
+
+    pyplot.switch_backend("AGG")
     cached_pair = None
 
     graph_layout = G.graph_layout if hasattr(G, "graph_layout") else None
@@ -404,7 +463,7 @@ def format_graph(G):
         draw_options["with_labels"] = bool(vertex_labels)
 
     if hasattr(G, "title") and G.title:
-        fig, ax = plt.subplots()  # Create a figure and an axes
+        fig, ax = pyplot.subplots()  # Create a figure and an axes
         ax.set_title(G.title)
 
     layout_fn = None
@@ -413,7 +472,7 @@ def format_graph(G):
             graph_layout = graph_layout.get_string_value()
         layout_fn = NETWORKX_LAYOUTS.get(graph_layout, None)
         if graph_layout in ["circular", "spiral", "spiral_equidistant"]:
-            plt.axes().set_aspect("equal")
+            pyplot.axes().set_aspect("equal")
 
     harmonize_parameters(G, draw_options)
 
@@ -421,15 +480,25 @@ def format_graph(G):
         nx.draw(G, pos=layout_fn(G), **draw_options)
     else:
         nx.draw_shell(G, **draw_options)
-    tempbuf = NamedTemporaryFile(
-        mode="w+b",
-        buffering=-1,
-        encoding=None,
-        newline=None,
-        delete=False,
-        suffix=".svg",
-        prefix="MathicsGraph-",
-    )
-    plt.savefig(tempbuf.name, format="svg")
-    plt.show()
-    return tempbuf.name
+
+    # pyplot.tight_layout()
+    svg_graph_xml = get_graph()
+    svg_str = svg_graph_xml[svg_graph_xml.find("<svg xmlns:xlink") :]
+    return svg_str
+
+
+def get_graph() -> str:
+    """
+    Retrieves SVG XML from what has already been stored the matplotlib buffer
+    pyplot. Return the XML SVG string.
+    """
+
+    buffer = BytesIO()
+    pyplot.savefig(buffer, format="svg")
+    buffer.seek(0)
+    graph_svg = buffer.getvalue()
+    buffer.close()
+
+    # TODO: In the future if probably want to base64 encode.
+    # Use: base64.b64encode(some piece of image_svg)
+    return graph_svg.decode("utf-8")
