@@ -877,6 +877,7 @@ function globalKeyUp(event) {
 
 function domLoaded() {
     MathJax.Hub.Config({
+	tex2jax:{inlineMath: [['$','$'], ['\\(','\\)']]},
         'HTML-CSS': {
             imageFont: null,
             linebreaks: {

@@ -3,7 +3,8 @@ let docLoaded = false, lastSearchValue = '';
 function showPage(response) {
 	const doc = document.getElementById('doc');
 	if (doc) {
-		doc.innerHTML = response.content;
+	    doc.innerHTML = response.content;
+	    MathJax.Hub.Queue(["Typeset",MathJax.Hub, doc]);
 	}
 
 	document.querySelectorAll('li.test p').forEach((test) => {
@@ -37,7 +38,6 @@ function showPage(response) {
 	document.querySelectorAll('ul.test').forEach((test) => {
 		const id = test.id.substr(5); // 'test_...'
 		const { results } = response.data[id];
-
 		setResult(test, results);
 	});
 }
