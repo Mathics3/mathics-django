@@ -283,6 +283,10 @@ function showGallery() {
         'D[Sin[2x] + Log[x] ^ 2, x]',
         'Integrate[Tan[x] ^ 5, x]',
 
+	'(**** LaTeX and MathML forms ****)',
+	'TeXForm[Integrate[F[x],{x,a,b}]]',
+	// TODO: Modify MathMLForm in Mathics-django to avoid render the output
+	'MathMLForm[Integrate[F[x],{x,a,b}]]',
         '(**** Linear Algebra ****)',
         'MagicSquare = {{2, 7, 6}, {9, 5, 1}, {4, 3, 8}}; MatrixForm[MagicSquare]',
         'LinearSolve[MagicSquare, {1, 1, 1}] // MatrixForm',
