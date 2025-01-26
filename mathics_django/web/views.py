@@ -298,10 +298,16 @@ def query(request: WSGIRequest) -> JsonResponse:
                         form="Syntax Error",
                     )
                 )
+
+                if settings.LOG_ON_CONSOLE:
+                    print(source_code)
+                    print(message.text)
+
                 evaluation.out = []
-                continue
-            elif expr is None:
-                # Most likely comment.
+                expr = None
+
+            if expr is None:
+                # comment or an error.
                 # TODO: source_code should have '(* ... *)' and
                 # better would be to create tagged result.
                 continue

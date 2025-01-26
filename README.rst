@@ -32,8 +32,7 @@ mathicsserver: a Django-based Web interface
 Installing
 ----------
 
-This package needs a working `Mathics3
-<https://pypi.org/project/Mathics3/>`_, the core engine, installed as well as a recent
+This package needs a working `Mathics3`, the core engine, installed as well as a recent
 version of Django. For Django, you will need mysql or mariadb
 installed, since that is where worksheets are stored.
 

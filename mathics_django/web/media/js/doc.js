@@ -2,7 +2,6 @@ let docLoaded = false, lastSearchValue = '';
 
 function showPage(response) {
 	const doc = document.getElementById('doc');
-
 	if (doc) {
 		doc.innerHTML = response.content;
 	}
@@ -60,7 +59,7 @@ function loadDoc(page) {
 }
 
 function showDoc() {
-	const docLink = document.getElementById('doclink');
+        const docLink = document.getElementById('doclink');
 
 	document.getElementById('doc').style.display = 'block';
 
@@ -97,6 +96,7 @@ function toggleDoc() {
 	if (document.getElementById('doc').style.display !== 'none') {
 		hideDoc();
 	} else {
+	        loadDoc("/");
 		showDoc();
 	}
 

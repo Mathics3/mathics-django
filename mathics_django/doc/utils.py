@@ -141,6 +141,12 @@ def escape_html(text, verbatim_mode=False, counters=None, single_line=False):
                     text = None
                 if text is None:
                     text = content
+
+                # If the reference points to the documentation,
+                # modify the url...
+                if content.startswith("/doc/"):
+                    content = content[4:]
+                    content = f"javascript:loadDoc('{content}')"
                 return r'<a href="%s">%s</a>' % (content, text)
 
         text = HYPERTEXT_RE.sub(repl_hypertext, text)

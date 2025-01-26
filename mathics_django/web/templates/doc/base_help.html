@@ -21,5 +21,23 @@
 
 		{% block content %}
 		{% endblock %}
+		{% if prev or next %}
+		<div style="width:100%;height:10px;border:1px;margin:10px;">
+		</div>
+		<div style="margin-top:20px;  display: flex; justify-content: space-around">
+		{% endif %}
+		{% if prev %}
+		<div>
+		  <span >&larr;</span> {{ prev|link:ajax }}
+		</div>
+		{% endif %}
+		{% if next %}
+		<div>
+		  <span >&rarr;</span> {{ next|link:ajax }}
+		</div>
+		{% endif %}
+		{% if prev or next %}
+		</div>
+		{% endif %}
 	</div>
 {% endblock %}

@@ -2,13 +2,18 @@
 {% load doc %}
 
 {% block content %}
-	{% if result %}
-		<ul>
-			{% for item in result %}
-				<li>{{ item|link:ajax }}</li>
-			{% endfor %}
-		</ul>
-	{% else %}
-		<p>No items found.</p>
+  {% if result %}
+    <ul>
+      {% for item in result %}
+        {% if item.summary_text %}
+          <li>{{ item|link:ajax }} &mdash; <i>{{item.summary_text}}</i></li>
+        {% else %}
+          <!-- If an item does not have a summary, it is a section title. So bold it.-->
+          <li><b>{{ item|link:ajax }}</b></li>
 	{% endif %}
+      {% endfor %}
+    </ul>
+  {% else %}
+     <p>No items found.</p>
+  {% endif %}
 {% endblock content %}
