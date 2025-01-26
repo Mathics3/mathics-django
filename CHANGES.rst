@@ -1,8 +1,18 @@
 CHANGES
 =======
 
+8.0.0
+-----
+
+Jan 26, 2025
+
+* Adjust for Mathics3 core 8.0.0 API
+
+
 7.0.0
 -----
+
+Aug 10, 2025
 
 * Adjust for Mathics3 core 7.0.0 API, e.g., add explicit call to load builtins
 * doctest refactored to use more routines common to mathics-core

@@ -7,7 +7,9 @@ repos:
     - id: check-merge-conflict
     - id: debug-statements
       stages: [commit]
+      exclude: ChangeLog-spell-corrected.diff
     - id: end-of-file-fixer
+      exclude: ChangeLog-spell-corrected.diff
       stages: [commit]
 -   repo: https://github.com/pycqa/isort
     rev: 5.13.2
@@ -18,5 +20,6 @@ repos:
     rev: 23.12.1
     hooks:
     - id: black
+      exclude: 'mathics_django/version.py'
       language_version: python3
       stages: [commit]
