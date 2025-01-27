@@ -65,10 +65,10 @@ if sys.platform == "darwin":
 
 # General Requirements
 INSTALL_REQUIRES += [
-    "Mathics-Scanner >=1.2.2,<1.4",
+    "Mathics-Scanner >=1.4.1",
     # "Mathics3 @ http://github.com/Mathics3/mathics-core/archive/master.zip",
-    "Mathics3 >=7.0.0.dev0,<7.1.0",
-    "django >= 4.0",
+    "Mathics3 >=8.0.0",
+    "django",
     "matplotlib",  # For networkx graphs
     "networkx >= 3.0",
     "pygments",  # For colorized Python tracebacks
@@ -196,6 +196,7 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: Implementation :: CPython",
         "Programming Language :: Python :: Implementation :: PyPy",
         "Topic :: Scientific/Engineering",

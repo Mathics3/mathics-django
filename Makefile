@@ -10,7 +10,7 @@ PYTHON ?= python
 PIP ?= pip3
 RM  ?= rm
 
-MATHICS3_MODULE_OPTION ?= --load-module pymathics.graph,pymathics.natlang
+MATHICS3_MODULE_OPTION ?= --load-module pymathics.graph,pymathics.natlang,pymathics.trepan
 
 .PHONY: all build \
 	check clean \
@@ -75,6 +75,9 @@ doctest: $(THREEJS)
 doctest-data:
 	MATHICS_CHARACTER_ENCODING="UTF-8"  $(PYTHON) mathics_django/docpipeline.py --output --keep-going $(MATHICS3_MODULE_OPTION)
 
+#: Create doctest test data with all modules
+doctest-data-full:
+	MATHICS_CHARACTER_ENCODING="UTF-8"  $(PYTHON) mathics_django/docpipeline.py --output --keep-going $(MATHICS3_MODULE_OPTION)
 #: Install Mathics-Django
 install: $(THREEJS)
 	$(PYTHON) setup.py install
