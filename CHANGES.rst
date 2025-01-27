@@ -7,6 +7,10 @@ CHANGES
 Jan 26, 2025
 
 * Adjust for Mathics3 core 8.0.0 API
+* Add bottom documentation navigation bar
+* Add summaries of items in searching. Bold (no summary) indicates a section header
+* Revise gallery example
+* Track Combinatorica package name change
 
 
 7.0.0
