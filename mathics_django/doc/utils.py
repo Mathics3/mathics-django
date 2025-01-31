@@ -13,7 +13,6 @@ from mathics.doc.common_doc import (
     HYPERTEXT_RE,
     IMG_PNG_RE,
     IMG_RE,
-    LATEX_RE,
     LIST_ITEM_RE,
     LIST_RE,
     MATHICS_RE,
@@ -27,6 +26,9 @@ from mathics.doc.common_doc import (
     pre_sub,
 )
 
+# This rule is different than the used in LaTeX documentation.
+LATEX_RE = re.compile(r"(\s?)\$([A-Za-z]+?)\$(\s?)")
+
 
 def slugify(value):
     """
@@ -39,8 +41,8 @@ def slugify(value):
     value = (
         unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii")
     )
-    value = re.sub("[^$`\w\s-]", "", value).strip().lower()
-    return re.sub("[-\s`]+", "-", value)
+    value = re.sub(r"[^$`\w\s-]", "", value).strip().lower()
+    return re.sub(r"[-\s`]+", "-", value)
 
 
 # FIXME: can we replace this with Python 3's html.escape ?
@@ -82,6 +84,7 @@ def escape_html(text, verbatim_mode=False, counters=None, single_line=False):
         def repl_mathics(match):
             text = match.group(1)
             text = text.replace("\\'", "'")
+            text = text.replace("\\$", "$")
             text = text.replace(" ", "&nbsp;")
             if text:
                 return "<code>%s</code>" % text
