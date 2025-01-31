@@ -26,9 +26,9 @@ from mathics.doc.common_doc import (
     pre_sub,
 )
 
-
 # This rule is different than the used in LaTeX documentation.
 LATEX_RE = re.compile(r"(\s?)\$([A-Za-z]+?)\$(\s?)")
+
 
 def slugify(value):
     """
