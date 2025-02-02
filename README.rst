@@ -18,7 +18,8 @@ Features:
 * Integrated graphics, via `three.js <https://threejs.org>`_, and MathML mathematics output
 * Notebook-like sessions
 
-Note: in the future we intend to also proved a Jupyter-like interface.
+See also `Mathics3-live <https://github.com/Mathics3/Mathics3-live>`_ for a Webassembly-powered Python kernel backed by Pyodide, and `this <https://github.com/Mathics3/Mathics3-notebook-frontends>`_ for other notebook front-ends.
+
 
 ScreenShot
 ----------
@@ -32,7 +33,7 @@ mathicsserver: a Django-based Web interface
 Installing
 ----------
 
-This package needs a working `Mathics3`, the core engine, installed as well as a recent
+This package needs a working Mathics3 Kernel, the core engine, installed as well as a recent
 version of Django. For Django, you will need mysql or mariadb
 installed, since that is where worksheets are stored.
 
