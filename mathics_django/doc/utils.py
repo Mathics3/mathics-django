@@ -11,7 +11,6 @@ from mathics.doc.common_doc import (
     DL_ITEM_RE,
     DL_RE,
     HYPERTEXT_RE,
-    IMG_PNG_RE,
     IMG_RE,
     LIST_ITEM_RE,
     LIST_RE,
@@ -171,23 +170,12 @@ def escape_html(text, verbatim_mode=False, counters=None, single_line=False):
         def repl_img(match):
             src = match.group("src")
             title = match.group("title")
-            return (
-                r'<a href="/media/doc/%(src)s.pdf">'
-                r'<img src="/media/doc/%(src)s.png" title="%(title)s" />'
-                r"</a>"
-            ) % {"src": src, "title": title}
-
-        text = IMG_RE.sub(repl_img, text)
-
-        def repl_imgpng(match):
-            src = match.group("src")
-            title = match.group("title")
             return (r'<img src="/media/doc/%(src)s" title="%(title)s" />') % {
                 "src": src,
                 "title": title,
             }
 
-        text = IMG_PNG_RE.sub(repl_imgpng, text)
+        text = IMG_RE.sub(repl_img, text)
 
         def repl_ref(match):
             # TODO: this is not an optimal solution - maybe we need figure
