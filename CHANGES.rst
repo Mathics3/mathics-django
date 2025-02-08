@@ -1,6 +1,15 @@
 CHANGES
 =======
 
+8.0.1
+-----
+
+Feb 8, 2025
+
+* Adjust and correct packaging (thanks to Atri Bhattacharya for testing and packaging in OpenSUSE) .
+* Documentation adjusted. Update to newer MathML code and track API changes in Mathics Kernel (Mauricio Matera).
+
+
 8.0.0
 -----
 
