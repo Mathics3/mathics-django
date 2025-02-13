@@ -12,4 +12,5 @@ urlpatterns = [
     # url(''),
     re_path(r"^", include("mathics_django.web.urls")),
     re_path(r"^"+settings.BASE_URL, include("mathics_django.web.urls")),
+    re_path(r"^"+settings.BASE_URL+"/", include("mathics_django.web.urls")),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
