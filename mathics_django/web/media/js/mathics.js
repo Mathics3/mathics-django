@@ -521,7 +521,7 @@ function submitQuery(element, onfinish, query) {
     element.li?.classList.add('loading');
     document.getElementById('logo')?.classList.add('working');
 
-    new Ajax.Request('/ajax/query/', {
+    new Ajax.Request('ajax/query/', {
         method: 'post',
         parameters: { query: query || element.value },
         onSuccess: (transport) => {
