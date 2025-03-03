@@ -38,7 +38,7 @@ else:
     ALLOWED_HOSTS = []
 
 # Support changing the Base URL
-BASE_URL = os.environ.get("MATHICS_DJANGO_URL", None)
+BASE_URL = os.environ.get("MATHICS_DJANGO_URL", "")
 
 DISPLAY_EXCEPTIONS = get_bool_from_environment(
     "MATHICS_DJANGO_DISPLAY_EXCEPTIONS", DEBUG
