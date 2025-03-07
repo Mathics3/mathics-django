@@ -163,7 +163,7 @@ SITE_ID = 1
 STATIC_ROOT = os.path.join(ROOT_DIR, "web/media/")
 
 # URL that handles the media served from STATIC_ROOT (Support BASE_URL change).
-STATIC_URL = BASE_URL+"/media/"
+STATIC_URL = BASE_URL + "/media/"
 
 TEMPLATES = [
     {
