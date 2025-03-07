@@ -7,7 +7,7 @@ function showSave() {
 function openWorksheet(name) {
     hidePopup();
 
-    new Ajax.Request('/ajax/open/', {
+    new Ajax.Request('ajax/open/', {
         method: 'post',
         parameters: { name },
         onSuccess: (transport) => {
@@ -23,7 +23,7 @@ function openWorksheet(name) {
 }
 
 function showWorksheets() {
-    new Ajax.Request('/ajax/getworksheets/', {
+    new Ajax.Request('ajax/getworksheets/', {
         method: 'get',
         onSuccess: (transport) => {
             const response = JSON.parse(transport.responseText);
@@ -64,7 +64,7 @@ function showWorksheets() {
 function deleteWorksheet(element, name) {
     element.remove();
 
-    new Ajax.Request('/ajax/delete/', {
+    new Ajax.Request('ajax/delete/', {
         method: 'post',
         parameters: { name }
     });
@@ -96,7 +96,7 @@ function save(overwrite) {
 
     submitForm(
         'saveForm',
-        '/ajax/save/',
+        'ajax/save/',
         (response) => {
             if (!checkLogin(response)) {
                 return;

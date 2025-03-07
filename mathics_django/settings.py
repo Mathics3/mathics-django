@@ -37,6 +37,9 @@ else:
     # Use Django's default value for ALLOWED_HOSTS.
     ALLOWED_HOSTS = []
 
+# Support changing the Base URL
+BASE_URL = os.environ.get("MATHICS_DJANGO_URL", "")
+
 DISPLAY_EXCEPTIONS = get_bool_from_environment(
     "MATHICS_DJANGO_DISPLAY_EXCEPTIONS", DEBUG
 )
@@ -159,8 +162,8 @@ SITE_ID = 1
 # Absolute path to the directory that holds static files.
 STATIC_ROOT = os.path.join(ROOT_DIR, "web/media/")
 
-# URL that handles the media served from STATIC_ROOT.
-STATIC_URL = "/media/"
+# URL that handles the media served from STATIC_ROOT (Support BASE_URL change).
+STATIC_URL = BASE_URL + "/media/"
 
 TEMPLATES = [
     {
