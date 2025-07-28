@@ -43,7 +43,7 @@ function showPage(response) {
 }
 
 function loadDoc(page) {
-	new Ajax.Request('/ajax/doc' + page, {
+	new Ajax.Request('ajax/doc' + page, {
 		method: 'get',
 		onSuccess: (transport) => {
 			docLoaded = true;
@@ -110,7 +110,7 @@ function searchChange() {
 
 	if (!search.hasClassName('empty')) {
 		if (query) {
-			new Ajax.Request('/ajax/doc/search/', {
+			new Ajax.Request('ajax/doc/search/', {
 				method: 'get',
 				parameters: { query },
 				onSuccess: (transport) => {
