@@ -69,7 +69,7 @@ From the place root directory that github was checked out::
 Running
 -------
 
-This is a Django project, so Dango's `manage.py <https://docs.djangoproject.com/en/3.2/ref/django-admin/>`_ script used.
+This is a Django project, so Django's `manage.py <https://docs.djangoproject.com/en/3.2/ref/django-admin/>`_ script used.
 
 A simple way to start Mathics Django when GNU make is installed (which is the case on most POSIX systems):
 
