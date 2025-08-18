@@ -133,6 +133,7 @@ def escape_html(text, verbatim_mode=False, counters=None, single_line=False):
             # characters, which would spoil the URL,
             # producing a single line, space-free string.
             #
+            content = content.replace(r"\$", "$")
             content = content.replace(" ", "").replace("\n", "")
             if tag == "em":
                 return r"<em>%s</em>" % content
