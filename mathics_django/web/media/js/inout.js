@@ -369,7 +369,7 @@ function showGallery() {
             '{{1, 1, -1}, {2, 2, 0}, {3, 3, -1}, {4, 4, 0}}],' +
 	    'Background->RGBColor[0.4, 0.8, 1.0]]',
         'Graphics3D[{Darker[Yellow], Sphere[{{-1, 0, 0}, {1, 0, 0}, {0, 0, Sqrt[3.]}}, 1]}]',
-        'Graphics3D[Octahedron[{{0,0,0}, {1,1,1}}, 2]]',
+        'Graphics3D[Tetrahedron[{{1,0,0}, {1,0,1}, {0,0,1}}, 2], Axes->True]',
         'Graphics3D[{ Cylinder[{{1,1,1}, {10,10,10}}], Cylinder[{{-1,-1,-1}, {-10,-10,-10}}] }]',
         'Graphics3D[Polygon[Table[{Cos[2 Pi k/6], Sin[2 Pi k/6], 0}, {k, 0, 5}]]]',
 
