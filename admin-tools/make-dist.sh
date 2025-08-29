@@ -19,7 +19,7 @@ cd ..
 source mathics_django/version.py
 echo $__version__
 cp -v ${HOME}/.local/var/mathics/doc_html_data.pcl mathics_django/doc/
-pyversion=3.11
+pyversion=3.13
 if ! pyenv local $pyversion ; then
     exit $?
 fi
