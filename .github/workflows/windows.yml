@@ -34,7 +34,7 @@ jobs:
         # git clone --branch master https://github.com/Mathics3/mathics-core
         # bash -c '(cd mathics-core && pip3 install -e .[full])'
         # bash -c '(cd mathics-core && bash ./admin-tools/make-JSON-tables.sh)'
-        # python -m pip install pytest pexpect
+        python -m pip install pytest pexpect
         npm install
     - name: Install Mathics3 Django
       run: |
