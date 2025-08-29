@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         os: [windows]
-        python-version: ['3.11']
+        python-version: ['3.13']
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
@@ -28,19 +28,19 @@ jobs:
 
     - name: Install Python dependencies
       run: |
-        # Can adjust when next Mathics is released
-        python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
-        # python -m pip install -e git+https://github.com/Mathics3/mathics-core#egg=Mathics3[full]
-        git clone --branch master https://github.com/Mathics3/mathics-core
-        bash -c '(cd mathics-core && pip3 install -e .[full])'
-        bash -c '(cd mathics-core && bash ./admin-tools/make-JSON-tables.sh)'
-    - name: Install Mathics3 Django
-      run: |
+        # # Can adjust when next Mathics3 is released
+        # python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
+        # # python -m pip install -e git+https://github.com/Mathics3/mathics-core#egg=Mathics3[full]
+        # git clone --branch master https://github.com/Mathics3/mathics-core
+        # bash -c '(cd mathics-core && pip3 install -e .[full])'
+        # bash -c '(cd mathics-core && bash ./admin-tools/make-JSON-tables.sh)'
         python -m pip install pytest pexpect
         npm install
-        python -m pip install -e .[full]
+    - name: Install Mathics3 Django
+      run: |
         cp node_modules/\@mathicsorg/mathics-threejs-backend/docs/build.js mathics_django/web/media/js/mathics-threejs-backend/index.js
-        cp node_modules/\@mathicsorg/mathics-threejs-backend/package.json mathics_d
+        cp node_modules/\@mathicsorg/mathics-threejs-backend/package.json mathics_django
+        pip install -e .[full]
     - name: Test Mathics3 Django
       run: |
         make pytest gstest

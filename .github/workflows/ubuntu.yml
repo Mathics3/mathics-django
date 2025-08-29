@@ -24,19 +24,19 @@ jobs:
         python -m pip install --upgrade pip
     - name: Install Python dependencies
       run: |
-        # Can adjust when next Mathics is released
-        python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
+        # Can adjust when next Mathics3 is released
+        # python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
         # python -m pip install -e git+https://github.com/Mathics3/mathics-core#egg=Mathics3[full]
-        git clone --branch master https://github.com/Mathics3/mathics-core
-        (cd mathics-core && pip3 install -e .[full])
-        (cd mathics-core && bash ./admin-tools/make-JSON-tables.sh)
-    - name: Install Mathics3 Django
-      run: |
+        # git clone --branch master https://github.com/Mathics3/mathics-core
+        # (cd mathics-core && pip3 install -e .[full])
+        # (cd mathics-core && bash ./admin-tools/make-JSON-tables.sh)
         pip install pytest pexpect
         npm install
+    - name: Install Mathics3 Django
+      run: |
         python -m pip install -e .[full]
         make develop
-    - name: Test mathics-django
+    - name: Test Mathics3 Django
       run: |
         make pytest gstest
         make doctest o="--exclude TextRecognize,PythonCProfileEvaluation"
