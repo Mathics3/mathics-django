@@ -8,7 +8,7 @@ Aug 29, 2025
 
 * Support for 3.13 added, Python 3.8 and 3.9 dropped
 * Ajust for 9.0.0 Mathics3 Kernel API.
-* Adjust a tests gallery
+* Adjust tests gallery
 * Add to bottom of docs next/prev
 
 Bugs
