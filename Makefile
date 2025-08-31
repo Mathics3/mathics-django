@@ -10,7 +10,7 @@ PYTHON ?= python
 PIP ?= pip3
 RM  ?= rm
 
-MATHICS3_MODULE_OPTION ?= --load-module pymathics.graph,pymathics.natlang,pymathics.trepan
+MATHICS3_MODULE_OPTION ?= --load-module pymathics.graph,pymathics.natlang
 
 .PHONY: all build \
 	check clean \
