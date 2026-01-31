@@ -81,7 +81,7 @@ def format_output(obj, expr, format=None):
         if len(elements) == 1:
             expr = elements[0]
 
-    if expr_head in (SymbolFullForm, SymbolOutputForm):
+    if expr_head in (SymbolFullForm, SymbolInputForm, SymbolOutputForm):
         result = expr.elements[0].format(obj, expr_type)
         return result.boxes_to_text()
     elif expr_head is SymbolGraphics:
