@@ -29,7 +29,7 @@ jobs:
     - name: Install Python dependencies
       run: |
         # # Can adjust when next Mathics3 is released
-        python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
+        python -m pip install -e "Mathics-Scanner[full] @ git+https://github.com/Mathics3/mathics-scanner"
         # # python -m pip install -e git+https://github.com/Mathics3/mathics-core#egg=Mathics3[full]
         git clone --branch master https://github.com/Mathics3/mathics-core
         bash -c '(cd mathics-core && pip3 install -e .[full])'
