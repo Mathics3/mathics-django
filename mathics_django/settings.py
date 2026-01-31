@@ -4,7 +4,6 @@ import os
 import os.path as osp
 from pathlib import Path
 
-import pkg_resources
 from mathics.settings import DATA_DIR
 
 # The kinds of strings in an environment variable be interpreted as True.
@@ -57,7 +56,7 @@ MATHICS_DJANGO_DB_PATH = os.environ.get(
     "MATHICS_DJANGO_DB_PATH", DATA_DIR + MATHICS_DJANGO_DB
 )
 
-ROOT_DIR = pkg_resources.resource_filename("mathics_django", "")
+ROOT_DIR = osp.dirname(__file__)
 
 # Location of internal document data.
 MATHICS_BACKEND_THREEJS_JSON_PATH = os.path.join(
