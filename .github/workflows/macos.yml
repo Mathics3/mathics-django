@@ -1,0 +1,42 @@
+name: Mathics-Django (macos)
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install OS dependencies
+      run: |
+        brew install llvm nodejs npm tesseract
+        python -m pip install --upgrade pip
+        LLVM_CONFIG=/usr/local/Cellar/llvm@11/11.1.0/bin/llvm-config pip install llvmlite
+    - name: Install Python dependencies
+      run: |
+        # Can adjust when next Mathics3 is released
+        python -m pip install -e "Mathics-Scanner[full] @ git+https://github.com/Mathics3/mathics-scanner"
+        # python -m pip install -e git+https://github.com/Mathics3/mathics-core#egg=Mathics3[full]
+        git clone --branch master https://github.com/Mathics3/mathics-core
+        (cd mathics-core && pip3 install -e .[full])
+        (cd mathics-core && bash ./admin-tools/make-JSON-tables.sh)
+        npm install
+        pip install pytest pexpect
+    - name: Install Mathics3 Django
+      run: |
+        pip install -e .[full]
+        make develop
+    - name: Test Mathics3 Django
+      run: |
+        make check

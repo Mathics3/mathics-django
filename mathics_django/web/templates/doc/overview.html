@@ -2,15 +2,13 @@
 {% load doc %}
 
 {% block content %}
-
-{% for part in doc.parts %}
-	<h2>{{ part.title }}</h2>
-	
-	<ul>
-	{% for chapter in part.chapters %}
-		<li>{{ chapter|link:ajax }}</li>
+	{% for part in doc.parts %}
+		<h2>{{ part.title }}</h2>
+		
+		<ul>
+			{% for chapter in part.chapters %}
+				<li>{{ chapter|link:ajax }}</li>
+			{% endfor %}
+		</ul>
 	{% endfor %}
-	</ul>
-{% endfor %}
-
 {% endblock %}

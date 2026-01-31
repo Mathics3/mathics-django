@@ -1,0 +1,15 @@
+{% extends "doc/base_help.html" %}
+{% load doc %}
+
+{% block head %}
+	<div id="breadcrumbs">
+		{{ subsection.chapter.part.doc|link:ajax }}&nbsp;/ {{ subsection.chapter.part|link:ajax }}&nbsp;/<br>
+		{{ subsection.chapter|link:ajax }}&nbsp;/ {{ subsection.section|link:ajax }}&nbsp;/
+		{{ subsection|link:ajax }}&nbsp;/
+	</div>
+{% endblock head %}
+
+{% block content %}
+	{{ subsection.doc.html }}
+
+{% endblock content %}

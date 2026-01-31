@@ -17,7 +17,7 @@ In addition, there are some other commands:
 
     python setup.py clean -> will clean all trash (*.pyc and stuff)
 
-To get a full list of avaiable commands, read the output of:
+To get a full list of available commands, read the output of:
 
     python setup.py --help-commands
 
@@ -25,10 +25,13 @@ Or, if all else fails, feel free to write to the mathics users list at
 mathics-users@googlegroups.com and ask for help.
 """
 
-import sys
 import os.path as osp
 import platform
-from setuptools import setup, Command, Extension
+import re
+import sys
+
+from setuptools import Command, setup
+
 
 def get_srcdir():
     filename = osp.normcase(osp.dirname(osp.abspath(__file__)))
@@ -40,13 +43,19 @@ def read(*rnames):
 
 
 # stores __version__ in the current namespace
-exec(compile(open("mathics_django/version.py").read(), "mathics_django/version.py", "exec"))
+exec(
+    compile(
+        open("mathics_django/version.py").read(), "mathics_django/version.py", "exec"
+    )
+)
 
 # Get/set VERSION and long_description from files
 long_description = read("README.rst") + "\n"
 
 
-is_PyPy = platform.python_implementation() == "PyPy"
+is_PyPy = platform.python_implementation() == "PyPy" or hasattr(
+    sys, "pypy_version_info"
+)
 
 INSTALL_REQUIRES = []
 DEPENDENCY_LINKS = ["http://github.com/Mathics3/pymathics-asy#egg=pymathics-asy"]
@@ -56,10 +65,13 @@ if sys.platform == "darwin":
 
 # General Requirements
 INSTALL_REQUIRES += [
-    "Mathics-Scanner >= 1.0.0,<1.1.0",
-    "Mathics3 >= 2.0.0",
-    "django >= 3.0, < 3.2",
-    "networkx",
+    "Mathics-Scanner >=1.4.1",
+    # "Mathics3 @ http://github.com/Mathics3/mathics-core/archive/master.zip",
+    "Mathics3 >=8.0.0",
+    "django",
+    "matplotlib",  # For networkx graphs
+    "networkx >= 3.0",
+    "pygments",  # For colorized Python tracebacks
     "requests",
     "pymathics-asy",
 ]
@@ -94,7 +106,11 @@ class initialize(Command):
 
         settings = {}
         exec(
-            compile(open("mathics_django/settings.py").read(), "mathics-django/settings.py", "exec"),
+            compile(
+                open("mathics_django/settings.py").read(),
+                "mathics-django/settings.py",
+                "exec",
+            ),
             settings,
         )
 
@@ -113,7 +129,16 @@ class initialize(Command):
             print("Error: failed to create database")
             sys.exit(1)
 
+
 mathjax_files = list(subdirs("media/js/mathjax/"))
+
+extra_requires = []
+for line in open("requirements-full.txt").read().split("\n"):
+    if line and not line.startswith("#"):
+        requires = re.sub(r"([^#]+)(\s*#.*$)?", r"\1", line)
+        extra_requires.append(requires)
+
+EXTRA_REQUIRES = {"full": extra_requires}
 
 setup(
     name="Mathics-Django",
@@ -122,23 +147,25 @@ setup(
         "mathics_django",
         "mathics_django.doc",
         "mathics_django.web",
+        "mathics_django.web.controllers",
         "mathics_django.web.templatetags",
         "mathics_django.web.migrations",
     ],
     install_requires=INSTALL_REQUIRES,
+    extras_require=EXTRA_REQUIRES,
     dependency_links=DEPENDENCY_LINKS,
     package_data={
-        "mathics_django.doc": ["documentation/*.mdoc", "xml/data"],
+        "mathics_django": ["autoload/*.m"],
+        "mathics_django.doc": ["*.pcl"],
         "mathics_django.web": [
             "media/css/*.css",
             "media/img/*.*",
             "media/fonts/*",
             "media/img/favicons/*",
             "media/js/innerdom/*.js",
+            "media/js/mathics-threejs-backend/*",
             "media/js/prototype/*.js",
             "media/js/scriptaculous/*.js",
-            "media/js/three/Three.js",
-            "media/js/three/Detector.js",
             "media/js/*.js",
             "templates/*.html",
             "templates/doc/*.html",
@@ -155,8 +182,9 @@ setup(
     # don't pack Mathics in egg because of media files, etc.
     zip_safe=False,
     # metadata for upload to PyPI
-    maintainer="Mathics Group",
-    description="A Django front end for Mathics.",
+    maintainer="Mathics3 Group",
+    maintainer_email="mathics-devel@googlegroups.com",
+    description="A Django front end for Mathics3.",
     license="GPL",
     url="https://mathics.org/",
     keywords=["Mathematica", "Wolfram", "Interpreter", "Shell", "Math", "CAS"],
@@ -165,10 +193,10 @@ setup(
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
         "Programming Language :: Python :: Implementation :: CPython",
         "Programming Language :: Python :: Implementation :: PyPy",
         "Topic :: Scientific/Engineering",

@@ -1,4 +1,3 @@
-*~
 *.c
 *.cpp
 *.egg
@@ -6,6 +5,7 @@
 *.nix
 *.py[cod]
 *.so
+*~
 .coverage
 .idea/
 .mypy_cache
@@ -15,7 +15,11 @@
 .vscode
 /.cache
 /.python-version
+/ChangeLog-spell-corrected
+/ChangeLog.orig
 /Mathics_Django.egg-info
+/node_modules
+/package-lock.json
 ChangeLog
 Documents/
 Homepage/
@@ -25,9 +29,11 @@ _Copies_/
 _Database_/
 build/
 dist/
+env/
 mathics_django/Makefile
 mathics_django/web/db/mathics.sqlite
 mathics_django/web/media/doc/classes.pdf
 mathics_django/web/media/doc/classes.png
 mathics_django/web/media/pdf/
 tmp
+venv/

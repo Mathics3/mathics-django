@@ -1,7 +1,13 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+Module for handling Mathics-style documentation inside Mathics Django.
+"""
 
+from mathics.core.load_builtin import import_and_load_builtins
 
-from .doc import MathicsMainDocumentation
+import_and_load_builtins()
 
-documentation = MathicsMainDocumentation()
+# FIXME: should we really do this here?
+from mathics_django.doc.django_doc import DjangoDocumentation
+
+documentation = DjangoDocumentation()

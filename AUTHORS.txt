@@ -35,6 +35,8 @@ Additional contributions were made by:
 - Сухарик @suhr
 - Pablo Emilio Escobar Gaviria @GarkGarcia
 - Rocky Bernstein @rocky
+- Daniel Pyon @danielpyon
+- Tiago Cavalcante Trindade @TiagoCavalcante
 
 Thanks to the authors of all projects that are used in Mathics:
 - Django
@@ -44,7 +46,7 @@ Thanks to the authors of all projects that are used in Mathics:
 - scripaculous
 - colorama
 - SymPy
-- Three.js
+- three.js
 - dateutil
 - colorama
 - six
