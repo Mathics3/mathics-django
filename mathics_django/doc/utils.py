@@ -144,6 +144,9 @@ def escape_html(text, verbatim_mode=False, counters=None, single_line=False):
                     text = None
                 if text is None:
                     text = content
+                else:
+                    # Remove escape from the url text
+                    text = text.replace(r"\$", "$")
 
                 # If the reference points to the documentation,
                 # modify the url...
