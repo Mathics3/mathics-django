@@ -262,7 +262,8 @@ function createLine(value) {
     container.innerHTML = value;
     if (container?.firstElementChild?.tagName === 'math') {
         return translateDOMElement(container.firstChild);
-    } else if (container?.firstElementChild?.tagName === 'GRAPHICS3D') {
+    }
+    if (container?.firstElementChild?.tagName === 'GRAPHICS3D') {
         const div = document.createElement('div');
 	var json_data_value = JSON.parse(container.firstElementChild.attributes.data.value);
 	div.style.backgroundColor = json_data_value["background_color"];
@@ -276,7 +277,8 @@ function createLine(value) {
         div.style.margin = 'auto';
 
         return div;
-    } else if (container?.firstElementChild?.tagName === 'svg') {
+    }
+    if (container?.firstElementChild?.tagName === 'svg') {
         container.firstElementChild.style.display = 'block';
         container.firstElementChild.style.width = '100%';
         container.firstElementChild.style.maxWidth = '400px';
@@ -390,96 +392,33 @@ function setResult(list, results) {
         */
 
         // Create and populate message's classification part...
-        const bold = document.createElement('b');
-        bold.className = "message"
-        bold.innerText = first_out.prefix
-        resultList.appendChild(bold);
 
-
-        // Create and populate warning or error message...
-        const p = document.createElement('p');
-        p.innerText = first_out.text;
-
-        // Add warnning or error message to a list element in a block (which is CSS styled with a nice
-        // frame around it).
-        resultList.appendChild(p);
-        resultList.style.display = 'block';
+	resultList.style.display = 'block';
+	resultList.appendChild(show_out(first_out));
         li.appendChild(resultList);
         list.appendChild(li);
 
     } else if (format == "Python Exception") {
-
-        /* Format a Python Exception. DRY with Syntax error.
-           Note that here, first_out.text is an Array of traceback lines.
-        */
-        // Create and populate the message classification part.
-        const bold = document.createElement('b');
-        bold.className = "message";
-
-        bold.innerText = first_out.prefix + ": " + first_out.text[0];
-        resultList.appendChild(bold);
+        text = first_out.text;
+        first_out.text = "";
+        resultList.appendChild(show_out(first_out));
 
         // Now add Traceback lines. Start at index 1.
-
         // FIXME: redo with better formatting, (a table?) with parsed entries.
         const pre = document.createElement('pre');
         // Last line repeats information from the first line;
         // first line was included above.
-        pre.innerHTML = result.out[0].text.slice(1, -1).join("");
+        pre.innerHTML = text.slice(1, -1).join("");
 
         resultList.appendChild(pre);
         resultList.style.display = 'block';
         li.appendChild(resultList);
         list.appendChild(li);
-
-    } else if (first_out && "tag" in first_out) {
-
-        /* There was some sort of warning or error message produced.
-           There could be output (in "result") as well. Often this the same
-           as the input.
-
-           DRY this with the other messages above.
-        */
-
-        // First the message classification line
-        const bold = document.createElement('b');
-        bold.className = "message";
-        bold.innerText = first_out.symbol + ": " + first_out.tag;
-        resultList.appendChild(bold);
-
-        // Next populate warning or error message...
-        const pre = document.createElement('p');
-        // Remove gratuitous surrounding quotes.
-        pre.innerHTML = first_out.text.slice(1, -1);
-        resultList.appendChild(pre);
-
-        // Finally include the returned result.
-        if (result.result) {
-            const li = document.createElement('li');
-            li.className = 'result';
-            li.appendChild(createLine(result.result));
-            resultList.appendChild(li);
-
-        }
-
-        resultList.style.display = 'block';
-        li.appendChild(resultList);
-        list.appendChild(li);
-
     } else {
         results.forEach((result) => {
 
             result.out.forEach((out) => {
-                const li = document.createElement('li');
-                li.className = out.message ? 'message' : 'print';
-
-                if (out.message) {
-                    li.innerText += out.prefix + ': ';
-                }
-
-                li.appendChild(createLine(out.text.slice(1,-1)));
-
-                resultList.appendChild(li);
+                resultList.appendChild(show_out(out));
             });
 
             if (result.result) {
@@ -504,6 +443,22 @@ function setResult(list, results) {
         // rocky: I think this is gross that we post-process the list. But, for now, so be it.
         afterProcessResult(list);
     }
+}
+
+
+function show_out(out){
+    const li = document.createElement("li");
+    text = out.text;
+    out_p = createLine(text);
+    out_p.className = "out";
+    if(out.message){
+	li.className = "message";
+	out_p.innerHTML = "<strong>" + out.prefix + ": </strong>" + out_p.innerHTML;
+    }else{
+	li.className = "print";
+    }
+    li.appendChild(out_p);
+    return li;
 }
 
 function submitQuery(element, onfinish, query) {
@@ -533,7 +488,7 @@ function submitQuery(element, onfinish, query) {
                     // a fatal Python error has occurred, e.g. on 4.4329408320439^43214234345
                     // ("Fatal Python error: mp_reallocate failure")
                     // -> print overflow message
-                    transport.responseText = '{"results": [{"out": [{"prefix": "General::noserver", "message": true, "tag": "noserver", "symbol": "General", "text": "<math><mrow><mtext>No server running.</mtext></mrow></math>"}]}]}';
+                    transport.responseText = '{"results": [{"out": [{"prefix": "General::noserver", "message": true, "tag": "noserver", "symbol": "General", "text": "No server running."}]}]}';
                 }
 
                 const response = JSON.parse(transport.responseText);

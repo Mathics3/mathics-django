@@ -31,7 +31,7 @@ def get_session_evaluation(session):
         # our own custom formatter that understand better how to format
         # in the context of mathics-django.
         # Previously, one specific format, like "xml" had to fit all.
-        evaluation = Evaluation(definitions, format="unformatted", output=WebOutput())
+        evaluation = Evaluation(definitions, format="xml", output=WebOutput())
         _evaluations[session.session_key] = evaluation
         evaluation.format_output = lambda expr, format: format_output(
             evaluation, expr, format
