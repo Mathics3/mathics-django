@@ -13,6 +13,7 @@ import pickle
 import sys
 from datetime import datetime
 
+from mathics.core.load_builtin import import_and_load_builtins
 from mathics.doc.utils import open_ensure_dir
 from mathics.docpipeline import (
     DocTestPipeline,
@@ -93,4 +94,5 @@ def main():
 
 
 if __name__ == "__main__":
+    import_and_load_builtins()    
     main()
