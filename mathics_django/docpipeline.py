@@ -94,5 +94,5 @@ def main():
 
 
 if __name__ == "__main__":
-    import_and_load_builtins()    
+    import_and_load_builtins()
     main()
