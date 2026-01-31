@@ -27,13 +27,13 @@ MATHICS3_MODULE_OPTION ?= --load-module pymathics.graph,pymathics.natlang
 	test
 
 THREEJS=mathics_django/web/media/js/mathics-threejs-backend/index.js mathics_django/web/media/js/mathics-threejs-backend/version.json
-SANDBOX	?=
+MATHICS3_SANDBOX	?=
 ifeq ($(OS),Windows_NT)
-	SANDBOX = t
+	MATHICS3_SANDBOX = t
 else
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Darwin)
-		SANDBOX = t
+		MATHICS3_SANDBOX = t
 	endif
 endif
 
@@ -64,12 +64,12 @@ djangotest: $(THREEJS)
 
 #: Run tests that appear in docstring in the code.
 doctest-workaround:
-	MATHICS_CHARACTER_ENCODING=$(MATHICS_CHARACTER_ENCODING) SANDBOX=$(SANDBOX) $(PYTHON) mathics_django/docpipeline.py --exclude=NIntegrate,MaxRecursion,PythonCProfileEvaluation
-	MATHICS_CHARACTER_ENCODING=$(MATHICS_CHARACTER_ENCODING) SANDBOX=$(SANDBOX) $(PYTHON) mathics_django/docpipeline.py --sections=NIntegrate,MaxRecursion,
+	MATHICS_CHARACTER_ENCODING=$(MATHICS_CHARACTER_ENCODING) MATHICS3_SANDBOX=$(MATHICS3_SANDBOX) $(PYTHON) mathics_django/docpipeline.py --exclude=NIntegrate,MaxRecursion,PythonCProfileEvaluation
+	MATHICS_CHARACTER_ENCODING=$(MATHICS_CHARACTER_ENCODING) MATHICS3_SANDBOX=$(MATHICS3_SANDBOX) $(PYTHON) mathics_django/docpipeline.py --sections=NIntegrate,MaxRecursion,
 
 #: Run tests that appear in docstring in the code.
 doctest: $(THREEJS)
-	MATHICS_CHARACTER_ENCODING=$(MATHICS_CHARACTER_ENCODING) SANDBOX=$(SANDBOX) $(PYTHON) mathics_django/docpipeline.py $o
+	MATHICS_CHARACTER_ENCODING=$(MATHICS_CHARACTER_ENCODING) MATHICS3_SANDBOX=$(MATHICS3_SANDBOX) $(PYTHON) mathics_django/docpipeline.py $o
 
 #: Create doctest test data and test results that is used in online documentation
 doctest-data:
