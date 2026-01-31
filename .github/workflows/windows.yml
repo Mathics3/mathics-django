@@ -29,11 +29,11 @@ jobs:
     - name: Install Python dependencies
       run: |
         # # Can adjust when next Mathics3 is released
-        # python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
+        python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
         # # python -m pip install -e git+https://github.com/Mathics3/mathics-core#egg=Mathics3[full]
-        # git clone --branch master https://github.com/Mathics3/mathics-core
-        # bash -c '(cd mathics-core && pip3 install -e .[full])'
-        # bash -c '(cd mathics-core && bash ./admin-tools/make-JSON-tables.sh)'
+        git clone --branch master https://github.com/Mathics3/mathics-core
+        bash -c '(cd mathics-core && pip3 install -e .[full])'
+        bash -c '(cd mathics-core && bash ./admin-tools/make-JSON-tables.sh)'
         python -m pip install pytest pexpect
         npm install
     - name: Install Mathics3 Django
