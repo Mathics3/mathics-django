@@ -587,7 +587,7 @@ li.serverError {
 }
 
 li.message {
-  color: #b30;
+  color: #e30;
   font-size: 0.9em;
 }
 
@@ -763,6 +763,6 @@ div.filelist table a:hover {
 }
 
 p.string {
-	color: #a61515;
+	color: #661515;
 	text-align: center;
 }
