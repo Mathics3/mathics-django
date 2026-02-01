@@ -449,10 +449,6 @@ function setResult(list, results) {
 function show_out(out){
     const li = document.createElement("li");
     text = out.text;
-    // This removes the quotes that we should not have
-    // added in `format.format_out`.
-    // TODO: remove this line in a next round.
-    text = text.slice(1,-1);
     out_p = createLine(text);
     out_p.className = "out";
     if(out.message){
