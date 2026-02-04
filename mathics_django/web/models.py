@@ -7,9 +7,9 @@ from django.db import models
 from django.db.models.signals import pre_delete
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Output
+from mathics.core.expression import(Expression, Symbol, SymbolTrue, String)
 from mathics.core.load_builtin import import_and_load_builtins
 from mathics.session import autoload_files
-
 from mathics_django.settings import ROOT_DIR
 from mathics_django.web.format import format_output
 
@@ -33,10 +33,8 @@ def get_session_evaluation(session):
         # Previously, one specific format, like "xml" had to fit all.
         evaluation = Evaluation(definitions, format="xml", output=WebOutput())
         _evaluations[session.session_key] = evaluation
-        evaluation.format_output = lambda expr, format: format_output(
-            evaluation, expr, format
-        )
-        autoload_files(definitions, ROOT_DIR, "autoload")
+        evaluation.format_output = lambda expr, format: format_output(evaluation, expr, format)
+        Expression('LoadModule', String("pymathics.asy")).evaluate(evaluation)
     return evaluation
 
 

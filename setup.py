@@ -57,8 +57,8 @@ is_PyPy = platform.python_implementation() == "PyPy" or hasattr(
     sys, "pypy_version_info"
 )
 
-DEPENDENCY_LINKS = []
 INSTALL_REQUIRES = []
+DEPENDENCY_LINKS = ["http://github.com/Mathics3/pymathics-asy#egg=pymathics-asy"]
 
 if sys.platform == "darwin":
     INSTALL_REQUIRES += ["scikit-image"]
@@ -73,6 +73,7 @@ INSTALL_REQUIRES += [
     "networkx >= 3.0",
     "pygments",  # For colorized Python tracebacks
     "requests",
+    "pymathics-asy",
 ]
 
 
