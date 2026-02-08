@@ -46,9 +46,11 @@ def about_page(request):
             "MachineName": system_info["$MachineName"],
             "MachinePrecision": system_info["MachinePrecision"],
             "MathJax_version": get_MathJax_version(),
-            "MaximumDigitsInString": system_info["MaximumDigitsInString"]
-            if system_info["MaximumDigitsInString"] != -1
-            else "unlimited",
+            "MaximumDigitsInString": (
+                system_info["MaximumDigitsInString"]
+                if system_info["MaximumDigitsInString"] != -1
+                else "unlimited"
+            ),
             "MemoryAvailable": system_info["MemoryAvailable[]"],
             "ProcessID": system_info["$ProcessID"],
             "ProcessorType": system_info["$ProcessorType"],
