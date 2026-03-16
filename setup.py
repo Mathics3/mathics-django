@@ -65,9 +65,8 @@ if sys.platform == "darwin":
 
 # General Requirements
 INSTALL_REQUIRES += [
-    "Mathics-Scanner >=1.4.1",
-    # "Mathics3 @ http://github.com/Mathics3/mathics-core/archive/master.zip",
-    "Mathics3 >=8.0.0",
+    "Mathics-Scanner >2.0",
+    "Mathics3 >9.1",
     "django",
     "matplotlib",  # For networkx graphs
     "networkx >= 3.0",

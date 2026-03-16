@@ -11,11 +11,11 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        python-version: ['3.10', '3.11', '3.12']
+        python-version: ['3.11', '3.12', '3.13']
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install OS dependencies
@@ -26,13 +26,17 @@ jobs:
     - name: Install Python dependencies
       run: |
         # Can adjust when next Mathics3 is released
-        python -m pip install -e "Mathics-Scanner[full] @ git+https://github.com/Mathics3/mathics-scanner"
-        # python -m pip install -e git+https://github.com/Mathics3/mathics-core#egg=Mathics3[full]
-        git clone --branch master https://github.com/Mathics3/mathics-core
-        (cd mathics-core && pip3 install -e .[full])
-        (cd mathics-core && bash ./admin-tools/make-JSON-tables.sh)
+        git clone --depth 1 https://github.com/Mathics3/Mathics3-scanner.git
+        cd Mathics3-scanner/
+        pip install -e .
+        bash -x admin-tools/make-JSON-tables.sh
+        cd ..
+        git clone --depth 1 https://github.com/Mathics3/mathics-core.git
+        cd mathics-core/
+        pip install -e .
+        bash -x admin-tools/make-JSON-tables.sh
+        cd ..
         npm install
-        pip install pytest pexpect
     - name: Install Mathics3 Django
       run: |
         pip install -e .[full]
