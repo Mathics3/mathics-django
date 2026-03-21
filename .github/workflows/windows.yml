@@ -43,7 +43,9 @@ jobs:
       run: |
         cp node_modules/\@mathicsorg/mathics-threejs-backend/docs/build.js mathics_django/web/media/js/mathics-threejs-backend/index.js
         cp node_modules/\@mathicsorg/mathics-threejs-backend/package.json mathics_django
-        python -m pip install -e .[full]
+        # We will do full after release of the various Mathics3 Modules
+        # python -m pip install -e .[full]
+        python -m pip install -e .
     - name: Test Mathics3 Django
       run: |
         make pytest gstest

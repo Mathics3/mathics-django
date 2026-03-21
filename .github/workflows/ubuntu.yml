@@ -39,7 +39,9 @@ jobs:
         npm install
     - name: Install Mathics3 Django
       run: |
-        python -m pip install -e .[full]
+        # We will do full after release of the various Mathics3 Modules
+        # python -m pip install -e .[full]
+        python -m pip install -e .
         make develop
     - name: Test Mathics3 Django
       run: |
