@@ -11,7 +11,8 @@ dependencies = [
      "Mathics3 >9",
      "Mathics_Scanner > 9",
      "pygments", # For colorized Python tracebacks
-     "requests"
+     "requests",
+     "scikit-image; sys_platform == 'darwin'",
 ]
 requires-python = ">=3.10"
 readme = "README.rst"
@@ -27,13 +28,6 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Mathematics",
 ]
 dynamic = ["version"]
-
-# Conditional dependency for macOS only
-# scikit-image = { version = "*", markers = "sys_platform == 'darwin'" }
-
-[tool.poetry.dependencies]
-# Conditional dependency for macOS only
-scikit-image = { version = "*", markers = "sys_platform == 'darwin'" }
 
 [project.optional-dependencies]
 dev = [
