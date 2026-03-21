@@ -31,6 +31,10 @@ dynamic = ["version"]
 # Conditional dependency for macOS only
 # scikit-image = { version = "*", markers = "sys_platform == 'darwin'" }
 
+[tool.poetry.dependencies]
+# Conditional dependency for macOS only
+scikit-image = { version = "*", markers = "sys_platform == 'darwin'" }
+
 [project.optional-dependencies]
 dev = [
    "pytest",
