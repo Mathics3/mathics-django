@@ -1,4 +1,4 @@
-name: Mathics-Django (macos)
+name: Mathics3-django (MacOS)
 
 on:
   push:
@@ -11,7 +11,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        python-version: ['3.13', '3.12']
+        python-version: ['3.11', '3.12', '3.13']
     steps:
     - uses: actions/checkout@v6
     - name: Set up Python ${{ matrix.python-version }}

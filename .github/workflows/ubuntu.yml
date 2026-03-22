@@ -1,4 +1,4 @@
-name: Mathics-Django (ubuntu)
+name: Mathics3-django (ubuntu)
 
 on:
   push:

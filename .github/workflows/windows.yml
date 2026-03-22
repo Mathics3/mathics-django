@@ -1,4 +1,5 @@
-name: Mathics (Windows)
+# -*- yaml -*-
+name: Mathics3-django (Windows)
 
 on:
   push:
