@@ -1,0 +1,65 @@
+[build-system]
+requires = ["setuptools"]
+
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Mathics3-Django"
+description = "A Django-based frontend for Mathics3"
+dependencies = [
+     "Django >=3.1",
+     "Mathics3 >9",
+     "Mathics_Scanner > 9",
+     "pygments", # For colorized Python tracebacks
+     "requests",
+     "scikit-image; sys_platform == 'darwin'",
+]
+requires-python = ">=3.10"
+readme = "README.rst"
+license = "GPL-3.0-or-later"
+maintainers = [
+    {name = "Mathics3 Group"},
+]
+classifiers = [
+    "Framework :: Django",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Mathematics",
+]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+dev = [
+   "pytest",
+   "pytest-django"
+]
+
+full = [
+     "Mathics3-Module-PyICU",
+     "Mathics3-Module-nltk",
+     "Mathics3-Module-networkx",
+]
+
+
+[project.scripts]
+Mathics3server = "mathics_django.manage:main"
+
+[project.urls]
+Homepage = "https://mathics.org/"
+
+[tool.setuptools.package-data]
+include = [
+    "mathics_django/autoload/*.m",
+    "mathics_django/doc/*.pcl",
+    "mathics_django/web/media/css/*.css",
+    "mathics_django/web/media/img/**/*",
+    "mathics_django/web/media/fonts/**/*",
+    "mathics_django/web/media/js/**/*.js",
+    "mathics_django/web/media/js/mathics-threejs-backend/**/*",
+    "mathics_django/web/templates/**/*.html",
+    "mathics_django/web/media/js/mathjax/**/*"
+]
+
+[tool.setuptools.dynamic]
+version = {attr = "mathics_django.version.__version__"}
