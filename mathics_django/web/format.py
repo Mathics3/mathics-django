@@ -3,26 +3,30 @@ Format Mathics3 objects
 """
 
 from mathics.core.atoms import String
-from mathics.core.systemsymbols import SymbolOutputForm, SymbolStandardForm
+from mathics.core.systemsymbols import (
+    SymbolMathMLForm,
+    SymbolOutputForm,
+    SymbolStandardForm,
+)
 from mathics.format.box import format_element
 
 FORM_TO_FORMAT = {
     "System`FullForm": "text",
     "System`InputForm": "text",
-    #    "System`MathMLForm": "text",
+    "System`MathMLForm": "xml",
     "System`OutputForm": "text",
     #    "System`TeXForm": "text",
     "System`String": "text",
 }
 
-
-def safe_html_string(value):
-    """
-    Escape characters in the
-    """
-    # TODO: check why the escaped characters are converted back to valid
-    # HTML code and processed.
-    return value  # mark_safe(escape_html(value))
+# def safe_html_string(value: str) -> str:
+#     """
+#     Escape characters in the
+#     """
+#     # TODO: check why the escaped characters are converted back to valid
+#     # HTML code and processed.
+#     import html
+#     return html.escape(value)
 
 
 def format_output(evaluation, expr, format=None):
@@ -55,26 +59,37 @@ def format_output(evaluation, expr, format=None):
         format = FORM_TO_FORMAT[expr_type]
 
     # This part was derived from and the same as evaluation.py format_output.
-
     if format == "text":
         boxed = format_element(expr, evaluation, SymbolOutputForm)
         result = boxed.boxes_to_text()
 
-        return safe_html_string(result)
+        return result
     elif format == "xml":
-        boxes = format_element(expr, evaluation, SymbolStandardForm)
+        if expr.get_head_name() == "System`MathMLForm":
+            boxed = format_element(expr, evaluation, SymbolMathMLForm)
+        else:
+            boxed = format_element(expr, evaluation, SymbolStandardForm)
+
+        if (
+            hasattr(boxed, "get_head_name")
+            and boxed.get_head_name() == "System`InterpretationBox"
+        ):
+            first_element = boxed.elements[0]
+            if isinstance(first_element, String):
+                return boxed.elements[0].value[1:-1]
+
         result = (
             '<math display="block">'
-            f"{boxes.boxes_to_mathml(evaluation=evaluation)}"
+            f"{boxed.boxes_to_mathml(evaluation=evaluation)}"
             "</math>"
         )
-        return safe_html_string(result)
+        return result
     elif format == "tex":
         boxes = format_element(expr, evaluation, SymbolStandardForm)
         if isinstance(boxes, String):
             result = boxes.boxes_to_text()
         else:
             result = boxes.boxes_to_tex(evaluation=evaluation)
-        return safe_html_string(result)
+        return result
 
     raise ValueError
