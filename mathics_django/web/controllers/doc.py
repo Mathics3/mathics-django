@@ -78,7 +78,7 @@ def doc_chapter(
     """
     check_for_new_load_modules()
     chapter = documentation.get_chapter(part, chapter)
-    if not chapter:
+    if chapter is None:
         raise Http404
     return render_doc(
         request,

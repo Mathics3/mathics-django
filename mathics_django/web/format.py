@@ -7,6 +7,7 @@ from mathics.core.systemsymbols import (
     SymbolMathMLForm,
     SymbolOutputForm,
     SymbolStandardForm,
+    SymbolTeXForm,
 )
 from mathics.format.box import format_element
 
@@ -15,7 +16,7 @@ FORM_TO_FORMAT = {
     "System`InputForm": "text",
     "System`MathMLForm": "xml",
     "System`OutputForm": "text",
-    #    "System`TeXForm": "text",
+    "System`TeXForm": "xml",
     "System`String": "text",
 }
 
@@ -65,8 +66,12 @@ def format_output(evaluation, expr, format=None):
 
         return result
     elif format == "xml":
+        is_TeXForm = False
         if expr.get_head_name() == "System`MathMLForm":
             boxed = format_element(expr, evaluation, SymbolMathMLForm)
+        elif expr.get_head_name() == "System`TeXForm":
+            boxed = format_element(expr, evaluation, SymbolTeXForm)
+            is_TeXForm = True
         else:
             boxed = format_element(expr, evaluation, SymbolStandardForm)
 
@@ -76,7 +81,10 @@ def format_output(evaluation, expr, format=None):
         ):
             first_element = boxed.elements[0]
             if isinstance(first_element, String):
-                return boxed.elements[0].value[1:-1]
+                box_str_sans_quotes = boxed.elements[0].value[1:-1]
+                if is_TeXForm:
+                    return f"$${box_str_sans_quotes}$$"
+                return box_str_sans_quotes
 
         result = (
             '<math display="block">'
