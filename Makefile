@@ -6,6 +6,7 @@
 
 GIT2CL ?= admin-tools/git2cl
 MATHICS_CHARACTER_ENCODING ?= ASCII
+DAPHNE ?= daphne
 PYTHON ?= python
 PIP ?= pip3
 RM  ?= rm
@@ -82,13 +83,17 @@ doctest-data-full:
 install: $(THREEJS)
 	$(PYTHON) setup.py install
 
-#: Run Django-based server in development mode. Use environment variable "o" for manage options
-runserver: $(THREEJS)
-	$(PYTHON) mathics_django/manage.py runserver $o
+#: Run Django-based server in production mode.
+runserver-production: $(THREEJS)
+	MATHICS3_DJANGO_DEBUG=false $(DAPHNE) -b 0.0.0.0 -p 8000 mathics_django.asgi:application
 
 #: Run Django-based server in development mode. Use environment variable "o" for manage options
+runserver: $(THREEJS)
+	MATHICS3_DJANGO_DISPLAY_EXCEPTIONS=true MATHICS3_DJANGO_LOG_ON_CONSOLE=true $(PYTHON) mathics_django/manage.py runserver $o
+
+#: Run Django-based server in development mode with debug. Use environment variable "o" for manage options
 runserver-debug: $(THREEJS)
-	MATHICS_DJANGO_DISPLAY_EXCEPTIONS=true MATHICS_DJANGO_LOG_ON_CONSOLE=true $(PYTHON) mathics_django/manage.py runserver $o
+	MATHIC3_DJANGO_DEBUG=true MATHICS3_DJANGO_DISPLAY_EXCEPTIONS=true MATHICS3_DJANGO_LOG_ON_CONSOLE=true $(PYTHON) mathics_django/manage.py runserver $o
 
 #: Remove ChangeLog
 rmChangeLog:

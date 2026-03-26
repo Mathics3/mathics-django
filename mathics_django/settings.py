@@ -1,10 +1,21 @@
 # -*- coding: utf-8 -*-
 
+import importlib.util
 import os
 import os.path as osp
 from pathlib import Path
 
 from mathics.settings import DATA_DIR
+
+# Check if daphne is installed without importing
+daphne_spec = importlib.util.find_spec("daphne")
+
+if daphne_spec is not None:
+    # 2. Import it programmatically
+    # We use import_module to avoid 'daphne not found' errors at lint-time
+    daphne = importlib.import_module("daphne")
+else:
+    daphne = None
 
 # The kinds of strings in an environment variable be interpreted as True.
 ENV_VAR_YES_VALUE = ("True", "true", "t", "1", "yes", "y")
@@ -21,25 +32,25 @@ def get_bool_from_environment(env_var: str, default_value: str):
     return env_var_value in ENV_VAR_YES_VALUE
 
 
-DEBUG = get_bool_from_environment("MATHICS_DJANGO_DEBUG", "true")
-# The environment variable MATHICS_DJANGO_ALLOWED_HOSTS is used
+DEBUG = get_bool_from_environment("MATHICS3_DJANGO_DEBUG", "true")
+# The environment variable MATHICS3_DJANGO_ALLOWED_HOSTS is used
 # to set Django's ALLOWED_HOST, which specifies what kinds of
 # host/domain names that Django can serve.
 # See:
 #   https://docs.djangoproject.com/en/4.1/ref/settings/#allowed-hosts
 # for details
-allowed_host_list = os.environ.get("MATHICS_DJANGO_ALLOWED_HOSTS", None)
+allowed_host_list = os.environ.get("MATHICS3_DJANGO_ALLOWED_HOSTS", None)
 if allowed_host_list is not None:
     ALLOWED_HOSTS = allowed_host_list.split(";")
 else:
-    # Use Django's default value for ALLOWED_HOSTS.
-    ALLOWED_HOSTS = []
+    # Local connections only
+    ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
 # Support changing the Base URL
-BASE_URL = os.environ.get("MATHICS_DJANGO_URL", "")
+BASE_URL = os.environ.get("MATHICS3_DJANGO_URL", "")
 
 DISPLAY_EXCEPTIONS = get_bool_from_environment(
-    "MATHICS_DJANGO_DISPLAY_EXCEPTIONS", str(DEBUG)
+    "MATHICS3_DJANGO_DISPLAY_EXCEPTIONS", str(DEBUG)
 )
 # Setting this to True causes Django to freak out. Figure out why and fix.
 LOG_QUERIES = False
@@ -47,17 +58,17 @@ LOG_QUERIES = False
 # Show on Django console:
 # * evaluation timeout
 # * results
-LOG_ON_CONSOLE = get_bool_from_environment("MATHICS_DJANGO_LOG_ON_CONSOLE", "false")
+LOG_ON_CONSOLE = get_bool_from_environment("MATHICS3_DJANGO_LOG_ON_CONSOLE", "false")
 
-MATHICS_DJANGO_DB = os.environ.get("MATHICS_DJANGO_DB", "mathics.sqlite")
-MATHICS_DJANGO_DB_PATH = os.environ.get(
-    "MATHICS_DJANGO_DB_PATH", DATA_DIR + MATHICS_DJANGO_DB
+MATHICS3_DJANGO_DB = os.environ.get("MATHICS3_DJANGO_DB", "mathics.sqlite")
+MATHICS3_DJANGO_DB_PATH = os.environ.get(
+    "MATHICS3_DJANGO_DB_PATH", DATA_DIR + MATHICS3_DJANGO_DB
 )
 
 ROOT_DIR = osp.dirname(__file__)
 
 # Location of internal document data.
-MATHICS_BACKEND_THREEJS_JSON_PATH = os.path.join(
+MATHICS3_BACKEND_THREEJS_JSON_PATH = os.path.join(
     ROOT_DIR, "web", "media", "js", "mathics-threejs-backend", "version.json"
 )
 
@@ -112,7 +123,7 @@ AUTHENTICATION_BACKENDS = ("mathics.web.authentication.EmailModelBackend",)
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": MATHICS_DJANGO_DB_PATH,
+        "NAME": MATHICS3_DJANGO_DB_PATH,
     }
 }
 
@@ -126,14 +137,18 @@ EMAIL_HOST_PASSWORD = ""
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
-INSTALLED_APPS = (
+INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.sites",
     "mathics_django.web",
     "mathics_django.web.controllers",
-)
+]
+
+if daphne is not None and not DEBUG:
+    INSTALLED_APPS.append("daphne")
+    ASGI_APPLICATION = "mathics_django.asgi:application"
 
 LANGUAGE_CODE = "en-us"
 
@@ -143,11 +158,17 @@ LANGUAGE_CODE = "en-us"
 #    'django.template.loaders.app_directories.load_template_source',
 # )
 
+# --- Media Files (Generated Mathics3 assets) ---
+MEDIA_ROOT = osp.join(ROOT_DIR, "media")
+
 MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
 ]
+
+if daphne is not None:
+    MIDDLEWARE.append("whitenoise.middleware.WhiteNoiseMiddleware")
 
 ROOT_URLCONF = "mathics_django.urls"
 

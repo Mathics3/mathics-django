@@ -100,7 +100,7 @@ def launch_app(args):
         print("Quit by pressing %s\n" % quit_command)
         print(
             """Open the graphical user interface at
-http://localhost:%d\nin Firefox, Chrome, or Safari to use Mathics\n"""
+http://localhost:%d\nin Firefox, Chrome, or Safari to use Mathics3\n"""
             % port
         )
 

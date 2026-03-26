@@ -17,7 +17,7 @@ from mathics import optional_software, version_info as mathics_version_info
 from mathics.core.evaluation import Evaluation
 from mathics.system_info import mathics_system_info
 
-from mathics_django.settings import DOCTEST_USER_HTML_DATA_PATH, MATHICS_DJANGO_DB_PATH
+from mathics_django.settings import DOCTEST_USER_HTML_DATA_PATH, MATHICS3_DJANGO_DB_PATH
 from mathics_django.version import __version__
 from mathics_django.web.models import get_session_evaluation
 
@@ -37,7 +37,7 @@ def about_page(request):
         "about.html",
         {
             "BaseDirectory": system_info["$BaseDirectory"],
-            "DB_PATH": MATHICS_DJANGO_DB_PATH,
+            "DB_PATH": MATHICS3_DJANGO_DB_PATH,
             "DOCTEST_DATA_PATH": DOCTEST_USER_HTML_DATA_PATH,
             "HTTP_USER_AGENT": request.META.get("HTTP_USER_AGENT", ""),
             "HomeDirectory": system_info["$HomeDirectory"],
@@ -110,7 +110,7 @@ def get_mathics_threejs_backend_data():
     if not mathics_threejs_backend_data:
         try:
             with builtin_open(
-                settings.MATHICS_BACKEND_THREEJS_JSON_PATH, "rb"
+                settings.MATHICS3_BACKEND_THREEJS_JSON_PATH, "rb"
             ) as version_json_fp:
                 mathics_threejs_backend_data = json.load(version_json_fp)
         except Exception:
