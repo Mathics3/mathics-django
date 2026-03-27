@@ -7,9 +7,9 @@ build-backend = "setuptools.build_meta"
 name = "Mathics3-Django"
 description = "A Django-based frontend for Mathics3"
 dependencies = [
-     "Django >=3.1",
-     "Mathics3 >9",
-     "Mathics_Scanner > 9",
+     "Django >= 3.1",
+     "Mathics3 > 9.0",
+     "Mathics_Scanner > 9.0",
      "pygments", # For colorized Python tracebacks
      "requests",
      "scikit-image; sys_platform == 'darwin'",
@@ -30,15 +30,24 @@ classifiers = [
 dynamic = ["version"]
 
 [project.optional-dependencies]
+
+# Packages used to test project
 dev = [
    "pytest",
    "pytest-django"
 ]
 
+# Full set of Mathics3 modules
 full = [
      "Mathics3-Module-PyICU",
      "Mathics3-Module-nltk",
      "Mathics3-Module-networkx",
+]
+
+# Packages used in a Production server environment
+production = [
+     "daphne", # ASGI webserver for production use
+     "whitenoise", # For serving static files under daphne
 ]
 
 
