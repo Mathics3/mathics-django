@@ -67,23 +67,25 @@ function getDimensions(math, callback) {
     const container = all.querySelector('.calc_container');
     container.appendChild(translateDOMElement(math));
 
-    // Note all of this will change or disappear when we upgrade to MathJax 4.0
-    MathJax.Hub.Queue(['Typeset', MathJax.Hub, container]);
-    MathJax.Hub.Queue(() => {
-	// Wrap the measurements in requestAnimationFrame
-	window.requestAnimationFrame(function() {
-            const containerOffsetLeft = container.offsetLeft,
-		  containerOffsetTop = container.offsetTop,
-		  nextOffsetLeft = all.querySelector('.calc_next').offsetLeft,
-		  belowOffsetTop = all.querySelector('.calc_below').offsetTop;
+    MathJax.typesetPromise([container]);
 
-            const width = nextOffsetLeft - containerOffsetLeft + 4,
-		  height = belowOffsetTop - containerOffsetTop + 20;
+    // MathJax.typesetPromise returns a promise that resolves when rendering is complete
+    MathJax.typesetPromise([all]).then(() => {
+	const containerOffsetLeft = container.offsetLeft,
+              containerOffsetTop = container.offsetTop,
+              nextOffsetLeft = all.querySelector('.calc_next').offsetLeft,
+              belowOffsetTop = all.querySelector('.calc_below').offsetTop;
 
-            all.remove();
+	const width = nextOffsetLeft - containerOffsetLeft + 4,
+              height = belowOffsetTop - containerOffsetTop + 20;
 
-            callback(width, height);
-	});
+	// Clean up the temporary element
+	all.remove();
+
+	// Execute your callback with the calculated dimensions
+	callback(width, height);
+    }).catch((err) => {
+	console.error("MathJax typesetting failed:", err);
     });
 }
 
@@ -313,53 +315,67 @@ function afterProcessResult(list, command) {
     // command is either 'Typeset' (default) or 'Rerender'
     command ||= 'Typeset';
 
-    MathJax.Hub.Queue([command, MathJax.Hub, list]);
-    MathJax.Hub.Queue(() => {
-        // inject SVG and other non-MathML objects into corresponding <mspace>s
-        list.querySelectorAll('.mspace').forEach((mspace) => {
-	    if (mspace) {
-		const id = mspace.getAttribute('id').substr(objectsPrefix.length);
+    MathJax.typesetPromise([container]);
 
-		mspace.appendChild(objects[id]);
-	    }
-        });
+
+    // Ensure 'list' is the element containing your math
+    MathJax.typesetPromise([list]).then(() => {
+	// MathJax has finished rendering 'list' into CommonHTML or SVG.
+	// We can now find the rendered mspace containers.
+	list.querySelectorAll('.mspace').forEach((mspace) => {
+            const fullId = mspace.getAttribute('id');
+            if (fullId && fullId.startsWith(objectsPrefix)) {
+		const id = fullId.substr(objectsPrefix.length);
+
+		// Inject the corresponding object (SVG/Canvas/etc.)
+		if (objects[id]) {
+                    mspace.appendChild(objects[id]);
+		}
+            }
+	});
+    }).catch((err) => {
+	console.error("MathJax injection failed:", err);
     });
 
-    if (!MathJax.Hub.Browser.isOpera) {
-        // Opera 11.01 Build 1190 on Mac OS X 10.5.8 crashes on this call for Plot[x,{x,0,1}]
-        // => leave inner MathML untouched
-        MathJax.Hub.Queue(['Typeset', MathJax.Hub, list]);
-    }
+    MathJax.typesetPromise([list]).then(() => {
+	// MathJax v4 uses 'mjx-container' for its rendered output.
+	// We query for these containers instead of the old span.math/nobr structure.
+	list.querySelectorAll('foreignObject mjx-container').forEach((mathContainer) => {
 
-    MathJax.Hub.Queue(() => {
-        list.querySelectorAll('foreignObject > span > nobr > span.math')
-            .forEach((math) => {
-                const content = math.firstChild.firstChild.firstChild;
+            // 1. Handling the "Content Shift"
+            // In v4, the actual math content is usually inside a <mjx-math> element.
+            const mathContent = mathContainer.querySelector('mjx-math');
 
-                math.removeChild(math.firstChild);
-                math.insertBefore(content, math.firstChild);
+            if (command === 'Typeset' && mathContent) {
+		const foreignObject = mathContainer.closest('foreignObject');
 
-                if (command === 'Typeset') {
-                    // recalculate positions of insets based on ox/oy properties
-                    const foreignObject = math.parentNode.parentNode.parentNode,
-                          dimensions = math.getDimensions();
+		// 2. Getting Dimensions
+		// MathJax v4 doesn't have a built-in .getDimensions() on the element.
+		// Use standard browser BoundingClientRect for accurate measurements.
+		const rect = mathContainer.getBoundingClientRect();
+		const width = rect.width + 4;
+		const height = rect.height + 4;
 
-                    const ox = parseFloat(foreignObject.getAttribute('ox')),
-                          oy = parseFloat(foreignObject.getAttribute('oy')),
-                          width = dimensions.width + 4,
-                          height = dimensions.height + 4;
+		// 3. Coordinate Recalculation
+		const ox = parseFloat(foreignObject.getAttribute('ox') || 0);
+		const oy = parseFloat(foreignObject.getAttribute('oy') || 0);
 
-                    let x = parseFloat(foreignObject.getAttribute('x').substr()),
-                        y = parseFloat(foreignObject.getAttribute('y'));
+		// Get original x/y (stripping 'px' if present)
+		let x = parseFloat(foreignObject.getAttribute('x'));
+		let y = parseFloat(foreignObject.getAttribute('y'));
 
-                    x = x - width / 2.0 - ox * width / 2.0;
-                    y = y - height / 2.0 + oy * height / 2.0;
+		// The Mathics3 logic for centering/offsetting
+		x = x - width / 2.0 - ox * width / 2.0;
+		y = y - height / 2.0 + oy * height / 2.0;
 
-                    foreignObject.setAttribute('x', x + 'px');
-                    foreignObject.setAttribute('y', y + 'px');
-                }
-            });
-    });
+		// Update attributes
+		foreignObject.setAttribute('x', x + 'px');
+		foreignObject.setAttribute('y', y + 'px');
+		foreignObject.setAttribute('width', width + 'px');
+		foreignObject.setAttribute('height', height + 'px');
+            }
+	});
+    }).catch((err) => console.error("v4 Typeset Adjustment Failed:", err));
 }
 
 function setResult(list, results) {
@@ -852,29 +868,6 @@ function globalKeyUp(event) {
 }
 
 function domLoaded() {
-    MathJax.Hub.Config({
-	tex2jax:{inlineMath: [['$','$'], ['\\(','\\)']]},
-        'HTML-CSS': {
-            imageFont: null,
-            linebreaks: {
-                automatic: true,
-                width: '70% container'
-            }
-        },
-        MMLorHTML: {
-            // the output jax that is to be preferred when both are possible
-            // (set to 'MML' for native MathML, 'HTML' for MathJax's HTML-CSS output jax).
-            prefer: {
-                MSIE: 'HTML',
-                Firefox: 'HTML',
-                Opera: 'HTML',
-                other: 'HTML'
-            }
-        }
-    });
-
-    MathJax.Hub.Configured();
-
     if (localStorage.getItem('hideMathicsStartupMsg') === 'true') {
         document.getElementById('welcome').style.display = 'none';
     }
