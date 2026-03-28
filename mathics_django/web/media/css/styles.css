@@ -766,3 +766,17 @@ p.string {
 	color: #661515;
 	text-align: center;
 }
+
+
+/* Until we update to MathJax 4.0, it is useful to have the following
+to prevent recalcuation from causing a jumping display...
+
+MathJax is trying to render math inside or near tables, so the
+browser has to recalculate the table width every time a single
+character of math is rendered.
+*/
+.MathJax_Display, .MathJax {
+    contain: layout;
+    /* This prevents horizontal jumps */
+    overflow: hidden;
+}
