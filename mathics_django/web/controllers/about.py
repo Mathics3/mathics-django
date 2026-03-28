@@ -95,9 +95,9 @@ def get_MathJax_version():
         "media",
         "js",
         "mathjax",
-        "MathJax.js",
+        "tex-mml-chtml.js",
     )
-    pattern = r'MathJax.version="(\d\.\d\.\d)"'
+    pattern = r'mathjaxVersion="(\d\.\d\.\d)"'
     match = re.search(pattern, builtin_open(three_file).read())
     if match:
         return match.group(1)

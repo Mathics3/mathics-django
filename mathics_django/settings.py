@@ -182,7 +182,7 @@ SECRET_KEY = "uvbhuiasaeaph6Duh)r@3ex1i@et=0j4h(!p4@!r6s-=a_ev*e"
 SITE_ID = 1
 
 # Where to find extra files during development
-STATIC_FILES_DIRS = os.path.join(ROOT_DIR, "static/")
+STATIC_FILES_DIRS = os.path.join(ROOT_DIR, "web/media/")
 
 # Absolute path to the directory that holds static files.
 STATIC_ROOT = os.path.join(ROOT_DIR, "web/media/")

@@ -32,7 +32,7 @@
 
 	<script type="text/javascript" src="{% static 'js/prototype/prototype.js' %}"></script>
 
-	<script type="text/javascript" src="{% static 'js/mathjax/MathJax.js' %}?config=TeX-AMS-MML_HTMLorMML-full&amp;delayStartupUntil=configured"></script>
+	<script type="text/javascript" src="{% static 'js/mathjax/tex-mml-chtml.js' %}?config=TeX-AMS-MML_HTMLorMML-full&amp;delayStartupUntil=configured"></script>
 
 	<script type="text/javascript" src="{% static 'js/message.js' %}"></script>
 	<script type="text/javascript" src="{% static 'js/authentication.js' %}"></script>
@@ -41,6 +41,55 @@
 	<script type="text/javascript" src="{% static 'js/mathics.js' %}"></script>
 	<script type="text/javascript" src="{% static 'js/mathics-threejs-backend/index.js' %}"></script>
 	<script type="text/javascript" src="{% static 'js/doc.js' %}"></script>
+
+
+	<!-- MathJax V 4.0 configuration -->
+	<script>
+	  window.MathJax = {
+	      // extensions inside mathjax/input/tex/extensions to add
+	      loader: {
+		  load: ['[tex]/ams', '[tex]/newcommand', '[tex]/configmacros', '[tex]/bbox']
+	      },
+	      tex: {
+		  inlineMath: [['$', '$'], ['\\(', '\\)']],
+		  displayMath: [['$$', '$$'], ['\\[', '\\]']],
+		  processEscapes: true,
+		  packages: {'[+]': ['ams', 'newcommand', 'configmacros', 'bbox']}
+	      },
+	      startup: {
+		  typeset: true, // Set to false if you want to manually trigger the first typeset
+		  ready: () => {
+		      // This replaces MathJax.Hub.Configured()
+		      MathJax.startup.defaultReady();
+		      console.log("MathJax v4 is ready");
+		  }
+	      },
+	      options: {
+		  enableMenu: true,
+		  renderActions: {
+		      // This helps if Mathics updates content dynamically
+		      findScript: [10, function (doc) {
+			  for (const node of Array.from(document.querySelectorAll('script[type^="math/tex"]'))) {
+			      const display = !!node.type.match(/; *mode=display/);
+			      const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+			      const text = document.createTextNode('');
+			      node.parentNode.replaceChild(text, node);
+			      math.start = {node: text, delim: '', n: 0};
+			      math.end = {node: text, delim: '', n: 0};
+			      doc.math.push(math);
+			  }
+		      }, '']
+		  }
+	      },
+	      chtml: {
+		  // Essential for local NPM installs to find the fonts
+		  fontURL: '{% static "js/mathjax/output/chtml/fonts/woff2" %}',
+		  displayAlign: 'left', // Common for notebook-style interfaces
+		  // To handle the '70% container' width logic from v2:
+		  displayIndent: '2em'
+	      }
+	  };
+	</script>
 
 	{% block html_head %}
 	{% endblock %}

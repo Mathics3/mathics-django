@@ -4,7 +4,7 @@ function showPage(response) {
 	const doc = document.getElementById('doc');
 	if (doc) {
 	    doc.innerHTML = response.content;
-	    MathJax.Hub.Queue(["Typeset",MathJax.Hub, doc]);
+	    MathJax.typesetPromise([doc]);
 	}
 
 	document.querySelectorAll('li.test p').forEach((test) => {
