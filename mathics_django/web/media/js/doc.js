@@ -165,14 +165,16 @@ function searchKeyDown(event) {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-	const search = document.getElementById('search');
+    const search = document.getElementById('search');
 
+    // Some pages like "About" do not have a search field.
+    // So for those we don't need to add a listener.
+    if (search) {
 	search.addEventListener('focus', searchFocus);
 	search.addEventListener('blur', searchBlur);
 	search.addEventListener('keydown', searchKeyDown);
 	search.addEventListener('keyup', searchKeyUp);
 	search.addEventListener('keyup', searchChange);
 	search.value = '';
-
 	searchBlur();
-});
+    }});
