@@ -22,11 +22,29 @@ class AjaxForm(forms.Form):
 
 
 class LoginForm(AjaxForm):
-    email = forms.EmailField(max_length=80)
+    email = forms.EmailField(
+        label="Email",
+        # Google Chrome adds a warning if we don't set autocomplete.
+        # on the email address
+        widget=forms.EmailInput(
+            attrs={
+                "autocomplete": "username",
+                "maxlength": "80",
+            }
+        ),
+    )
     password = forms.CharField(
+        label="password",
         required=False,
         max_length=40,
-        widget=forms.PasswordInput,
+        # Google Chrome adds a warning if we don't set autocomplete.
+        # on the password
+        widget=forms.PasswordInput(
+            attrs={
+                "autocomplete": "current-password",
+                "maxlength": "40",
+            }
+        ),
         help_text=(
             '<p class="helptext">Leave this field empty '
             "if you don't have an account yet,\n"

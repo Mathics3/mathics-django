@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
-
 import importlib.util
+import mimetypes
 import os
 import os.path as osp
 from pathlib import Path
 
 from mathics.settings import DATA_DIR
+
+# Needed for Firefox seciruty Allow these mime types
+# When we migrate to MathJax v4 we won't need this.
+mimetypes.add_type("font/woff2", ".woff2", True)
 
 # Check if daphne is installed without importing
 daphne_spec = importlib.util.find_spec("daphne")
@@ -176,6 +180,9 @@ ROOT_URLCONF = "mathics_django.urls"
 SECRET_KEY = "uvbhuiasaeaph6Duh)r@3ex1i@et=0j4h(!p4@!r6s-=a_ev*e"
 
 SITE_ID = 1
+
+# Where to find extra files during development
+STATIC_FILES_DIRS = os.path.join(ROOT_DIR, "static/")
 
 # Absolute path to the directory that holds static files.
 STATIC_ROOT = os.path.join(ROOT_DIR, "web/media/")
