@@ -67,19 +67,23 @@ function getDimensions(math, callback) {
     const container = all.querySelector('.calc_container');
     container.appendChild(translateDOMElement(math));
 
+    // Note all of this will change or disappear when we upgrade to MathJax 4.0
     MathJax.Hub.Queue(['Typeset', MathJax.Hub, container]);
     MathJax.Hub.Queue(() => {
-        const containerOffsetLeft = container.offsetLeft,
-              containerOffsetTop = container.offsetTop,
-              nextOffsetLeft = all.querySelector('.calc_next').offsetLeft,
-              belowOffsetTop = all.querySelector('.calc_below').offsetTop;
+	// Wrap the measurements in requestAnimationFrame
+	window.requestAnimationFrame(function() {
+            const containerOffsetLeft = container.offsetLeft,
+		  containerOffsetTop = container.offsetTop,
+		  nextOffsetLeft = all.querySelector('.calc_next').offsetLeft,
+		  belowOffsetTop = all.querySelector('.calc_below').offsetTop;
 
-        const width = nextOffsetLeft - containerOffsetLeft + 4,
-              height = belowOffsetTop - containerOffsetTop + 20;
+            const width = nextOffsetLeft - containerOffsetLeft + 4,
+		  height = belowOffsetTop - containerOffsetTop + 20;
 
-        all.remove();
+            all.remove();
 
-        callback(width, height);
+            callback(width, height);
+	});
     });
 }
 
@@ -461,7 +465,17 @@ function show_out(out){
     return li;
 }
 
+// Make sure we handle queries one at a time.
+var queryInProgress = false;
+
 function submitQuery(element, onfinish, query) {
+
+    // Check if we are already waiting for a Query response...
+    if (queryInProgress) {
+        console.warn("Query already in progress, ignoring duplicate request.");
+        return;
+    }
+
     if (welcome) {
         document.getElementById('welcomeContainer')?.fade({ duration: 0.2 });
 
@@ -475,6 +489,9 @@ function submitQuery(element, onfinish, query) {
 
     element.li?.classList.add('loading');
     document.getElementById('logo')?.classList.add('working');
+
+    // Note that we are handling a query.
+    queryInProgress = true;
 
     new Ajax.Request('ajax/query/', {
         method: 'post',
@@ -504,9 +521,10 @@ function submitQuery(element, onfinish, query) {
                 } else {
                     createQuery();
                 }
-            }
+            };
         },
         onFailure: () => {
+	    queryInProgress = false;
             element?.ul.select('li[class!=request]')
                 .forEach((element) => element.remove());
 
@@ -518,6 +536,7 @@ function submitQuery(element, onfinish, query) {
             element.submitted = true;
         },
         onComplete: () => {
+	    queryInProgress = false;
             element?.li.classList.remove('loading');
             document.getElementById('logo')?.classList.remove('working');
 
