@@ -64,7 +64,7 @@ LOG_QUERIES = False
 # * results
 LOG_ON_CONSOLE = get_bool_from_environment("MATHICS3_DJANGO_LOG_ON_CONSOLE", "false")
 
-MATHICS3_DJANGO_DB = os.environ.get("MATHICS3_DJANGO_DB", "mathics.sqlite")
+MATHICS3_DJANGO_DB = os.environ.get("MATHICS3_DJANGO_DB", "mathics3.sqlite")
 MATHICS3_DJANGO_DB_PATH = os.environ.get(
     "MATHICS3_DJANGO_DB_PATH", DATA_DIR + MATHICS3_DJANGO_DB
 )
