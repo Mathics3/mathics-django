@@ -75,6 +75,7 @@ def about_page(request):
             "numpy_version": mathics_version_info["numpy"],
             "mathics_version_info": mathics_version_info,
             "optional_software": optional_software,
+            "PIL_version": mathics_version_info["PIL"],
             "python_version": mathics_version_info["python"],
             "settings": settings,
             "sympy_version": mathics_version_info["sympy"],
