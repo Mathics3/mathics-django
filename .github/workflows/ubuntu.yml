@@ -22,6 +22,7 @@ jobs:
       run: |
         sudo apt-get update -qq && sudo apt-get install -qq liblapack-dev llvm-dev nodejs npm tesseract-ocr
         python -m pip install --upgrade pip
+        python -m pip install setuptools
     - name: Install Python dependencies
       run: |
         # Can adjust when next Mathics3 is released
@@ -32,7 +33,7 @@ jobs:
         cd ..
         git clone --depth 1 https://github.com/Mathics3/mathics-core.git
         cd mathics-core/
-        pip install -e .
+        pip install -e . --no-build-isolation
         bash -x admin-tools/make-JSON-tables.sh
         pip install pytest pexpect
         cd ..
