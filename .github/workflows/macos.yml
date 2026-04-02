@@ -21,7 +21,6 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install OS dependencies
       run: |
-        brew install llvm@18 nodejs npm tesseract
         python -m pip install setuptools
     - name: Install Python dependencies
       run: |
