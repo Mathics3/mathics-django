@@ -37,7 +37,6 @@ def get_session_evaluation(session):
             evaluation, expr, format
         )
         autoload_files(definitions, ROOT_DIR, "autoload")
-    evaluation.iteration_count = 0
     return evaluation
 
 
