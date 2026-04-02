@@ -260,9 +260,10 @@ function showGallery() {
         '(**** Calculation ****)',
         'Sin[Pi]',
         'E ^ (Pi I) (* Euler\'s famous equation *)',
-        'N[E, 30] (* 30-digit Numeric approximation of E *)',
         '30! (* Factorial *)',
-        '% // N',
+        'N[E, 30] (* 30-digit Numeric approximation of E *)',
+	'(* N[] converts a large integer to a MachineReal without loss of precision *)',
+        'N[2^1023] // OutputForm ',
         'Sum[2 i + 1, {i, 0, 10}] (* Sum of 1st n odd numbers (n+1)**2 *)',
         'n = 8; 2 ^ # & /@ Range[0, n] (* Powers of 2 *)',
         'Total[%] (* Sum is 2 ^ n - 1 *)',
@@ -345,7 +346,7 @@ function showGallery() {
 
         '(* Embedding objects in a Table. *)',
         'Table[RGBColor[1, g, 0], {g, 0, 1, 0.05}]',
-        'Table[Plot[x^i Sin[j Pi x], {x, 0, 2}],{i, 2},{j, 2}]//MatrixForm',
+        'Table[Plot[x^i Sin[j Pi x], {x, 0, 2}, PlotPoints->10],{i, 2},{j, 2}]//MatrixForm',
 
         '(**** Image handling via Pillow ****)',
         'alice = Import["ExampleData/MadTeaParty.gif"]; ImageTake[alice, {40, 150}, {500, 600}]',

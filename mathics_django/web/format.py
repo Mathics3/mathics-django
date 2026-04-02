@@ -3,7 +3,12 @@ Format Mathics3 objects
 """
 
 from mathics.core.atoms import String
-from mathics.core.systemsymbols import SymbolOutputForm, SymbolStandardForm
+from mathics.core.systemsymbols import (
+    SymbolAborted,
+    SymbolFailed,
+    SymbolOutputForm,
+    SymbolStandardForm,
+)
 from mathics.format.box import format_element
 
 FORM_TO_FORMAT = {
@@ -44,6 +49,11 @@ def format_output(evaluation, expr, format=None):
 
     if isinstance(format, dict):
         return dict((k, evaluation.format_output(expr, f)) for k, f in format.items())
+
+    if expr is SymbolAborted:
+        return "$Aborted"
+    elif expr is SymbolFailed:
+        return "$Failed"
 
     # For some expressions, we want formatting to be different.
     # In particular for FullForm and InputForm output, we don't want

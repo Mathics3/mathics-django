@@ -317,9 +317,11 @@ function afterProcessResult(list, command) {
     MathJax.Hub.Queue(() => {
         // inject SVG and other non-MathML objects into corresponding <mspace>s
         list.querySelectorAll('.mspace').forEach((mspace) => {
-            const id = mspace.getAttribute('id').substr(objectsPrefix.length);
+	    if (mspace) {
+		const id = mspace.getAttribute('id').substr(objectsPrefix.length);
 
-            mspace.appendChild(objects[id]);
+		mspace.appendChild(objects[id]);
+	    }
         });
     });
 
