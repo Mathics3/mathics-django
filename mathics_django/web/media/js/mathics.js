@@ -21,7 +21,7 @@ function getLetterWidth(element) {
 
     document.body.appendChild(letter);
 
-    const width = letter.getWidth();
+    const width = letter.getBoundingClientRect().width;
 
     document.body.removeChild(letter);
 
@@ -53,7 +53,7 @@ function inputChange() {
 }
 
 function isEmpty(textarea) {
-    return textarea.value.strip() == '' && !textarea.submitted;
+    return textarea.value.trim() == '' && !textarea.submitted;
 }
 
 function prepareText(text) {
@@ -486,7 +486,12 @@ function submitQuery(element, onfinish, query) {
     }
 
     if (welcome) {
-        document.getElementById('welcomeContainer')?.fade({ duration: 0.2 });
+	const welcomeContainer = document.getElementById('welcomeContainer');
+	if (welcomeContainer) {
+	    welcomeContainer.style.transition = 'opacity 0.2s ease-out';
+	    welcomeContainer.style.opacity = '0';
+	    welcomeContainer.style.pointerEvents = 'none';
+	}
 
         if (document.getElementById('hideStartupMsg')?.checked) {
             localStorage.setItem('hideMathicsStartupMsg', 'true');
@@ -568,7 +573,7 @@ function keyDown(event) {
     if (event.key === 'Enter' && (event.shiftKey || event.location === 3)) {
         event.stop();
 
-        if (textArea.value.strip()) {
+        if (textArea.value.trim()) {
             submitQuery(textArea);
         }
     } else if (event.key === 'ArrowUp') {
@@ -624,7 +629,7 @@ function deleteClick() {
 
 function moveMouseDown() {
     movedItem = this.li;
-    movedItem.addClassName('moving');
+    movedItem.classList.add('moving');
 }
 
 function moveMouseUp() {
@@ -737,7 +742,7 @@ function createQuery(beforeElement, noFocus, updatingAll) {
     moveHandle.addEventListener('mousedown', moveMouseDown);
     document.addEventListener('mouseup', moveMouseUp);
     submitButton.addEventListener('mousedown', () => {
-        if (textarea.value.strip()) {
+        if (textarea.value.trim()) {
             submitQuery(textarea);
         } else {
             textarea.focus();

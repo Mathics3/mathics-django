@@ -32,7 +32,29 @@
 
 	<script type="text/javascript" src="{% static 'js/prototype/prototype.js' %}"></script>
 
-	<script type="text/javascript" src="{% static 'js/mathjax/MathJax.js' %}?config=TeX-AMS-MML_HTMLorMML-full&amp;delayStartupUntil=configured"></script>
+	<!-- MathJax 3.2.1 Configuration - MUST come BEFORE loading MathJax -->
+	<script>
+		window.MathJax = {
+			tex: {
+				inlineMath: [['$', '$'], ['\\(', '\\)']],
+				displayMath: [['$$', '$$'], ['\\[', '\\]']],
+				processEscapes: true,
+				processEnvironments: true
+			},
+			svg: {
+				fontCache: 'global',
+				scale: 1
+			},
+			startup: {
+				pageReady: () => {
+					return MathJax.typesetPromise().catch(err => console.log(err));
+				}
+			}
+		};
+	</script>
+
+	<!-- MathJax 3.2.1 from CDN -->
+	<script async src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"></script>
 
 	<script type="text/javascript" src="{% static 'js/message.js' %}"></script>
 	<script type="text/javascript" src="{% static 'js/authentication.js' %}"></script>

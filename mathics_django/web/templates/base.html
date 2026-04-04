@@ -50,11 +50,11 @@
 	</script>
 
 	{% if user.is_authenticated %}
-		<script type="text/javascript">
-			$(document).observe('dom:loaded', function () {
-				onLogin("{{ user.email }}");
-			});
-		</script>
+            <script type="text/javascript">
+	      document.addEventListener('DOMContentLoaded', function() {
+		  onLogin("{{ user.email }}");
+	      });
+	    </script>
 	{% endif %}
 
 	{% block main %}
