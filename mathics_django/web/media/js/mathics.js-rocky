@@ -67,26 +67,30 @@ function getDimensions(math, callback) {
     const container = all.querySelector('.calc_container');
     container.appendChild(translateDOMElement(math));
 
-    // MathJax 4.0 uses the modern promise-based API
-    MathJax.typesetPromise([container]).then(() => {
-        window.requestAnimationFrame(function() {
-            const containerOffsetLeft = container.offsetLeft,
-                  containerOffsetTop = container.offsetTop,
-                  nextOffsetLeft = all.querySelector('.calc_next').offsetLeft,
-                  belowOffsetTop = all.querySelector('.calc_below').offsetTop;
+    MathJax.typesetPromise([container]);
 
-            const width = nextOffsetLeft - containerOffsetLeft + 4,
-                  height = belowOffsetTop - containerOffsetTop + 20;
+    // MathJax.typesetPromise returns a promise that resolves when rendering is complete
+    MathJax.typesetPromise([all]).then(() => {
+	const containerOffsetLeft = container.offsetLeft,
+              containerOffsetTop = container.offsetTop,
+              nextOffsetLeft = all.querySelector('.calc_next').offsetLeft,
+              belowOffsetTop = all.querySelector('.calc_below').offsetTop;
 
-            all.remove();
+	const width = nextOffsetLeft - containerOffsetLeft + 4,
+              height = belowOffsetTop - containerOffsetTop + 20;
 
-            callback(width, height);
-        });
-    }).catch(err => console.log(err));
+	// Clean up the temporary element
+	all.remove();
+
+	// Execute your callback with the calculated dimensions
+	callback(width, height);
+    }).catch((err) => {
+	console.error("MathJax typesetting failed:", err);
+    });
 }
 
 function createMathNode(nodeName) {
-    if (['svg', 'g', 'rect', 'circle', 'polyline', 'polygon', 'path', 'ellipse', 'foreignObject'].includes(nodeName)) {
+    if (['svg', 'g', 'rect', 'circle', 'polyline', 'polygon', 'path', 'ellipse', 'foreignObject'].include(nodeName)) {
         return document.createElementNS("http://www.w3.org/2000/svg", nodeName);
     }
 
@@ -267,11 +271,11 @@ function createLine(value) {
     }
     if (container?.firstElementChild?.tagName === 'GRAPHICS3D') {
         const div = document.createElement('div');
-        var json_data_value = JSON.parse(container.firstElementChild.attributes.data.value);
-        div.style.backgroundColor = json_data_value["background_color"];
-        if ("tooltip_text" in json_data_value){
-            div.title = json_data_value["tooltip_text"];
-        }
+	var json_data_value = JSON.parse(container.firstElementChild.attributes.data.value);
+	div.style.backgroundColor = json_data_value["background_color"];
+	if ("tooltip_text" in json_data_value){
+	    div.title = json_data_value["tooltip_text"];
+	}
         drawGraphics3d(div, json_data_value);
 
         div.style.overflow = 'hidden';
@@ -291,12 +295,12 @@ function createLine(value) {
         const lines = container.innerText.split('\n');
         const p = document.createElement('p');
         p.className = 'string';
-        if(lines.length>1){
-            p.style.textAlign = 'justify';
-        }
+	if(lines.length>1){
+	    p.style.textAlign = 'justify';
+	}
 
         for (let i = 0; i < lines.length; i++) {
-            newline = prepareText(lines[i]);
+	    newline = prepareText(lines[i]);
             p.innerHTML += newline;
 
             if (i < lines.length - 1) {
@@ -308,51 +312,70 @@ function createLine(value) {
 }
 
 function afterProcessResult(list, command) {
-    // command is either 'typeset' (default) or 'rerender'
-    // MathJax 4.0 uses lowercase method names
-    command ||= 'typeset';
+    // command is either 'Typeset' (default) or 'Rerender'
+    command ||= 'Typeset';
 
+    MathJax.typesetPromise([container]);
+
+
+    // Ensure 'list' is the element containing your math
     MathJax.typesetPromise([list]).then(() => {
-        // inject SVG and other non-MathML objects into corresponding <mspace>s
-        list.querySelectorAll('.mspace').forEach((mspace) => {
-            if (mspace) {
-                const id = mspace.getAttribute('id').substr(objectsPrefix.length);
+	// MathJax has finished rendering 'list' into CommonHTML or SVG.
+	// We can now find the rendered mspace containers.
+	list.querySelectorAll('.mspace').forEach((mspace) => {
+            const fullId = mspace.getAttribute('id');
+            if (fullId && fullId.startsWith(objectsPrefix)) {
+		const id = fullId.substr(objectsPrefix.length);
 
-                mspace.appendChild(objects[id]);
+		// Inject the corresponding object (SVG/Canvas/etc.)
+		if (objects[id]) {
+                    mspace.appendChild(objects[id]);
+		}
             }
-        });
-    }).catch(err => console.log(err));
+	});
+    }).catch((err) => {
+	console.error("MathJax injection failed:", err);
+    });
 
-    // Re-typeset after injecting objects
     MathJax.typesetPromise([list]).then(() => {
-        list.querySelectorAll('foreignObject > span > nobr > span.math')
-            .forEach((math) => {
-                const content = math.firstChild.firstChild.firstChild;
+	// MathJax v4 uses 'mjx-container' for its rendered output.
+	// We query for these containers instead of the old span.math/nobr structure.
+	list.querySelectorAll('foreignObject mjx-container').forEach((mathContainer) => {
 
-                math.removeChild(math.firstChild);
-                math.insertBefore(content, math.firstChild);
+            // 1. Handling the "Content Shift"
+            // In v4, the actual math content is usually inside a <mjx-math> element.
+            const mathContent = mathContainer.querySelector('mjx-math');
 
-                if (command === 'typeset') {
-                    // recalculate positions of insets based on ox/oy properties
-                    const foreignObject = math.parentNode.parentNode.parentNode,
-                          dimensions = math.getDimensions();
+            if (command === 'Typeset' && mathContent) {
+		const foreignObject = mathContainer.closest('foreignObject');
 
-                    const ox = parseFloat(foreignObject.getAttribute('ox')),
-                          oy = parseFloat(foreignObject.getAttribute('oy')),
-                          width = dimensions.width + 4,
-                          height = dimensions.height + 4;
+		// 2. Getting Dimensions
+		// MathJax v4 doesn't have a built-in .getDimensions() on the element.
+		// Use standard browser BoundingClientRect for accurate measurements.
+		const rect = mathContainer.getBoundingClientRect();
+		const width = rect.width + 4;
+		const height = rect.height + 4;
 
-                    let x = parseFloat(foreignObject.getAttribute('x').substr()),
-                        y = parseFloat(foreignObject.getAttribute('y'));
+		// 3. Coordinate Recalculation
+		const ox = parseFloat(foreignObject.getAttribute('ox') || 0);
+		const oy = parseFloat(foreignObject.getAttribute('oy') || 0);
 
-                    x = x - width / 2.0 - ox * width / 2.0;
-                    y = y - height / 2.0 + oy * height / 2.0;
+		// Get original x/y (stripping 'px' if present)
+		let x = parseFloat(foreignObject.getAttribute('x'));
+		let y = parseFloat(foreignObject.getAttribute('y'));
 
-                    foreignObject.setAttribute('x', x + 'px');
-                    foreignObject.setAttribute('y', y + 'px');
-                }
-            });
-    }).catch(err => console.log(err));
+		// The Mathics3 logic for centering/offsetting
+		x = x - width / 2.0 - ox * width / 2.0;
+		y = y - height / 2.0 + oy * height / 2.0;
+
+		// Update attributes
+		foreignObject.setAttribute('x', x + 'px');
+		foreignObject.setAttribute('y', y + 'px');
+		foreignObject.setAttribute('width', width + 'px');
+		foreignObject.setAttribute('height', height + 'px');
+            }
+	});
+    }).catch((err) => console.error("v4 Typeset Adjustment Failed:", err));
 }
 
 function setResult(list, results) {
@@ -392,8 +415,8 @@ function setResult(list, results) {
 
         // Create and populate message's classification part...
 
-        resultList.style.display = 'block';
-        resultList.appendChild(show_out(first_out));
+	resultList.style.display = 'block';
+	resultList.appendChild(show_out(first_out));
         li.appendChild(resultList);
         list.appendChild(li);
 
@@ -451,10 +474,10 @@ function show_out(out){
     out_p = createLine(text);
     out_p.className = "out";
     if(out.message){
-        li.className = "message";
-        out_p.innerHTML = "<strong>" + out.prefix + ": </strong>" + out_p.innerHTML;
+	li.className = "message";
+	out_p.innerHTML = "<strong>" + out.prefix + ": </strong>" + out_p.innerHTML;
     }else{
-        li.className = "print";
+	li.className = "print";
     }
     li.appendChild(out_p);
     return li;
@@ -519,7 +542,7 @@ function submitQuery(element, onfinish, query) {
             };
         },
         onFailure: () => {
-            queryInProgress = false;
+	    queryInProgress = false;
             element?.ul.select('li[class!=request]')
                 .forEach((element) => element.remove());
 
@@ -531,7 +554,7 @@ function submitQuery(element, onfinish, query) {
             element.submitted = true;
         },
         onComplete: () => {
-            queryInProgress = false;
+	    queryInProgress = false;
             element?.li.classList.remove('loading');
             document.getElementById('logo')?.classList.remove('working');
 
@@ -845,19 +868,6 @@ function globalKeyUp(event) {
 }
 
 function domLoaded() {
-    // MathJax 4.0 configuration
-    // The configuration object and setup must be done before loading MathJax
-    window.MathJax = {
-        tex: {
-            inlineMath: [['$', '$'], ['\\(', '\\)']],
-            displayMath: [['$$', '$$'], ['\\[', '\\]']],
-            processEscapes: true
-        },
-        svg: {
-            fontCache: 'global'
-        }
-    };
-
     if (localStorage.getItem('hideMathicsStartupMsg') === 'true') {
         document.getElementById('welcome').style.display = 'none';
     }
@@ -896,7 +906,7 @@ window.addEventListener('resize', function () {
 
     timeout = window.setTimeout(function () {
         document.querySelectorAll('#queries ul').forEach((ul) => {
-            afterProcessResult(ul, 'rerender');
+            afterProcessResult(ul, 'Rerender');
         });
 
         timeout = -1; // reset the timeout
