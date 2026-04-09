@@ -319,8 +319,9 @@ function afterProcessResult(list, command) {
         list.querySelectorAll('.mspace').forEach((mspace) => {
 	    if (mspace) {
 		const id = mspace.getAttribute('id').substr(objectsPrefix.length);
-
-		mspace.appendChild(objects[id]);
+		if (objects[id]) {
+		    mspace.appendChild(objects[id]);
+		}
 	    }
         });
     });

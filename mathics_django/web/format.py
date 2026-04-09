@@ -9,13 +9,15 @@ from mathics.core.systemsymbols import (
     SymbolInterpretationBox,
     SymbolOutputForm,
     SymbolStandardForm,
+    SymbolTeXForm,
 )
 from mathics.format.box import format_element
 
-FORM_TO_FORMAT = {
+# Maps a Form to a kind of rendering process
+FORM_TO_RENDER = {
     "System`FullForm": "text",
     "System`InputForm": "text",
-    #    "System`MathMLForm": "text",
+    # "System`MathMLForm": "mathml",
     "System`OutputForm": "text",
     "System`TeXForm": "tex",
     "System`String": "text",
@@ -31,7 +33,7 @@ def safe_html_string(value):
     return value  # mark_safe(escape_html(value))
 
 
-def format_output(evaluation, expr, format=None):
+def format_output(evaluation, expr, render=None):
     """
     Handle unformatted output using the *specific* capabilities \
     of mathics-django.
@@ -41,15 +43,15 @@ def format_output(evaluation, expr, format=None):
     specific capabilities.
     """
 
-    if format is None:
-        format = evaluation.format
+    if render is None:
+        render = evaluation.format
 
-    if format == "unformatted":
+    if render == "unformatted":
         evaluation.exc_result = None
         return expr
 
-    if isinstance(format, dict):
-        return dict((k, evaluation.format_output(expr, f)) for k, f in format.items())
+    if isinstance(render, dict):
+        return dict((k, evaluation.format_output(expr, f)) for k, f in render.items())
 
     if expr is SymbolAborted:
         return "$Aborted"
@@ -61,38 +63,50 @@ def format_output(evaluation, expr, format=None):
     # MathML, we want
     # plain-ol' text so we can cut and paste that.
     expr_type = expr.get_head_name()
-    if expr_type in FORM_TO_FORMAT:
+    if expr_type in FORM_TO_RENDER:
         # For these forms, we strip off the outer "Form" part
-        format = FORM_TO_FORMAT[expr_type]
+        render = FORM_TO_RENDER[expr_type]
 
     # This part was derived from and the same as evaluation.py format_output.
 
-    if format == "text":
+    if render == "text":
         boxed = format_element(expr, evaluation, SymbolOutputForm)
         result = boxed.boxes_to_text()
 
         return safe_html_string(result)
-    elif format == "xml":
-        boxes = format_element(expr, evaluation, SymbolStandardForm)
+    elif render == "xml":
+        boxed = format_element(expr, evaluation, SymbolStandardForm)
         if (
-            hasattr(boxes, "head")
-            and boxes.head is SymbolInterpretationBox
-            and (box_value := boxes.elements[0].value).startswith('"<math ')
+            hasattr(boxed, "head")
+            and boxed.head is SymbolInterpretationBox
+            and (box_value := boxed.elements[0].value).startswith('"<math ')
         ):
-            # FIXME: [1:-1] is to strip quotes. There should be a better way...
+            # FIXME: [1:-1] is to strip quotes.
+            # We should probably address a long-standing mistake where strings
+            # have quotes in them.
             return box_value[1:-1]
+
+        # THINK ABOUT: This probably no longer happens
         result = (
             '<math display="block">'
-            f"{boxes.boxes_to_mathml(evaluation=evaluation)}"
+            f"{boxed.to_mathml(evaluation=evaluation)}"
             "</math>"
         )
         return safe_html_string(result)
-    elif format == "tex":
-        boxes = format_element(expr, evaluation, SymbolStandardForm)
-        if isinstance(boxes, String):
-            result = boxes.boxes_to_text()
+    elif render == "tex":
+        boxed = format_element(expr, evaluation, SymbolTeXForm)
+        if hasattr(boxed, "head") and boxed.head is SymbolInterpretationBox:
+            # FIXME: [1:-1] is to strip quotes.
+            # We should probably address a long-standing mistake where strings
+            # have quotes in them.
+            box_str_sans_quotes = boxed.elements[0].value[1:-1]
+            return f"$${box_str_sans_quotes}$$"
+
+        # THINK ABOUT: This probably no longer happens
+        if isinstance(boxed, String):
+            result = boxed.to_text()
         else:
-            result = boxes.boxes_to_tex(evaluation=evaluation)
+            result = boxed.to_tex(evaluation=evaluation)
         return safe_html_string(result)
 
     raise ValueError
