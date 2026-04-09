@@ -361,7 +361,7 @@ function afterProcessResult(list, command) {
                     }
                 }
             });
-    }).catch(err => console.error('MathJax typeset error:', err));
+    });
 }
 
 function setResult(list, results) {

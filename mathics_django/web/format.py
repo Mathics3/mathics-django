@@ -6,6 +6,7 @@ from mathics.core.atoms import String
 from mathics.core.systemsymbols import (
     SymbolAborted,
     SymbolFailed,
+    SymbolInterpretationBox,
     SymbolOutputForm,
     SymbolStandardForm,
 )
@@ -16,7 +17,7 @@ FORM_TO_FORMAT = {
     "System`InputForm": "text",
     #    "System`MathMLForm": "text",
     "System`OutputForm": "text",
-    #    "System`TeXForm": "text",
+    "System`TeXForm": "tex",
     "System`String": "text",
 }
 
@@ -73,6 +74,13 @@ def format_output(evaluation, expr, format=None):
         return safe_html_string(result)
     elif format == "xml":
         boxes = format_element(expr, evaluation, SymbolStandardForm)
+        if (
+            hasattr(boxes, "head")
+            and boxes.head is SymbolInterpretationBox
+            and (box_value := boxes.elements[0].value).startswith('"<math ')
+        ):
+            # FIXME: [1:-1] is to strip quotes. There should be a better way...
+            return box_value[1:-1]
         result = (
             '<math display="block">'
             f"{boxes.boxes_to_mathml(evaluation=evaluation)}"
