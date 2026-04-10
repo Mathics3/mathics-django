@@ -20,7 +20,7 @@ function getLetterWidth(element) {
 
     document.body.appendChild(letter);
 
-    const width = letter.getWidth();
+    const width = letter.getBoundingClientRect().width;
 
     document.body.removeChild(letter);
 
@@ -52,7 +52,7 @@ function inputChange() {
 }
 
 function isEmpty(textarea) {
-    return textarea.value.strip() == '' && !textarea.submitted;
+    return textarea.value.trim() == '' && !textarea.submitted;
 }
 
 function prepareText(text) {
@@ -88,7 +88,7 @@ function getDimensions(math, callback) {
 }
 
 function createMathNode(nodeName) {
-    if (['svg', 'g', 'rect', 'circle', 'polyline', 'polygon', 'path', 'ellipse', 'foreignObject'].include(nodeName)) {
+    if (['svg', 'g', 'rect', 'circle', 'polyline', 'polygon', 'path', 'ellipse', 'foreignObject'].includes(nodeName)) {
         return document.createElementNS("http://www.w3.org/2000/svg", nodeName);
     }
 
@@ -97,6 +97,9 @@ function createMathNode(nodeName) {
 
 let objectsPrefix = 'math_object_', objectsCount = 0, objects = {};
 
+// This function is a mess and boneheaded.
+// We should use libraries to do formatting instead of hacking DOM elements.
+// As a result, this code makes it a pain to upgrade existing libraries like MathJax.
 function translateDOMElement(element, svg) {
     if (element.nodeType === 3) {
         return document.createTextNode(element.nodeValue);
@@ -319,8 +322,9 @@ function afterProcessResult(list, command) {
         list.querySelectorAll('.mspace').forEach((mspace) => {
 	    if (mspace) {
 		const id = mspace.getAttribute('id').substr(objectsPrefix.length);
-
-		mspace.appendChild(objects[id]);
+		if (objects[id]) {
+		    mspace.appendChild(objects[id]);
+		}
 	    }
         });
     });
@@ -341,22 +345,24 @@ function afterProcessResult(list, command) {
 
                 if (command === 'Typeset') {
                     // recalculate positions of insets based on ox/oy properties
-                    const foreignObject = math.parentNode.parentNode.parentNode,
-                          dimensions = math.getDimensions();
+                    const foreignObject = math.parentNode.parentNode.parentNode;
+                    if (foreignObject && math.getDimensions) {
+                        const dimensions = math.getDimensions();
 
-                    const ox = parseFloat(foreignObject.getAttribute('ox')),
-                          oy = parseFloat(foreignObject.getAttribute('oy')),
-                          width = dimensions.width + 4,
-                          height = dimensions.height + 4;
+                        const ox = parseFloat(foreignObject.getAttribute('ox')) || 0,
+                              oy = parseFloat(foreignObject.getAttribute('oy')) || 0,
+                              width = dimensions.width + 4,
+                              height = dimensions.height + 4;
 
-                    let x = parseFloat(foreignObject.getAttribute('x').substr()),
-                        y = parseFloat(foreignObject.getAttribute('y'));
+                        let x = parseFloat(foreignObject.getAttribute('x')) || 0,
+                            y = parseFloat(foreignObject.getAttribute('y')) || 0;
 
-                    x = x - width / 2.0 - ox * width / 2.0;
-                    y = y - height / 2.0 + oy * height / 2.0;
+                        x = x - width / 2.0 - ox * width / 2.0;
+                        y = y - height / 2.0 + oy * height / 2.0;
 
-                    foreignObject.setAttribute('x', x + 'px');
-                    foreignObject.setAttribute('y', y + 'px');
+                        foreignObject.setAttribute('x', x + 'px');
+                        foreignObject.setAttribute('y', y + 'px');
+                    }
                 }
             });
     });
@@ -479,7 +485,12 @@ function submitQuery(element, onfinish, query) {
     }
 
     if (welcome) {
-        document.getElementById('welcomeContainer')?.fade({ duration: 0.2 });
+	const welcomeContainer = document.getElementById('welcomeContainer');
+	if (welcomeContainer) {
+	    welcomeContainer.style.transition = 'opacity 0.2s ease-out';
+	    welcomeContainer.style.opacity = '0';
+	    welcomeContainer.style.pointerEvents = 'none';
+	}
 
         if (document.getElementById('hideStartupMsg')?.checked) {
             localStorage.setItem('hideMathicsStartupMsg', 'true');
@@ -561,7 +572,7 @@ function keyDown(event) {
     if (event.key === 'Enter' && (event.shiftKey || event.location === 3)) {
         event.stop();
 
-        if (textArea.value.strip()) {
+        if (textArea.value.trim()) {
             submitQuery(textArea);
         }
     } else if (event.key === 'ArrowUp') {
@@ -617,7 +628,7 @@ function deleteClick() {
 
 function moveMouseDown() {
     movedItem = this.li;
-    movedItem.addClassName('moving');
+    movedItem.classList.add('moving');
 }
 
 function moveMouseUp() {
@@ -730,7 +741,7 @@ function createQuery(beforeElement, noFocus, updatingAll) {
     moveHandle.addEventListener('mousedown', moveMouseDown);
     document.addEventListener('mouseup', moveMouseUp);
     submitButton.addEventListener('mousedown', () => {
-        if (textarea.value.strip()) {
+        if (textarea.value.trim()) {
             submitQuery(textarea);
         } else {
             textarea.focus();
@@ -876,7 +887,10 @@ function domLoaded() {
     MathJax.Hub.Configured();
 
     if (localStorage.getItem('hideMathicsStartupMsg') === 'true') {
-        document.getElementById('welcome').style.display = 'none';
+        const welcome = document.getElementById('welcome');
+        if (welcome) {
+            welcome.style.display = 'none';
+        }
     }
 
     const queriesContainer = document.getElementById('queriesContainer');
@@ -913,7 +927,7 @@ window.addEventListener('resize', function () {
 
     timeout = window.setTimeout(function () {
         document.querySelectorAll('#queries ul').forEach((ul) => {
-            afterProcessResult(ul, 'Rerender');
+            afterProcessResult(ul);
         });
 
         timeout = -1; // reset the timeout
