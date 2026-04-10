@@ -850,7 +850,7 @@ function globalKeyUp(event) {
 }
 
 function domLoaded() {
-    // MathJax 4.0 configuration
+    // MathJax 3.2.2 Configuration
     // The configuration object and setup must be done before loading MathJax
     window.MathJax = {
         tex: {
