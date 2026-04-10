@@ -8,8 +8,9 @@ from pathlib import Path
 from mathics.settings import DATA_DIR
 
 # Needed for Firefox security. Allow these mime types.
-# When we migrate to MathJax v4, we won't need this.
 mimetypes.add_type("font/woff2", ".woff2", True)
+mimetypes.add_type("application/javascript", ".js", True)
+mimetypes.add_type("text/javascript", ".js", True)
 
 # Check if daphne is installed without importing
 daphne_spec = importlib.util.find_spec("daphne")

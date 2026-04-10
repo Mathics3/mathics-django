@@ -32,14 +32,10 @@
 
 	<script type="text/javascript" src="{% static 'js/prototype/prototype.js' %}"></script>
 
-	<script type="text/javascript" src="{% static 'js/mathjax/tex-mml-chtml.js' %}?config=TeX-AMS-MML_HTMLorMML-full&amp;delayStartupUntil=configured"></script>
-
 	<script type="text/javascript" src="{% static 'js/message.js' %}"></script>
 	<script type="text/javascript" src="{% static 'js/authentication.js' %}"></script>
 	<script type="text/javascript" src="{% static 'js/inout.js' %}"></script>
 	<script type="text/javascript" src="{% static 'js/utils.js' %}"></script>
-	<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-	<script id="MathJax-script" async src="{% static 'js/mathjax/tex-mml-chtml.js' %}"></script>
 	<script type="text/javascript" src="{% static 'js/mathics.js' %}"></script>
 	<script type="text/javascript" src="{% static 'js/mathics-threejs-backend/index.js' %}"></script>
 	<script type="text/javascript" src="{% static 'js/doc.js' %}"></script>
@@ -92,6 +88,7 @@
 	      }
 	  };
 	</script>
+	<script id="Mathjax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
 	{% block html_head %}
 	{% endblock %}
