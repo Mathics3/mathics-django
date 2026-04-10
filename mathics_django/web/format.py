@@ -13,13 +13,16 @@ from mathics.core.systemsymbols import (
 )
 from mathics.format.box import format_element
 
-# Maps a Form to a kind of rendering process
-FORM_TO_RENDER = {
+# Maps a Form to a kind of html format.
+# text is the usual text-kind of output.
+# LaTeX is handled by MathJaX display mode $$ $$
+# MathML could be tagged differently too.
+FORM_TO_HTML_TAG_FORMAT = {
     "System`FullForm": "text",
     "System`InputForm": "text",
-    # "System`MathMLForm": "mathml",
+    # "System`MathMLForm": "MathML",
     "System`OutputForm": "text",
-    "System`TeXForm": "tex",
+    "System`TeXForm": "LaTeX",
     "System`String": "text",
 }
 
@@ -33,7 +36,7 @@ def safe_html_string(value):
     return value  # mark_safe(escape_html(value))
 
 
-def format_output(evaluation, expr, render=None):
+def format_output(evaluation, expr, html_tag_format=None):
     """
     Handle unformatted output using the *specific* capabilities \
     of mathics-django.
@@ -43,15 +46,17 @@ def format_output(evaluation, expr, render=None):
     specific capabilities.
     """
 
-    if render is None:
-        render = evaluation.format
+    if html_tag_format is None:
+        html_tag_format = evaluation.format
 
-    if render == "unformatted":
+    if html_tag_format == "unformatted":
         evaluation.exc_result = None
         return expr
 
-    if isinstance(render, dict):
-        return dict((k, evaluation.format_output(expr, f)) for k, f in render.items())
+    if isinstance(html_tag_format, dict):
+        return dict(
+            (k, evaluation.format_output(expr, f)) for k, f in html_tag_format.items()
+        )
 
     if expr is SymbolAborted:
         return "$Aborted"
@@ -63,18 +68,18 @@ def format_output(evaluation, expr, render=None):
     # MathML, we want
     # plain-ol' text so we can cut and paste that.
     expr_type = expr.get_head_name()
-    if expr_type in FORM_TO_RENDER:
+    if expr_type in FORM_TO_HTML_TAG_FORMAT:
         # For these forms, we strip off the outer "Form" part
-        render = FORM_TO_RENDER[expr_type]
+        html_tag_format = FORM_TO_HTML_TAG_FORMAT[expr_type]
 
     # This part was derived from and the same as evaluation.py format_output.
 
-    if render == "text":
+    if html_tag_format == "text":
         boxed = format_element(expr, evaluation, SymbolOutputForm)
         result = boxed.boxes_to_text()
 
         return safe_html_string(result)
-    elif render == "xml":
+    elif html_tag_format == "xml":
         boxed = format_element(expr, evaluation, SymbolStandardForm)
         if (
             hasattr(boxed, "head")
@@ -93,7 +98,7 @@ def format_output(evaluation, expr, render=None):
             "</math>"
         )
         return safe_html_string(result)
-    elif render == "tex":
+    elif html_tag_format == "LaTeX":
         boxed = format_element(expr, evaluation, SymbolTeXForm)
         if hasattr(boxed, "head") and boxed.head is SymbolInterpretationBox:
             # FIXME: [1:-1] is to strip quotes.

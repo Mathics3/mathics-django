@@ -97,6 +97,9 @@ function createMathNode(nodeName) {
 
 let objectsPrefix = 'math_object_', objectsCount = 0, objects = {};
 
+// This function is a mess and boneheaded.
+// We should use libraries to do formatting instead of hacking DOM elements.
+// As a result, this code makes it a pain to upgrade existing libraries like MathJax.
 function translateDOMElement(element, svg) {
     if (element.nodeType === 3) {
         return document.createTextNode(element.nodeValue);
