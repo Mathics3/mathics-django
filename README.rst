@@ -58,7 +58,7 @@ Once Mathics3 is installed, run::
    pip install Mathics-Django
 
 
-Install from Github source
+Install from the GitHub source
 ++++++++++++++++++++++++++
 
 From the place root directory that github was checked out::
@@ -69,7 +69,7 @@ From the place root directory that github was checked out::
 Running
 -------
 
-This is a Django project, so Django's `manage.py <https://docs.djangoproject.com/en/3.2/ref/django-admin/>`_ script used.
+This is a Django project, so Django's `manage.py <https://docs.djangoproject.com/en/3.2/ref/django-admin/>`_ script is used.
 
 A simple way to start Mathics Django when GNU make is installed (which is the case on most POSIX systems):
 
@@ -80,13 +80,13 @@ A simple way to start Mathics Django when GNU make is installed (which is the ca
 Underneath this runs the Python program ``manage.py`` in ``mathics_django`` directory.
 
 To get a list of the available commands, type ``python
-mathics_django/manage.py help``. To get help on a specific command
-give that command at the end. For example two commands that are useful
+mathics_django/manage.py help``. To get help on a specific command,
+give that command at the end. For example, two commands that are useful
 are the ``runserver`` and ``testserver`` commands. ``python
 mathics_django/manage.py help runserver`` will show options in running
 the Django server.
 
-Once the server is started you will see a URL listed that lookss like this::
+Once the server is started, you will see a URL listed that looks like this::
 
    Starting development server at http://127.0.0.1:8000/
    Quit the server with CONTROL-C.
@@ -96,23 +96,23 @@ Point your browser to the URL listed above. Here it is ``http://127.0.0.1:8000``
 Environment Variables
 +++++++++++++++++++++
 
-There are two special environment variables of note which controls
-where the Mathics database is located. This database is saves
+There are two special environment variables of note that control
+where the Mathics database is located. This database saves
 authentication and worksheet information.
 
-By default the database used is ``DATADIR + mathics.sqlite`` where
-``DATADIR`` is under ``AppData/Python/Mathics/`` for MS-Windows and
-``~/.local/var/mathics/`` for all others. If you want to specify your own database file set
-environment variable ``MATHICS_DJANGO_DB_PATH``.
+By default, the database used is ``DATADIR + mathics.sqlite`` where
+``DATADIR`` is under ``AppData/Python/Mathics3/`` for MS-Windows and
+``~/.local/var/Mathics3/`` for all others. If you want to specify your own database file, set
+the environment variable ``MATHICS3_DJANGO_DB_PATH``.
 
 If you just want to set the ``mathics.sqlite`` portion, you can use
-the environment variable ``MATHICS_DJANGO_DB``.
+the environment variable ``MATHICS3_DJANGO_DB``.
 
-Information for the online-documentation comes from one of two places,
+Information for the online documentation comes from one of two places,
 ``DOC_USER_HTML_DATA_PATH`` if that exists and
-``DOC_SYSTEM_HTML_DATA_PATH`` as fallback if that doesn't exist. The
-latter is created when the package is built. The former allows for the
-user or developer to update this information. In the future it will
+``DOC_SYSTEM_HTML_DATA_PATH`` as a fallback if that doesn't exist. The
+latter is created when the package is built. The former allows the
+user or developer to update this information. In the future, it will
 take into account plugins that have been added.
 
 
@@ -125,7 +125,7 @@ Please feel encouraged to contribute to Mathics3! Create your own fork, make the
 License
 -------
 
-Mathics-Django is released under the GNU General Public License Version 3 (GPL3).
+Mathics3-django is released under the GNU General Public License Version 3 (GPL3).
 
 .. |mathicssserver| image:: https://mathics.org/images/mathicsserver.png
 .. |Latest Version| image:: https://badge.fury.io/py/Mathics-Django.svg
