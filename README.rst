@@ -1,5 +1,5 @@
-Welcome to Mathics3-django
-=========================
+Welcome to the Django front-end for Mathics3
+============================================
 
 |CI Status| |Pypi Installs| |Latest Version| |Supported Python Versions|
 
@@ -18,7 +18,7 @@ Features:
 * Integrated graphics, via `three.js <https://threejs.org>`_, and MathML mathematics output
 * Notebook-like sessions
 
-See also `Mathics3-live <https://github.com/Mathics3/Mathics3-live>`_ for a Webassembly-powered Python kernel backed by Pyodide, and `this <https://github.com/Mathics3/Mathics3-notebook-frontends>`_ for other notebook front-ends.
+See also `Mathics3-live <https://github.com/Mathics3/Mathics3-live>`_ for a Webassembly-powered Python core backed by Pyodide, and `this <https://github.com/Mathics3/Mathics3-notebook-frontends>`_ for other notebook front-ends.
 
 
 ScreenShot
@@ -33,9 +33,7 @@ mathicsserver: a Django-based Web interface
 Installing
 ----------
 
-This package needs a working Mathics3 Kernel, the core engine, installed as well as a recent
-version of Django. For Django, you will need mysql or mariadb
-installed, since that is where worksheets are stored.
+This package needs a working Mathics3 core engine, installed as well as a recent version of Django. For Django, you will need mysql or mariadb installed, since that is where worksheets are stored.
 
 See the `Installing Mathics3 <https://mathics-development-guide.readthedocs.io/en/latest/installing.html>`_ for instructions on installing Mathics3.
 
@@ -59,7 +57,7 @@ Once Mathics3 is installed, run::
 
 
 Install from the GitHub source
-++++++++++++++++++++++++++
++++++++++++++++++++++++++++++++
 
 From the place root directory where GitHub was checked out::
 
@@ -105,30 +103,23 @@ Point your browser to the URL listed above. Here it is ``http://127.0.0.1:8000``
 Environment Variables
 +++++++++++++++++++++
 
-There are two special environment variables of note that control
-where the Mathics database is located. This database saves
+There are two special environment variables of note that control where the Mathics3 database is located. This database saves
 authentication and worksheet information.
 
 By default, the database used is ``DATADIR + mathics.sqlite`` where
 ``DATADIR`` is under ``AppData/Python/Mathics3/`` for MS-Windows and
-``~/.local/var/Mathics3/`` for all others. If you want to specify your own database file, set
-the environment variable ``MATHICS3_DJANGO_DB_PATH``.
+``~/.local/var/Mathics3/`` for all others. If you want to specify your own database file, set the environment variable ``MATHICS3_DJANGO_DB_PATH``.
 
-If you just want to set the ``mathics3.sqlite`` portion, you can use
-the environment variable ``MATHICS3_DJANGO_DB``.
+If you just want to set the ``mathics3.sqlite`` portion, you can use the environment variable ``MATHICS3_DJANGO_DB``.
 
-Information for the online documentation comes from one of two places,
-``DOC_USER_HTML_DATA_PATH`` if that exists and
-``DOC_SYSTEM_HTML_DATA_PATH`` as a fallback if that doesn't exist. The
-latter is created when the package is built. The former allows the
-user or developer to update this information. In the future, it will
-take into account plugins that have been added.
+Information for the online documentation comes from one of two places, ``DOC_USER_HTML_DATA_PATH`` if that exists and ``DOC_SYSTEM_HTML_DATA_PATH`` as a fallback if that doesn't exist. The
+latter is created when the package is built. The former allows the user or developer to update this information. In the future, it will take into account plugins that have been added.
 
 
 Contributing
 ------------
 
-Please feel encouraged to contribute to Mathics3! Create your own fork, make the desired changes, commit, and make a pull request.
+We encourage you to contribute to Mathics3! Create your own fork, make the desired changes, commit, and make a pull request.
 
 
 License
