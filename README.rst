@@ -55,13 +55,13 @@ Install from PyPI
 
 Once Mathics3 is installed, run::
 
-   pip install Mathics-Django
+   pip install Mathics3-Django
 
 
 Install from the GitHub source
 ++++++++++++++++++++++++++
 
-From the place root directory that github was checked out::
+From the place root directory where GitHub was checked out::
 
   make install
 
@@ -71,20 +71,29 @@ Running
 
 This is a Django project, so Django's `manage.py <https://docs.djangoproject.com/en/3.2/ref/django-admin/>`_ script is used.
 
-A simple way to start Mathics Django when GNU make is installed (which is the case on most POSIX systems):
+A simple way to start Mathics3 Django when GNU make is installed (which is the case on most POSIX systems):
 
 ::
 
    make runserver
 
-Underneath this runs the Python program ``manage.py`` in ``mathics_django`` directory.
+This runs the server in development mode. Here, when changes to the source code are made, the running server detects them and reloads the modified source.
 
-To get a list of the available commands, type ``python
-mathics_django/manage.py help``. To get help on a specific command,
-give that command at the end. For example, two commands that are useful
-are the ``runserver`` and ``testserver`` commands. ``python
-mathics_django/manage.py help runserver`` will show options in running
-the Django server.
+To run Mathics3 Django in production mode and you have the Django ASGI server `Daphne <https://pypi.org/project/daphne/>`_ installed, run::
+
+   make runserver-production
+
+In either case, this runs the Python program ``manage.py`` in ``mathics_django`` directory.
+
+To get a list of the available commands, type::
+
+   python  mathics_django/manage.py help
+
+To get help on a specific command, give that command at the end. For example, two useful commands are the ``runserver`` and ``testserver`` commands:: 
+
+   python mathics_django/manage.py help runserver
+
+will show options for running the Django server.
 
 Once the server is started, you will see a URL listed that looks like this::
 
@@ -105,7 +114,7 @@ By default, the database used is ``DATADIR + mathics.sqlite`` where
 ``~/.local/var/Mathics3/`` for all others. If you want to specify your own database file, set
 the environment variable ``MATHICS3_DJANGO_DB_PATH``.
 
-If you just want to set the ``mathics.sqlite`` portion, you can use
+If you just want to set the ``mathics3.sqlite`` portion, you can use
 the environment variable ``MATHICS3_DJANGO_DB``.
 
 Information for the online documentation comes from one of two places,
