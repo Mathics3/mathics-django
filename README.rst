@@ -37,7 +37,7 @@ This package needs a working Mathics3 Kernel, the core engine, installed as well
 version of Django. For Django, you will need mysql or mariadb
 installed, since that is where worksheets are stored.
 
-See the `Installing Mathics <https://mathics-development-guide.readthedocs.io/en/latest/installing.html>`_ for instructions on installing Mathics3.
+See the `Installing Mathics3 <https://mathics-development-guide.readthedocs.io/en/latest/installing.html>`_ for instructions on installing Mathics3.
 
 If you are a novice at installing Python packages, consider using either a pre-built OS package if available under "Packaging status" above,
 or the `mathics docker image <https://hub.docker.com/r/mathicsorg/mathics>`_.
