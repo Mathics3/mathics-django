@@ -1,4 +1,4 @@
-Welcome to Mathics-Django
+Welcome to Mathics3-django
 =========================
 
 |CI Status| |Pypi Installs| |Latest Version| |Supported Python Versions|
