@@ -10,3 +10,6 @@ System`$Notebooks = False;
 
 Settings`$QuotedStrings::usage = "If this Boolean variable is set False, hide the quotes when the top-level value is a string.";
 Settings`$QuotedStrings = True;
+
+Settings`$RenderTeXForm::usage = "If this Boolean variable is set True, TeXForm output is rendered via MathJax.";
+Settings`$RenderTeXForm = True

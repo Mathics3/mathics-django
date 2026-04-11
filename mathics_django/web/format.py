@@ -105,7 +105,11 @@ def format_output(evaluation, expr, html_tag_format=None):
             # We should probably address a long-standing mistake where strings
             # have quotes in them.
             box_str_sans_quotes = boxed.elements[0].value[1:-1]
-            return f"$${box_str_sans_quotes}$$"
+            render_TeXForm_expr = evaluation.parse("Settings`$RenderTeXForm")
+            render_TeXForm = render_TeXForm_expr.evaluate(evaluation).to_python()
+            if render_TeXForm:
+                box_str_sans_quotes = f"$${box_str_sans_quotes}$$"
+            return box_str_sans_quotes
 
         # THINK ABOUT: This probably no longer happens
         if isinstance(boxed, String):
