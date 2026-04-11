@@ -72,8 +72,7 @@ def format_output(evaluation, expr, html_tag_format=None):
         # For these forms, we strip off the outer "Form" part
         html_tag_format = FORM_TO_HTML_TAG_FORMAT[expr_type]
 
-    # This part was derived from and the same as evaluation.py format_output.
-
+    # This part is similar to mathics.core.evaluation.format_output().
     if html_tag_format == "text":
         boxed = format_element(expr, evaluation, SymbolOutputForm)
         result = boxed.boxes_to_text()
@@ -91,7 +90,7 @@ def format_output(evaluation, expr, html_tag_format=None):
             # have quotes in them.
             return box_value[1:-1]
 
-        # THINK ABOUT: This probably no longer happens
+        # This can happen.
         result = (
             '<math display="block">'
             f"{boxed.to_mathml(evaluation=evaluation)}"
